@@ -1,0 +1,410 @@
+package org.tsicoop.compass.framework;
+
+import com.networknt.schema.ValidationMessage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.tsicoop.compass.framework.PasswordHasher;
+
+import java.io.BufferedReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class InputProcessor {
+    public final static String REQUEST_DATA = "input_json";
+    public final static String AUTH_TOKEN = "auth_token";
+
+    private static final String CLIENT_PERMISSIONS = "CLIENT_PERMISSIONS";
+
+    private static Map<String,Set<String>> permissionsMap = new ConcurrentHashMap<String, Set<String>>();
+
+    private static final long API_CACHE_TTL_MS = 60_000L;
+
+    private static class CachedEntry {
+        final boolean valid;
+        final long expiresAt;
+        CachedEntry(boolean valid) {
+            this.valid = valid;
+            this.expiresAt = System.currentTimeMillis() + API_CACHE_TTL_MS;
+        }
+        boolean isExpired() { return System.currentTimeMillis() > expiresAt; }
+    }
+
+    private static final Map<String, CachedEntry> apiClientCache = new ConcurrentHashMap<>();
+
+
+    /**
+     * Verifies if the authenticated client or user possesses the required permission scope.
+     * This method is called by InterceptingFilter after processClientHeader has loaded the scopes.
+     */
+    public static boolean hasPermission(HttpServletRequest req, String requiredScope) {
+        Object permsObj = retrievePerms(req);
+        if (permsObj instanceof Set) {
+            Set<String> permissions = (Set<String>) permsObj;
+            String permstr = permissions.toString();
+            return permstr.contains(requiredScope.toUpperCase());
+        }
+        return false;
+    }
+
+    /**
+     * Retrieves app permissions.
+     * Loads authorized scopes (READ, WRITE, PURGE) from the registry into the request context.
+     */
+    public static Set<String> retrievePerms(HttpServletRequest req) {
+        String key = req.getHeader("X-API-Key");
+        String secret = req.getHeader("X-API-Secret");
+        Set<String> scopeSet = null;
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        if(permissionsMap.get(key)!=null){
+            scopeSet = (Set<String>) permissionsMap.get(key);
+        }
+        else {
+            try {
+                pool = new PoolDB();
+                conn = pool.getConnection();
+                String sql = "SELECT fiduciary_id, permissions, key_value FROM api_keys WHERE id = ? AND status = 'ACTIVE'";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setObject(1, UUID.fromString(key));
+                rs = pstmt.executeQuery();
+
+                if (rs.next() && new PasswordHasher().checkPassword(secret, rs.getString("key_value"))) {
+                    req.setAttribute("fiduciary_id", rs.getObject("fiduciary_id"));
+
+                    String rawPerms = rs.getString("permissions");
+                    scopeSet = new HashSet<>();
+                    if (rawPerms != null) {
+                        for (String p : rawPerms.split(",")) {
+                            scopeSet.add(p.trim().toUpperCase());
+                        }
+                    }
+                    permissionsMap.put(key, scopeSet);
+                }
+            } catch (Exception e) {
+                System.err.println("Client Auth Failure: " + e.getMessage());
+            } finally {
+                pool.cleanup(rs, pstmt, conn);
+            }
+        }
+        return scopeSet;
+    }
+
+    public static void processInput(HttpServletRequest request, HttpServletResponse response) {
+        StringBuilder buffer = new StringBuilder();
+        try {
+            // 1. Attempt to read from the input stream (POST body)
+            BufferedReader reader = request.getReader();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line);
+                buffer.append(System.lineSeparator());
+            }
+
+            String data = buffer.toString().trim();
+
+            // 2. Fallback: If data is empty, extract parameters and wrap in JSON
+            if (data.isEmpty()) {
+                JSONObject jsonParams = new JSONObject();
+                Enumeration<String> paramNames = request.getParameterNames();
+
+                while (paramNames.hasMoreElements()) {
+                    String name = paramNames.nextElement();
+                    String[] values = request.getParameterValues(name);
+
+                    if (values != null && values.length > 0) {
+                        // Handle single vs multiple values for the same parameter key
+                        if (values.length == 1) {
+                            jsonParams.put(name, values[0]);
+                        } else {
+                            JSONArray valArray = new JSONArray();
+                            for (String v : values) {
+                                valArray.add(v);
+                            }
+                            jsonParams.put(name, valArray);
+                        }
+                    }
+                }
+                data = jsonParams.toJSONString();
+            }
+
+            // 3. Persist the normalized JSON data as a request attribute
+            request.setAttribute(REQUEST_DATA, data);
+
+        } catch (Exception e) {
+            System.err.println("InputProcessor critical failure: " + e.getMessage());
+            request.setAttribute(REQUEST_DATA, "{}");
+        }
+    }
+
+    public static boolean processAdminHeader(HttpServletRequest request, HttpServletResponse response) {
+        boolean validheader = false;
+        JSONObject authToken = null;
+        try {
+            authToken = getAdminAuthToken(request, response);
+            if(authToken != null) {
+                request.setAttribute(AUTH_TOKEN, authToken);
+                validheader = true;
+            }
+        }catch (Exception e){}
+        return validheader;
+    }
+
+    public static boolean processClientHeader(HttpServletRequest req, HttpServletResponse res) {
+        boolean validheader = false;
+        String apiKey = req.getHeader("X-API-Key");
+        String apiSecret = req.getHeader("X-API-Secret");
+
+        if (apiKey == null || apiSecret == null) {
+            OutputProcessor.errorResponse(res, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Missing API Key or Secret.", req.getRequestURI());
+            return false;
+        }
+
+        // Validate API Key and Secret against the api_user table
+        try {
+            if (!isValidApiClient(apiKey, apiSecret)) {
+                OutputProcessor.errorResponse(res, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Invalid or inactive API Key/Secret.", req.getRequestURI());
+                return false;
+            }
+            else{
+                validheader = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            OutputProcessor.errorResponse(res, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database Error", "Authentication failed due to database error.", req.getRequestURI());
+            return false;
+        }
+        return validheader;
+    }
+
+    private static boolean isValidApiClient(String apiKey, String apiSecret) throws SQLException {
+        String cacheKey = apiKey + ":" + apiSecret;
+        CachedEntry cached = apiClientCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            return cached.valid;
+        }
+        apiClientCache.remove(cacheKey);
+
+        boolean valid = false;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        PoolDB pool = new PoolDB();
+        String sql = "SELECT status, key_value FROM api_keys WHERE id = ?";
+        try {
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setObject(1, UUID.fromString(apiKey));
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String status = rs.getString("status");
+                String storedHash = rs.getString("key_value");
+                if (status.equalsIgnoreCase("ACTIVE") && new PasswordHasher().checkPassword(apiSecret, storedHash)) {
+                    valid = true;
+                    apiClientCache.put(cacheKey, new CachedEntry(true));
+                }
+            }
+        } finally {
+            pool.cleanup(rs, pstmt, conn);
+        }
+        return valid;
+    }
+
+    public static String getEmail(HttpServletRequest req){
+        JSONObject authToken = null;
+        String email = null;
+        try {
+            authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
+            email = (String) authToken.get("email");
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return email;
+    }
+
+    public static UUID getAuthenticatedUserId(HttpServletRequest req){
+        JSONObject authToken = null;
+        UUID loginUserId = null;
+        String email = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        PoolDB pool = null;
+        String sql = "SELECT id FROM operators WHERE email_hmac = " + DbEncryption.HMAC;
+
+        authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
+        if(authToken == null) return null;
+        email = (String) authToken.get("email");
+
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            DbEncryption.bindHmac(pstmt, 1, email);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                loginUserId = UUID.fromString(rs.getString("id"));
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            pool.cleanup(rs,pstmt,conn);
+        }
+        return loginUserId;
+    }
+
+    public static String getName(HttpServletRequest req){
+        JSONObject authToken = null;
+        String name = null;
+        try {
+            authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
+            name = (String) authToken.get("name");
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    public static String getRole(HttpServletRequest req){
+        JSONObject authToken = null;
+        String role = null;
+        try {
+            authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
+            role = (String) authToken.get("role");
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return role;
+    }
+
+    /** Immediately evicts a revoked/deactivated API key from both in-process caches. */
+    public static void evictApiKeyCache(String apiKeyId) {
+        permissionsMap.remove(apiKeyId);
+        apiClientCache.entrySet().removeIf(e -> e.getKey().startsWith(apiKeyId + ":"));
+    }
+
+    /** Returns the role from the database for the authenticated user, not from the JWT claim. */
+    public static String getVerifiedRole(HttpServletRequest req) {
+        JSONObject authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
+        if (authToken == null) return null;
+        String email = (String) authToken.get("email");
+        if (email == null) return null;
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT role FROM operators WHERE email_hmac = " + DbEncryption.HMAC + " AND status = 'ACTIVE'");
+            DbEncryption.bindHmac(pstmt, 1, email);
+            rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getString("role");
+        } catch (Exception e) {
+            System.err.println("[ERROR] InputProcessor.getVerifiedRole: " + e);
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        return null;
+    }
+
+    public static JSONObject getAdminAuthToken(HttpServletRequest req, HttpServletResponse res) throws Exception{
+        JSONObject tokenDetails = null;
+        String authorization = null;
+        StringTokenizer strTok = null;
+        String token = null;
+
+        try {
+            authorization = req.getHeader("Authorization");
+            if(authorization == null){
+                token = req.getParameter("auth");
+            }else {
+                strTok = new StringTokenizer(authorization, " ");
+                strTok.nextToken();
+                token = strTok.nextToken();
+            }
+            if (JWTUtil.isTokenValid(token)) {
+                tokenDetails = new JSONObject();
+                tokenDetails.put("email",JWTUtil.getEmailFromToken(token));
+                tokenDetails.put("name",JWTUtil.getNameFromToken(token));
+                tokenDetails.put("role",JWTUtil.getRoleFromToken(token));
+            } else if (token != null) {
+                String tokenPrefix = token.length() > 12 ? token.substring(0, 12) : token;
+                String sourceIp = req.getRemoteAddr();
+                System.err.println("[WARN] JWT validation failed for token prefix " + tokenPrefix + " from ip=" + sourceIp);
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] InputProcessor.getAdminAuthToken: " + e);
+        }
+        //System.out.println("tokenDetails:"+tokenDetails);
+        return tokenDetails;
+    }
+
+    public static JSONObject getInput(HttpServletRequest req) throws Exception {
+        JSONObject input = null;
+        try {
+            String inputs = (String) req.getAttribute(InputProcessor.REQUEST_DATA);
+            if (inputs != null) inputs = inputs.trim();
+            input = JacksonUtil.parse(inputs);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return input;
+    }
+
+    public static boolean validate(HttpServletRequest req, HttpServletResponse res) {
+
+        JSONObject input = null;
+        Set<ValidationMessage> errors = null;
+        boolean valid = true;
+        String func = null;
+
+        try {
+            input = InputProcessor.getInput(req);
+            func = (String) input.get("_func");
+
+            if(func == null){
+                OutputProcessor.sendError(res,HttpServletResponse.SC_BAD_REQUEST,"_func missing");
+                valid = false;
+            }else{
+                errors = JSONSchemaValidator.getHandle().validateSchema(func, input);
+            }
+
+            if(errors != null && errors.size()>0) {
+                OutputProcessor.sendError(res,HttpServletResponse.SC_BAD_REQUEST, errors.toString());
+                valid = false;
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+            OutputProcessor.sendError(res,HttpServletResponse.SC_BAD_REQUEST,"Unknown input validation error");
+            valid = false;
+        }
+        return valid;
+    }
+
+    public static String applyRules(String value) {
+        if (value != null && value.trim().length() > 0) {
+            try {
+                value = URLDecoder.decode(value, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                //log.error(e.getMessage());
+            }
+            //value = StringEscapeUtils.unescapeHtml(value);
+        } else {
+            value = "";
+        }
+        return value;
+    }
+}

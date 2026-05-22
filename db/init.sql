@@ -1,0 +1,553 @@
+-- Enable UUID and Cryptographic extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ==========================================
+-- MODULE 1: CORE PLATFORM & ACCESS CONTROL
+-- ==========================================
+
+CREATE TABLE organizations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('HEAD_OFFICE', 'REGIONAL_OFFICE', 'BRANCH', 'DEPARTMENT')),
+    parent_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE departments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE designations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE designation_kras (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    designation_id UUID REFERENCES designations(id) ON DELETE CASCADE,
+    kra_title VARCHAR(255) NOT NULL,
+    responsibility_description TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    username VARCHAR(100) NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('ADMIN', 'RISK_OWNER', 'COMPLIANCE_OFFICER', 'INTERNAL_AUDITOR', 'IT_STAFF', 'USER')),
+    designation_id UUID REFERENCES designations(id) ON DELETE SET NULL,
+    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED', 'PENDING')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE system_audit_trail (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    audit_action VARCHAR(255) NOT NULL,
+    context_details JSONB,
+    previous_hash VARCHAR(64),
+    log_hash VARCHAR(64) NOT NULL
+);
+
+-- ==========================================
+-- MODULE 2: GOVERNANCE & POLICY MANAGEMENT
+-- ==========================================
+
+CREATE TABLE committees (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE committee_meetings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    committee_id UUID REFERENCES committees(id) ON DELETE CASCADE,
+    scheduled_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    agenda TEXT,
+    status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'CONDUCTED', 'CANCELLED'))
+);
+
+CREATE TABLE committee_mom (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    meeting_id UUID REFERENCES committee_meetings(id) ON DELETE CASCADE,
+    mom_text TEXT NOT NULL,
+    published_at TIMESTAMP WITH TIME ZONE,
+    distributed_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE committee_action_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    mom_id UUID REFERENCES committee_mom(id) ON DELETE CASCADE,
+    deliverable TEXT NOT NULL,
+    assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    due_date DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'OVERDUE'))
+);
+
+CREATE TABLE frameworks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    version VARCHAR(50),
+    description TEXT
+);
+
+CREATE TABLE framework_requirements (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    framework_id UUID REFERENCES frameworks(id) ON DELETE CASCADE,
+    section_code VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL
+);
+
+CREATE TABLE policies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('POLICY', 'STANDARD', 'GUIDELINE', 'SOP')),
+    parent_policy_id UUID REFERENCES policies(id) ON DELETE SET NULL,
+    version VARCHAR(20) DEFAULT '1.0',
+    status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED')),
+    author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE policy_clauses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    policy_id UUID REFERENCES policies(id) ON DELETE CASCADE,
+    clause_number VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL
+);
+
+CREATE TABLE clause_framework_mappings (
+    clause_id UUID REFERENCES policy_clauses(id) ON DELETE CASCADE,
+    requirement_id UUID REFERENCES framework_requirements(id) ON DELETE CASCADE,
+    PRIMARY KEY (clause_id, requirement_id)
+);
+
+CREATE TABLE policy_reviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    policy_id UUID REFERENCES policies(id) ON DELETE CASCADE,
+    reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    comments TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE policy_attestations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    policy_id UUID REFERENCES policies(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    acknowledged_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (policy_id, user_id)
+);
+
+-- ==========================================
+-- MODULE 3: RISK & VULNERABILITY MANAGEMENT
+-- ==========================================
+
+CREATE TABLE risks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(100) NOT NULL,
+    inherent_impact INT NOT NULL CHECK (inherent_impact BETWEEN 1 AND 5),
+    inherent_likelihood INT NOT NULL CHECK (inherent_likelihood BETWEEN 1 AND 5),
+    inherent_risk_score INT GENERATED ALWAYS AS (inherent_impact * inherent_likelihood) STORED,
+    treatment_strategy VARCHAR(50) CHECK (treatment_strategy IN ('ACCEPT', 'MITIGATE', 'TRANSFER', 'AVOID')),
+    mitigating_controls TEXT,
+    residual_impact INT CHECK (residual_impact BETWEEN 1 AND 5),
+    residual_likelihood INT CHECK (residual_likelihood BETWEEN 1 AND 5),
+    owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'IDENTIFIED' CHECK (status IN ('IDENTIFIED', 'ASSESSED', 'TREATED', 'MONITORED', 'RETIRED')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vulnerabilities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    source VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
+    status VARCHAR(20) DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'FALSE_POSITIVE')),
+    assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    linked_risk_id UUID REFERENCES risks(id) ON DELETE SET NULL,
+    sla_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+    mitigation_details TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- MODULE 4: COMPLIANCE & CONTROL MANAGEMENT
+-- ==========================================
+
+CREATE TABLE compliance_regulators (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT
+);
+
+CREATE TABLE compliance_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    regulator_id UUID REFERENCES compliance_regulators(id) ON DELETE CASCADE,
+    requirement_title VARCHAR(255) NOT NULL,
+    section_reference VARCHAR(50),
+    description TEXT NOT NULL
+);
+
+CREATE TABLE compliance_calendar (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    compliance_item_id UUID REFERENCES compliance_items(id) ON DELETE CASCADE,
+    filing_name VARCHAR(255) NOT NULL,
+    due_date DATE NOT NULL,
+    assigned_officer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'SUBMITTED', 'OVERDUE', 'EXTENSION_REQUESTED')),
+    remind_days_before INT DEFAULT 7
+);
+
+CREATE TABLE controls (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('TECHNICAL', 'ADMINISTRATIVE', 'PHYSICAL')),
+    description TEXT NOT NULL,
+    owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    frequency VARCHAR(50) NOT NULL CHECK (frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUALLY', 'CONTINUOUS'))
+);
+
+CREATE TABLE control_requirement_mappings (
+    control_id UUID REFERENCES controls(id) ON DELETE CASCADE,
+    requirement_id UUID REFERENCES framework_requirements(id) ON DELETE CASCADE,
+    PRIMARY KEY (control_id, requirement_id)
+);
+
+CREATE TABLE control_attestations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    control_id UUID REFERENCES controls(id) ON DELETE CASCADE,
+    attested_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    evidence_file_link VARCHAR(512),
+    evidence_checksum VARCHAR(64),
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'COMPLIANT', 'NON_COMPLIANT', 'APPROVED')),
+    attested_at TIMESTAMP WITH TIME ZONE,
+    next_due_date DATE NOT NULL
+);
+
+CREATE TABLE exceptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    policy_id UUID REFERENCES policies(id) ON DELETE CASCADE,
+    control_id UUID REFERENCES controls(id) ON DELETE SET NULL,
+    requested_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reason TEXT NOT NULL,
+    compensating_controls TEXT NOT NULL,
+    expiry_date DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'EXPIRED')),
+    approver_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- MODULE 5: INTERNAL AUDIT & EVIDENCE LOCKER
+-- ==========================================
+
+CREATE TABLE audits (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    scope TEXT NOT NULL,
+    framework_id UUID REFERENCES frameworks(id) ON DELETE SET NULL,
+    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
+    lead_auditor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    scheduled_start DATE NOT NULL,
+    scheduled_end DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'DRAFT_REPORT', 'FINAL_REPORT', 'CLOSED'))
+);
+
+CREATE TABLE audit_observations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    audit_id UUID REFERENCES audits(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    priority VARCHAR(20) NOT NULL CHECK (priority IN ('HIGH', 'MEDIUM', 'LOW')),
+    linked_risk_id UUID REFERENCES risks(id) ON DELETE SET NULL,
+    failed_control_id UUID REFERENCES controls(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'REMEDIATED', 'CLOSED'))
+);
+
+CREATE TABLE audit_remediations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    observation_id UUID REFERENCES audit_observations(id) ON DELETE CASCADE,
+    action_plan TEXT NOT NULL,
+    target_date DATE NOT NULL,
+    auditee_comments TEXT,
+    secure_link_token VARCHAR(64) UNIQUE,
+    token_expiry TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'UNDER_REVIEW', 'RESOLVED'))
+);
+
+CREATE TABLE evidence_locker (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(512) NOT NULL,
+    sha256_checksum VARCHAR(64) NOT NULL,
+    timestamp_signature VARCHAR(256) NOT NULL,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    audit_id UUID REFERENCES audits(id) ON DELETE SET NULL,
+    control_attestation_id UUID REFERENCES control_attestations(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_locked BOOLEAN DEFAULT TRUE
+);
+
+-- ==========================================
+-- MODULE 6: IT OPERATIONS & CHANGE MANAGEMENT
+-- ==========================================
+
+CREATE TABLE change_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    requester_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    stage VARCHAR(20) DEFAULT 'BRD' CHECK (stage IN ('BRD', 'SOLUTION_DESIGN', 'APPROVAL', 'QA_TESTING', 'UAT', 'PROD_DEPLOYMENT')),
+    status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'COMPLETED')),
+    compliance_approver_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE change_request_gates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    change_request_id UUID REFERENCES change_requests(id) ON DELETE CASCADE,
+    stage VARCHAR(20) NOT NULL,
+    required_document_type VARCHAR(100) NOT NULL,
+    uploaded_document_link VARCHAR(512),
+    is_approved BOOLEAN DEFAULT FALSE,
+    approved_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE assets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('APPLICATION', 'CORE_SERVER', 'FIREWALL', 'LAPTOP', 'DESKTOP', 'PRINTER', 'OTHER')),
+    criticality VARCHAR(20) NOT NULL CHECK (criticality IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
+    owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    description TEXT
+);
+
+CREATE TABLE vendors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    agreement_details TEXT,
+    license_expiry DATE,
+    baseline_risk_score INT CHECK (baseline_risk_score BETWEEN 1 AND 25),
+    security_questionnaire_status VARCHAR(50) CHECK (security_questionnaire_status IN ('SENT', 'RECEIVED', 'EVALUATED', 'NOT_APPLICABLE')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE helpdesk_tickets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+    priority VARCHAR(20) DEFAULT 'MEDIUM' CHECK (priority IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- MODULE 7: INCIDENTS & AWARENESS TRAINING
+-- ==========================================
+
+CREATE TABLE incidents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ticket_escalation_id UUID REFERENCES helpdesk_tickets(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
+    status VARCHAR(20) DEFAULT 'NEW' CHECK (status IN ('NEW', 'INVESTIGATING', 'CONTAINED', 'RESOLVED', 'CLOSED')),
+    rca_timeline TEXT,
+    rca_business_impact TEXT,
+    rca_root_cause TEXT,
+    rca_preventative_actions TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE incident_escalation_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    severity VARCHAR(20) NOT NULL,
+    role_to_notify VARCHAR(50) NOT NULL,
+    escalation_delay_minutes INT NOT NULL
+);
+
+CREATE TABLE training_materials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50) CHECK (type IN ('VIDEO', 'DOCUMENT', 'GUIDELINE')),
+    content_url VARCHAR(512) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE awareness_campaigns (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    scheduled_start DATE NOT NULL,
+    scheduled_end DATE NOT NULL,
+    material_id UUID REFERENCES training_materials(id) ON DELETE SET NULL,
+    status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'ACTIVE', 'COMPLETED'))
+);
+
+CREATE TABLE campaign_enrollments (
+    campaign_id UUID REFERENCES awareness_campaigns(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'ENROLLED' CHECK (status IN ('ENROLLED', 'IN_PROGRESS', 'COMPLETED', 'FAILED')),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (campaign_id, user_id)
+);
+
+CREATE TABLE best_practices_vault (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- ==========================================
+-- IMMUTABLE AUDIT TRAIL TRIGGERS
+-- ==========================================
+
+-- Trigger to calculate the hash chain for system_audit_trail
+CREATE OR REPLACE FUNCTION system_audit_trail_hash_chain()
+RETURNS TRIGGER AS $$
+DECLARE
+    prev_hash VARCHAR(64);
+    chain_data TEXT;
+BEGIN
+    -- Get the most recent row's hash based on timestamp and ID ordering
+    SELECT log_hash INTO prev_hash 
+    FROM system_audit_trail 
+    ORDER BY timestamp DESC, id DESC
+    LIMIT 1;
+
+    -- If no previous row exists, seed with 64 zeros
+    IF prev_hash IS NULL THEN
+        prev_hash := '0000000000000000000000000000000000000000000000000000000000000000';
+    END IF;
+
+    NEW.previous_hash := prev_hash;
+
+    -- Concatenate log fields to verify data integrity
+    chain_data := COALESCE(NEW.id::text, '') || '|' ||
+                  COALESCE(NEW.timestamp::text, '') || '|' ||
+                  COALESCE(NEW.user_id::text, '') || '|' ||
+                  COALESCE(NEW.audit_action, '') || '|' ||
+                  COALESCE(NEW.context_details::text, '') || '|' ||
+                  prev_hash;
+
+    -- Compute SHA-256 hash using digest() from pgcrypto
+    NEW.log_hash := encode(digest(chain_data, 'sha256'), 'hex');
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_system_audit_trail_hash_chain
+BEFORE INSERT ON system_audit_trail
+FOR EACH ROW
+EXECUTE FUNCTION system_audit_trail_hash_chain();
+
+-- Trigger to prevent any updates or deletes on system_audit_trail (Immutability)
+CREATE OR REPLACE FUNCTION prevent_audit_log_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Modification or deletion of system audit trail ledger is strictly prohibited.';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_prevent_audit_log_update
+BEFORE UPDATE OR DELETE ON system_audit_trail
+FOR EACH ROW
+EXECUTE FUNCTION prevent_audit_log_modification();
+
+
+-- ==========================================
+-- INDEXES FOR PERFORMANCE OPTIMIZATION
+-- ==========================================
+
+CREATE INDEX idx_audit_logs_timestamp ON system_audit_trail(timestamp DESC);
+CREATE INDEX idx_risks_score ON risks(inherent_risk_score DESC);
+CREATE INDEX idx_vulnerabilities_deadline ON vulnerabilities(sla_deadline ASC);
+CREATE INDEX idx_compliance_calendar_due ON compliance_calendar(due_date ASC);
+CREATE INDEX idx_control_attestations_due ON control_attestations(next_due_date ASC);
+CREATE INDEX idx_helpdesk_tickets_status ON helpdesk_tickets(status);
+CREATE INDEX idx_incidents_severity ON incidents(severity);
+
+
+-- ==========================================
+-- SEED DATA
+-- ==========================================
+
+-- Seed Roles & Designations
+INSERT INTO designations (id, title) VALUES
+('d1000000-0000-0000-0000-000000000001', 'Chief Information Officer'),
+('d1000000-0000-0000-0000-000000000002', 'Risk Manager'),
+('d1000000-0000-0000-0000-000000000003', 'Lead Auditor'),
+('d1000000-0000-0000-0000-000000000004', 'Compliance Officer'),
+('d1000000-0000-0000-0000-000000000005', 'IT Support Specialist');
+
+-- Seed KRAs for designations
+INSERT INTO designation_kras (designation_id, kra_title, responsibility_description) VALUES
+('d1000000-0000-0000-0000-000000000001', 'Governance Steering', 'Oversee the IT Strategy Steering Committee and align IT risk goals with business values.'),
+('d1000000-0000-0000-0000-000000000002', 'Risk Mitigation & Register', 'Regularly update the Enterprise Risk Register, oversee VAPT scans, and assign remediation workflows.'),
+('d1000000-0000-0000-0000-000000000003', 'Audit Readiness', 'Lead the internal and external audit lifecycles and track observation closures.'),
+('d1000000-0000-0000-0000-000000000004', 'Controls Management', 'Map organizational policies to standards (e.g. ISO 27001) and verify control attestations.'),
+('d1000000-0000-0000-0000-000000000005', 'Change & Operations Controls', 'Verify compliance document gates during the Change Request lifecycle and manage helpdesk resolutions.');
+
+-- Seed Organization Structures (Multi-tier)
+INSERT INTO organizations (id, name, type, parent_id) VALUES
+('o1000000-0000-0000-0000-000000000001', 'Head Office - Mumbai', 'HEAD_OFFICE', NULL);
+
+INSERT INTO organizations (id, name, type, parent_id) VALUES
+('o1000000-0000-0000-0000-000000000002', 'Regional Office - North', 'REGIONAL_OFFICE', 'o1000000-0000-0000-0000-000000000001'),
+('o1000000-0000-0000-0000-000000000003', 'Regional Office - South', 'REGIONAL_OFFICE', 'o1000000-0000-0000-0000-000000000001');
+
+INSERT INTO departments (id, org_id, name) VALUES
+('de100000-0000-0000-0000-000000000001', 'o1000000-0000-0000-0000-000000000001', 'Information Technology'),
+('de100000-0000-0000-0000-000000000002', 'o1000000-0000-0000-0000-000000000001', 'Internal Audit'),
+('de100000-0000-0000-0000-000000000003', 'o1000000-0000-0000-0000-000000000001', 'Risk & Compliance');
+
+-- Seed default users
+-- Note: 'password_hash' seeded is a BCrypt hash of 'secure_admin123'
+INSERT INTO users (id, email, password_hash, username, role, designation_id, department_id, status) VALUES
+('u1000000-0000-0000-0000-000000000001', 'admin@tsiconsulting.com', '$2a$12$R9h/cIPz0gi.UR1gryz2yOpxV17Z4AOHP2d7a26X2sT.79cE8bXUu', 'system_admin', 'ADMIN', 'd1000000-0000-0000-0000-000000000001', 'de100000-0000-0000-0000-000000000001', 'ACTIVE');
+
+-- Seed Committees
+INSERT INTO committees (id, name, description) VALUES
+('c1000000-0000-0000-0000-000000000001', 'IT Strategy Committee', 'Formulates and directs the strategic goals of the company IT landscape.'),
+('c1000000-0000-0000-0000-000000000002', 'IT Steering Committee', 'Coordinates and operationalizes governance frameworks and handles approvals.'),
+('c1000000-0000-0000-0000-000000000003', 'Risk Board', 'Reviews enterprise-level IT risk register maps, VAPT reports, and accepts/mitigates risks.');
+
+-- Seed compliance frameworks
+INSERT INTO frameworks (id, name, version, description) VALUES
+('f1000000-0000-0000-0000-000000000001', 'ISO 27001', '2022', 'Information Security Management System (ISMS) framework.'),
+('f1000000-0000-0000-0000-000000000002', 'GDPR', '2016', 'General Data Protection Regulation for EU data subject protection.'),
+('f1000000-0000-0000-0000-000000000003', 'SOC 2', 'Trust Services Criteria', 'System and Organization Controls for security, availability, and confidentiality.');
+
+-- Seed base requirements
+INSERT INTO framework_requirements (id, framework_id, section_code, title, description) VALUES
+('fr100000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'A.5.1', 'Policies for information security', 'Information security policy and topic-specific policies shall be defined, approved, and regularly reviewed.'),
+('fr100000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'A.8.20', 'Network security', 'Networks and network devices shall be secured, managed, and controlled.'),
+('fr100000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000002', 'Article 32', 'Security of processing', 'Technical and organizational measures to ensure a level of security appropriate to data risk.');
+
+-- Seed regulators
+INSERT INTO compliance_regulators (id, name, description) VALUES
+('cr100000-0000-0000-0000-000000000001', 'Central Bank / RBI', 'National banking and financial regulator overseeing financial cybersecurity directives.'),
+('cr100000-0000-0000-0000-000000000002', 'DPA (Data Protection Authority)', 'Regulates corporate compliance under personal data protection guidelines.');

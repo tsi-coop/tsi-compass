@@ -1,0 +1,72 @@
+# TSI Compass - local Docker Compose
+
+x-db-credentials: &db-credentials
+  POSTGRES_DB: "${POSTGRES_DB:-tsi_compass}"
+  POSTGRES_USER: "${POSTGRES_USER:-tsi_admin}"
+  POSTGRES_PASSWORD: "${POSTGRES_PASSWD:-secure_dev_password}"
+  DB_ENCRYPTION_KEY: "${DB_ENCRYPTION_KEY:-local-dev-enc-key-do-not-use-in-production}"
+
+services:
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: tsi_compass_db
+    restart: unless-stopped
+    environment:
+      <<: *db-credentials
+    ports:
+      - "${DB_PORT_MAP:-5437:5432}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tsi_internal
+
+  jetty_app:
+    image: "${IMAGE_NAME:-tsicoop/tsi-compass:latest}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: "root"
+    container_name: tsi_compass_server
+    restart: unless-stopped
+    
+    ports:
+      - "${APP_PORT_MAP:-8085:8080}"
+    
+    environment:
+      POSTGRES_HOST: "jdbc:postgresql://postgres_db:5432"
+      POSTGRES_DB: "${POSTGRES_DB:-tsi_compass}"
+      POSTGRES_USER: "${POSTGRES_USER:-tsi_admin}"
+      POSTGRES_PASSWD: "${POSTGRES_PASSWD:-secure_dev_password}"
+      TSI_COMPASS_ENV: "${TSI_COMPASS_ENV:-local}"
+      TSI_EXPORT_PATH: "${TSI_EXPORT_PATH:-/var/lib/tsi-compass/exports/}"
+      TSI_KEYSTORE_PATH: "${TSI_KEYSTORE_PATH:-/etc/tsi/keystore.p12}"
+      TSI_KEYSTORE_PASS: "${TSI_KEYSTORE_PASS:-changeit}"
+      TSI_KEYSTORE_ALIAS: "${TSI_KEYSTORE_ALIAS:-tsi_compass}"
+      # Local evaluation defaults. Override these outside local development.
+      JWT_SECRET: "${JWT_SECRET:-tsi-compass-local-dev-secret-do-not-use-in-production}"
+      DB_ENCRYPTION_KEY: "${DB_ENCRYPTION_KEY:-local-dev-enc-key-do-not-use-in-production}"
+      TSI_LOOKUP_SALT: "${TSI_LOOKUP_SALT:-local-dev-lookup-salt-do-not-use-in-production}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:8085}"
+    
+    volumes:
+      - "tsi_reports_data:${TSI_EXPORT_PATH:-/var/lib/tsi-compass/exports/}:rw"
+    
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - tsi_internal
+
+networks:
+  tsi_internal:
+    driver: bridge
+
+volumes:
+  postgres_data:      
+  tsi_reports_data:
