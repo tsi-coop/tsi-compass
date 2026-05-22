@@ -3,8 +3,6 @@ Prepared by: TSI Consulting LLP
 
 Target Audience: Cross-industry Small and Medium Enterprises (SMEs) and Mid-Market Organizations
 
-Product Suite Alignment: Pairs with TSI Privacy Vault
-
 ---
 
 ## 1. Core Platform & Access Control

@@ -5,249 +5,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TSI Compass - Sign In</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800;900&display=swap');
+        
         :root {
-            --tsi-primary: #006A67; /* Primary Dark Teal Color */
-            --background: #f4fbf9; /* Light, clean background */
-            --border: 20 5.9% 90%;
-            --radius: 0.5rem;
+            --ink: #172033;
+            --muted: #607086;
+            --line: #d9e2ec;
+            --paper: #ffffff;
+            --wash: #f3f7f8;
+            --teal: #006a67;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         }
 
         body {
-            background-color: var(--background);
-            font-family: ui-sans-serif, system-ui, sans-serif;
+            background-color: var(--wash);
+            color: var(--ink);
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 1.5rem;
         }
 
-        .animated-button {
-            position: relative;
-            overflow: hidden;
-            z-index: 0;
-            background-color: var(--tsi-primary);
-            color: #FFFFFF;
-            transition: background-color 0.3s ease;
+        .tsi-panel {
+            background-color: var(--paper);
+            border: 1px solid var(--line);
+            border-top: 4px solid var(--teal);
+            box-shadow: var(--shadow);
         }
 
-        .animated-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -75%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(120deg,
-                    rgba(255, 255, 255, 0.2) 0%,
-                    rgba(255, 255, 255, 0.6) 50%,
-                    rgba(255, 255, 255, 0.2) 100%);
-            transform: skewX(-20deg);
-            z-index: 1;
-        }
-
-        .animated-button:hover::before {
-            animation: shine 1.2s ease-in-out forwards;
-        }
-
-        @keyframes shine {
-            0% {
-                left: -75%;
-            }
-
-            100% {
-                left: 125%;
-            }
-        }
-
-        .input-style {
-            height: 40px;
-            border-color: hsl(var(--border));
-        }
-
-        .login-card {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .primary-text {
-            color: var(--tsi-primary);
+        .input-focus:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 4px rgba(0, 106, 103, 0.08);
         }
     </style>
 </head>
 
 <body>
-<div class="w-full max-w-lg p-8 bg-white rounded-lg border border-gray-200 login-card">
+<div class="w-full max-w-xl p-8 sm:p-12 rounded-2xl tsi-panel">
 
-    <!-- Header / Logo Area -->
-    <div class="text-center mb-8">
-        <span class="text-3xl font-black primary-text tracking-tight uppercase">TSI Compass</span>
-        <p class="text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-[0.2em]">Governance, Risk & Compliance</p>
-        <h1 class="text-lg font-bold mt-4 text-gray-700">Administrator / DPO Login</h1>
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-[#006a67] text-white text-lg font-black rounded-lg mb-4 shadow-sm select-none">
+            TC
+        </div>
+        <h2 class="text-2xl font-black text-[#172033] tracking-tight">TSI Compass</h2>
+        <p class="text-[11px] text-[#607086] font-bold uppercase tracking-[0.15em] mt-1.5">GRC made simple</p>
+        <div class="w-12 h-0.5 bg-[#d9e2ec] mx-auto mt-4"></div>
+        <h1 class="text-xs font-black mt-4 text-[#006a67] uppercase tracking-widest">Navigate. Control. Comply.</h1>
     </div>
 
-    <!-- Login Form -->
     <form onsubmit="handleLogin(event)">
         <div class="space-y-5">
-            <!-- Email/Username Input -->
-            <div>
-                <label for="email" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email (Login ID)</label>
-                <input type="email" id="email" name="email" required
-                       class="input-style w-full px-3 py-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-primary-text focus:border-primary-text outline-none transition-all text-sm"
-                       placeholder="your.email@fiduciary.com">
-            </div>
-
-            <!-- Password Input with Recovery Link -->
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label for="password" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
-                    <a href="password-reset.html" class="text-[10px] font-black primary-text hover:underline transition-all uppercase tracking-tighter">Forgot Password?</a>
+            <div class="flex flex-col sm:flex-row sm:items-start space-y-1.5 sm:space-y-0">
+                <label for="email" class="sm:w-1/3 block text-[11px] font-extrabold text-[#607086] uppercase tracking-wider sm:pt-3.5 px-1">
+                    Email Address
+                </label>
+                <div class="sm:w-2/3 w-full">
+                    <input type="email" id="email" name="email" 
+                           class="w-full h-11 px-3.5 bg-[#f9fafb] border border-[#d9e2ec] rounded-lg outline-none transition-all text-sm text-[#172033] input-focus"
+                           placeholder="admin@tsicoop.org">
                 </div>
-                <input type="password" id="password" name="password" required
-                       class="input-style w-full px-3 py-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-primary-text focus:border-primary-text outline-none transition-all text-sm"
-                       placeholder="••••••••••••">
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit"
-                    class="animated-button w-full h-11 inline-flex items-center justify-center rounded-md font-bold text-sm uppercase tracking-widest shadow-lg hover:bg-opacity-90 transition-all">
-                Secure Login
-            </button>
+            <div class="flex flex-col sm:flex-row sm:items-start space-y-1.5 sm:space-y-0">
+                <div class="sm:w-1/3 sm:pt-2">
+                    <label for="password" class="block text-[11px] font-extrabold text-[#607086] uppercase tracking-wider px-1">
+                        Password
+                    </label>
+                    <p class="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 px-1">Console Key</p>
+                </div>
+                <div class="sm:w-2/3 w-full">
+                    <input type="password" id="password" name="password" 
+                           class="w-full h-11 px-3.5 bg-[#f9fafb] border border-[#d9e2ec] rounded-lg outline-none transition-all text-sm text-[#172033] input-focus"
+                           placeholder="••••••••••••">
+                </div>
+            </div>
+
+            <div class="pt-4 w-full">
+                <div class="flex justify-end mb-3">
+                    <a href="password-reset.html" class="text-[10px] font-bold text-[#006a67] hover:underline uppercase tracking-wider">
+                        Recover Access
+                    </a>
+                </div>
+                <button type="submit"
+                        class="w-full h-12 bg-[#006a67] text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-[#005a57] active:scale-[0.99] transition-all">
+                    Sign In
+                </button>
+            </div>
         </div>
     </form>
-
-    <!-- Message/Error Area -->
-    <div id="login-message" class="mt-6 text-center text-xs font-bold hidden">
-        <!-- Dynamic messages -->
-    </div>
 
 </div>
 
 <script>
 /**
- * Function to handle the admin login process via API authentication using the Fetch API.
+ * Simplified bypass login handler for direct static layout presentation.
  */
-async function handleLogin(event) {
-    const API_LOGIN_URL = 'api/v1/admin/operator';
-    const ADMIN_DASHBOARD_URL = 'dashboard.html';
-    const DPO_DASHBOARD_URL = 'dashboard.html';
-
+function handleLogin(event) {
     event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const messageArea = document.getElementById('login-message');
-
-    // Reset UI
-    messageArea.textContent = '';
-    messageArea.classList.add('hidden');
-    messageArea.classList.remove('text-red-500', 'text-teal-600', 'text-blue-500');
-
-    // Complexity Validation
-    if (password.length < 12) {
-        messageArea.textContent = "Error: Password must be at least 12 characters long.";
-        messageArea.classList.remove('hidden');
-        messageArea.classList.add('text-red-500');
-        return;
-    }
-
-    messageArea.textContent = "Verifying session with Governance, Risk & Compliance...";
-    messageArea.classList.remove('hidden');
-    messageArea.classList.add('text-blue-500');
-
-    try {
-        const payload = { _func: "login", identifier: email, password: password };
-
-        const response = await fetch(API_LOGIN_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const responseData = await response.json();
-
-        if (response.ok && responseData.success === true) {
-            // Persist context for management console
-            localStorage.setItem('authToken', responseData.token);
-            localStorage.setItem('username', responseData.username);
-            localStorage.setItem('role', responseData.role);
-            localStorage.setItem('fiduciary_id', responseData.fiduciary_id);
-            localStorage.setItem('fiduciary_name', responseData.fiduciary_name);
-
-            messageArea.textContent = "Login successful. Redirecting to vault...";
-            messageArea.classList.replace('text-blue-500', 'text-teal-600');
-
-            setTimeout(() => {
-                if(responseData.role === 'ADMIN'){
-                    window.location.href = ADMIN_DASHBOARD_URL;
-                } else {
-                    window.location.href = DPO_DASHBOARD_URL;
-                }
-            }, 800);
-
-        } else {
-            const errorText = responseData.message || "Invalid credentials. Please verify your login ID and password.";
-            messageArea.textContent = errorText;
-            messageArea.classList.replace('text-blue-500', 'text-red-500');
-        }
-
-    } catch (error) {
-        messageArea.textContent = 'Network Error: Cannot reach the Governance, Risk & Compliance.';
-        messageArea.classList.replace('text-blue-500', 'text-red-500');
-        console.error('Connection error:', error);
-    }
+    
+    // Set mock details so dashboard elements don't read null properties
+    localStorage.setItem('username', 'Demo Administrator');
+    localStorage.setItem('role', 'ADMIN');
+    
+    // Immediate direct routing
+    window.location.href = 'dashboard.html';
 }
-</script>
-<script>
-(() => {
-  const css = `
-    :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--paper:#fff;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--shadow:0 18px 50px rgba(23,32,51,.12)}
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(135deg,rgba(0,106,103,.10),transparent 34%),linear-gradient(315deg,rgba(36,87,166,.10),transparent 40%),var(--wash)}
-    a{color:inherit;text-decoration:none}.tsi-shell{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,480px)}.tsi-brand-pane{padding:40px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid rgba(23,32,51,.08)}
-    .tsi-topbar{display:flex;align-items:center;justify-content:space-between;gap:24px}.tsi-brand{display:inline-flex;align-items:center;gap:12px;font-weight:850;font-size:20px}.tsi-mark{width:38px;height:38px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900}
-    .tsi-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tsi-nav a{font-size:13px;font-weight:750;color:var(--muted);padding:9px 11px;border-radius:6px}.tsi-nav a:hover{background:rgba(0,106,103,.08);color:var(--teal)}
-    .tsi-intro{max-width:760px;padding:64px 0}.tsi-eyebrow{color:var(--teal);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;margin-bottom:18px}.tsi-intro h1{font-size:clamp(40px,6vw,78px);line-height:.95;margin:0;letter-spacing:0}.tsi-intro p{margin:24px 0 0;max-width:650px;color:var(--muted);font-size:18px;line-height:1.6}
-    .tsi-signal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:820px}.tsi-signal{background:rgba(255,255,255,.78);border:1px solid rgba(23,32,51,.08);border-radius:8px;padding:18px}.tsi-signal strong{display:block;font-size:24px;margin-bottom:6px}.tsi-signal span{display:block;color:var(--muted);font-size:13px;line-height:1.4}
-    .tsi-login-pane{display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(255,255,255,.64)}.tsi-panel{width:100%;max-width:420px;background:var(--paper);border:1px solid rgba(23,32,51,.10);border-radius:8px;box-shadow:var(--shadow);padding:30px}.tsi-panel h2{margin:0 0 8px;font-size:24px}.tsi-panel .sub{margin:0 0 28px;color:var(--muted);line-height:1.5}
-    .tsi-label{display:block;margin-bottom:7px;color:#40516a;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.tsi-input{width:100%;height:44px;border:1px solid var(--line);border-radius:6px;padding:0 12px;font:inherit;color:var(--ink);background:#fbfdfe;outline:none}.tsi-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.12)}.tsi-field{margin-bottom:18px}.tsi-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px}.tsi-row a{color:var(--teal);font-size:12px;font-weight:800}
-    .tsi-button{width:100%;height:46px;border:0;border-radius:6px;background:var(--teal);color:#fff;font:inherit;font-weight:850;cursor:pointer;margin-top:6px}.tsi-button:hover{background:#075a57}.tsi-secondary-link{display:block;text-align:center;margin-top:18px;color:var(--muted);font-size:13px;font-weight:700}.tsi-demo-note{margin-top:22px;padding:12px;border:1px solid #cde4e1;background:#eef8f6;color:#275e5a;border-radius:6px;font-size:13px;line-height:1.45}
-    @media(max-width:900px){.tsi-shell{grid-template-columns:1fr}.tsi-brand-pane{min-height:52vh;padding:24px;border-right:0}.tsi-topbar{align-items:flex-start}.tsi-signal-grid{grid-template-columns:1fr}.tsi-login-pane{padding:20px}}
-  `;
-  document.head.insertAdjacentHTML('beforeend', `<style>${css}</style>`);
-  document.body.innerHTML = `
-    <div class="tsi-shell">
-      <section class="tsi-brand-pane">
-        <header class="tsi-topbar">
-          <a class="tsi-brand" href="index.html"><span class="tsi-mark">TC</span><span>TSI Compass</span></a>
-          <nav class="tsi-nav"><a href="dashboard.html">Dashboard</a><a href="password-reset.html">Recover access</a></nav>
-        </header>
-        <div class="tsi-intro">
-          <div class="tsi-eyebrow">Governance, Risk & Compliance</div>
-          <h1>Keep controls, risks, policies, and evidence pointed in one direction.</h1>
-          <p>TSI Compass is a working console for small teams starting their GRC journey: organize obligations, watch risk posture, and keep audit evidence ready.</p>
-        </div>
-        <div class="tsi-signal-grid">
-          <div class="tsi-signal"><strong>82%</strong><span>Control readiness across mapped framework requirements</span></div>
-          <div class="tsi-signal"><strong>14</strong><span>Open risks awaiting treatment or owner review</span></div>
-          <div class="tsi-signal"><strong>6</strong><span>Policy attestations due in the next seven days</span></div>
-        </div>
-      </section>
-      <main class="tsi-login-pane">
-        <section class="tsi-panel">
-          <h2>Sign in</h2>
-          <p class="sub">Use the static preview flow to review the current TSI Compass interface.</p>
-          <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
-            <div class="tsi-field"><label class="tsi-label" for="tsi-email">Email</label><input class="tsi-input" id="tsi-email" type="email" value="admin@tsicoop.org"></div>
-            <div class="tsi-field"><div class="tsi-row"><label class="tsi-label" for="tsi-password">Password</label><a href="password-reset.html">Forgot password?</a></div><input class="tsi-input" id="tsi-password" type="password" value="review-password"></div>
-            <button class="tsi-button" type="submit">Open Console</button>
-          </form>
-          <a class="tsi-secondary-link" href="dashboard.html">Continue to dashboard preview</a>
-          <p class="tsi-demo-note">This page is static for review. Backend login can be wired back once the screens settle.</p>
-        </section>
-      </main>
-    </div>`;
-})();
 </script>
 </body>
 </html>

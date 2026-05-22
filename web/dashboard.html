@@ -472,11 +472,15 @@
       <aside class="side">
         <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
         <nav class="nav">
-          <a class="active" href="dashboard.html">Overview</a>
-          <a href="#risks">Risks</a>
-          <a href="#controls">Controls</a>
-          <a href="#policies">Policies</a>
-          <a href="#evidence">Evidence</a>
+          <a class="active" href="dashboard.html">Executive Dashboard</a>
+          <a href="#platform">Platform & Access</a>
+          <a href="#governance">Governance & Policy</a>
+          <a href="#risks">Risk & Vulnerability</a>
+          <a href="#controls">Compliance & Controls</a>
+          <a href="#evidence">Audit & Evidence</a>
+          <a href="#operations">IT Operations</a>
+          <a href="#incidents">Incidents & Awareness</a>
+          <a href="#reports">Reports & Exports</a>
           <a href="password-reset.html">Access Recovery</a>
         </nav>
         <div class="side-foot"><strong>Review workspace</strong>Static dashboard preview for the next TSI Compass build.</div>
@@ -485,10 +489,9 @@
         <section class="top">
           <div>
             <div class="eyebrow">GRC Command Center</div>
-            <h1>TSI Compass dashboard</h1>
             <p>Track governance work, risk treatment, control readiness, and audit evidence from one operational surface.</p>
           </div>
-          <div class="actions"><a class="btn" href="index.html">Sign out</a><a class="btn primary" href="#evidence">Review Evidence</a></div>
+          <div class="actions"><a class="btn" href="index.html">Sign out</a></div>
         </section>
         <section class="grid metrics" aria-label="Metrics">
           <div class="card stripe-teal"><div class="metric-label">Readiness</div><div class="metric-value">82%</div><div class="metric-note">Mapped controls operating or accepted</div></div>
@@ -497,6 +500,20 @@
           <div class="card stripe-green"><div class="metric-label">Evidence</div><div class="metric-value">128</div><div class="metric-note">Artifacts linked to active controls</div></div>
         </section>
         <section class="grid content">
+          <div class="card" id="platform">
+            <div class="section-title"><h2>Platform & access</h2><span class="pill good">Configured</span></div>
+            <div class="list">
+              <div class="item"><div><strong>Organization structure</strong><span>Head office, departments, roles, and designations.</span></div><span class="pill good">Active</span></div>
+              <div class="item"><div><strong>User access management</strong><span>Role-based permissions and operator recovery controls.</span></div><span class="pill watch">Review</span></div>
+            </div>
+          </div>
+          <div class="card" id="governance">
+            <div class="section-title"><h2>Governance & policy</h2><span class="pill watch">6 due</span></div>
+            <div class="list">
+              <div class="item"><div><strong>Committee governance</strong><span>Meeting calendar, minutes, action items, and ownership.</span></div><span class="pill good">Tracked</span></div>
+              <div class="item"><div><strong>Policy & SOP management</strong><span>Versioning, review, approval, publishing, and attestation.</span></div><span class="pill watch">Pending</span></div>
+            </div>
+          </div>
           <div class="card" id="risks">
             <div class="section-title"><h2>Risk register snapshot</h2><span class="pill watch">Needs review</span></div>
             <table>
@@ -534,6 +551,28 @@
               <div class="item"><div><strong>Access review Q2</strong><span>Uploaded by Compliance Officer</span></div><span class="pill good">Linked</span></div>
               <div class="item"><div><strong>Restore test report</strong><span>Awaiting control owner approval</span></div><span class="pill watch">Pending</span></div>
               <div class="item"><div><strong>Vendor SOC report</strong><span>Mapped to third-party risk controls</span></div><span class="pill good">Linked</span></div>
+            </div>
+          </div>
+          <div class="card" id="operations">
+            <div class="section-title"><h2>IT operations</h2><span class="pill watch">Active</span></div>
+            <div class="list">
+              <div class="item"><div><strong>Change workflow</strong><span>Requests, approvals, implementation evidence, and rollback notes.</span></div><span class="pill watch">Open</span></div>
+              <div class="item"><div><strong>Assets & vendors</strong><span>Asset ownership, vendor risk records, and review cadence.</span></div><span class="pill good">Mapped</span></div>
+              <div class="item"><div><strong>Helpdesk</strong><span>Simplified operational queue for user support and issue triage.</span></div><span class="pill good">Ready</span></div>
+            </div>
+          </div>
+          <div class="card" id="incidents">
+            <div class="section-title"><h2>Incidents & awareness</h2><span class="pill good">Monitored</span></div>
+            <div class="list">
+              <div class="item"><div><strong>Incident lifecycle</strong><span>Classification, response ownership, RCA, and closure tracking.</span></div><span class="pill watch">2 open</span></div>
+              <div class="item"><div><strong>Security awareness</strong><span>Training completion and knowledge sharing activities.</span></div><span class="pill good">76%</span></div>
+            </div>
+          </div>
+          <div class="card" id="reports">
+            <div class="section-title"><h2>Reports & exports</h2><span class="pill good">Static</span></div>
+            <div class="list">
+              <div class="item"><div><strong>Real-time dashboards</strong><span>Executive, IT risk, compliance, and performance views.</span></div><span class="pill good">Preview</span></div>
+              <div class="item"><div><strong>Standard exports</strong><span>Evidence packs, risk register, audit findings, and compliance reports.</span></div><span class="pill watch">Queued</span></div>
             </div>
           </div>
         </section>
