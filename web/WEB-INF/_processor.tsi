@@ -1,5 +1,5 @@
 # Service definitions
-/api/v1/setup=org.tsicoop.dpdpcms.service.v1.AdminSetup
+/api/v1/setup=org.tsicoop.dpdpcms.service.v1.Setup
 /api/v1/operator=org.tsicoop.dpdpcms.service.v1.Operator
 /api/v1/fiduciary=org.tsicoop.dpdpcms.service.v1.Fiduciary
 /api/v1/app=org.tsicoop.dpdpcms.service.v1.App

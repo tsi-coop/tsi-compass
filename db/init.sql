@@ -511,24 +511,6 @@ INSERT INTO designation_kras (designation_id, kra_title, responsibility_descript
 ('d1000000-0000-0000-0000-000000000004', 'Controls Management', 'Map organizational policies to standards (e.g. ISO 27001) and verify control attestations.'),
 ('d1000000-0000-0000-0000-000000000005', 'Change & Operations Controls', 'Verify compliance document gates during the Change Request lifecycle and manage helpdesk resolutions.');
 
--- Seed Organization Structures (Multi-tier)
-INSERT INTO organizations (id, name, type, parent_id) VALUES
-('o1000000-0000-0000-0000-000000000001', 'Head Office - Mumbai', 'HEAD_OFFICE', NULL);
-
-INSERT INTO organizations (id, name, type, parent_id) VALUES
-('o1000000-0000-0000-0000-000000000002', 'Regional Office - North', 'REGIONAL_OFFICE', 'o1000000-0000-0000-0000-000000000001'),
-('o1000000-0000-0000-0000-000000000003', 'Regional Office - South', 'REGIONAL_OFFICE', 'o1000000-0000-0000-0000-000000000001');
-
-INSERT INTO departments (id, org_id, name) VALUES
-('de100000-0000-0000-0000-000000000001', 'o1000000-0000-0000-0000-000000000001', 'Information Technology'),
-('de100000-0000-0000-0000-000000000002', 'o1000000-0000-0000-0000-000000000001', 'Internal Audit'),
-('de100000-0000-0000-0000-000000000003', 'o1000000-0000-0000-0000-000000000001', 'Risk & Compliance');
-
--- Seed default users
--- Note: 'password_hash' seeded is a BCrypt hash of 'secure_admin123'
-INSERT INTO users (id, email, password_hash, username, role, designation_id, department_id, status) VALUES
-('u1000000-0000-0000-0000-000000000001', 'admin@tsiconsulting.com', '$2a$12$R9h/cIPz0gi.UR1gryz2yOpxV17Z4AOHP2d7a26X2sT.79cE8bXUu', 'system_admin', 'ADMIN', 'd1000000-0000-0000-0000-000000000001', 'de100000-0000-0000-0000-000000000001', 'ACTIVE');
-
 -- Seed Committees
 INSERT INTO committees (id, name, description) VALUES
 ('c1000000-0000-0000-0000-000000000001', 'IT Strategy Committee', 'Formulates and directs the strategic goals of the company IT landscape.'),
@@ -543,11 +525,11 @@ INSERT INTO frameworks (id, name, version, description) VALUES
 
 -- Seed base requirements
 INSERT INTO framework_requirements (id, framework_id, section_code, title, description) VALUES
-('fr100000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'A.5.1', 'Policies for information security', 'Information security policy and topic-specific policies shall be defined, approved, and regularly reviewed.'),
-('fr100000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'A.8.20', 'Network security', 'Networks and network devices shall be secured, managed, and controlled.'),
-('fr100000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000002', 'Article 32', 'Security of processing', 'Technical and organizational measures to ensure a level of security appropriate to data risk.');
+('f1100000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'A.5.1', 'Policies for information security', 'Information security policy and topic-specific policies shall be defined, approved, and regularly reviewed.'),
+('f1100000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'A.8.20', 'Network security', 'Networks and network devices shall be secured, managed, and controlled.'),
+('f1100000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000002', 'Article 32', 'Security of processing', 'Technical and organizational measures to ensure a level of security appropriate to data risk.');
 
 -- Seed regulators
 INSERT INTO compliance_regulators (id, name, description) VALUES
-('cr100000-0000-0000-0000-000000000001', 'Central Bank / RBI', 'National banking and financial regulator overseeing financial cybersecurity directives.'),
-('cr100000-0000-0000-0000-000000000002', 'DPA (Data Protection Authority)', 'Regulates corporate compliance under personal data protection guidelines.');
+('c1100000-0000-0000-0000-000000000001', 'Central Bank / RBI', 'National banking and financial regulator overseeing financial cybersecurity directives.'),
+('c1100000-0000-0000-0000-000000000002', 'DPA (Data Protection Authority)', 'Regulates corporate compliance under personal data protection guidelines.');

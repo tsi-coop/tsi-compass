@@ -77,10 +77,14 @@ public class JSONSchemaValidator {
         if (_func == null || !_func.matches("^[a-z][a-z0-9_]*$")) {
             return Set.of();
         }
+        InputStream schemaStream = ctx.getResourceAsStream("/WEB-INF/validator/" + _func + ".jschema");
+        if (schemaStream == null) {
+            return Set.of(); // No schema defined for this func — pass through
+        }
         Set<ValidationMessage> errors = null;
         InputStream is = new ByteArrayInputStream(input.toJSONString().getBytes());
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-        JsonSchema jsonSchema = factory.getSchema(ctx.getResourceAsStream("/WEB-INF/validator/"+_func+".jschema"));
+        JsonSchema jsonSchema = factory.getSchema(schemaStream);
         JsonNode jsonNode = jsv.mapper.readTree(is);
         errors = jsonSchema.validate(jsonNode);
         return errors;
