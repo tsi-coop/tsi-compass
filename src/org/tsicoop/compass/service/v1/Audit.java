@@ -29,6 +29,48 @@ public class Audit implements Action {
                 case "list_events":
                     OutputProcessor.send(res, 200, listEvents(input));
                     break;
+                case "get_internal_audit_metrics":
+                    OutputProcessor.send(res, 200, getInternalAuditMetrics());
+                    break;
+                case "list_audits":
+                    OutputProcessor.send(res, 200, listAudits(input));
+                    break;
+                case "add_audit":
+                    OutputProcessor.send(res, 200, addAudit(input));
+                    break;
+                case "update_audit":
+                    OutputProcessor.send(res, 200, updateAudit(input));
+                    break;
+                case "list_observations":
+                    OutputProcessor.send(res, 200, listObservations(input));
+                    break;
+                case "add_observation":
+                    OutputProcessor.send(res, 200, addObservation(input));
+                    break;
+                case "update_observation":
+                    OutputProcessor.send(res, 200, updateObservation(input));
+                    break;
+                case "list_evidence":
+                    OutputProcessor.send(res, 200, listEvidence(input));
+                    break;
+                case "add_evidence":
+                    OutputProcessor.send(res, 200, addEvidence(input));
+                    break;
+                case "list_staff":
+                    OutputProcessor.send(res, 200, listStaff());
+                    break;
+                case "list_frameworks_dd":
+                    OutputProcessor.send(res, 200, listFrameworksDD());
+                    break;
+                case "list_departments_dd":
+                    OutputProcessor.send(res, 200, listDepartmentsDD());
+                    break;
+                case "list_controls_dd":
+                    OutputProcessor.send(res, 200, listControlsDD());
+                    break;
+                case "list_risks_dd":
+                    OutputProcessor.send(res, 200, listRisksDD());
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -41,6 +83,8 @@ public class Audit implements Action {
     public boolean validate(String method, HttpServletRequest req, HttpServletResponse res) {
         return "POST".equalsIgnoreCase(method);
     }
+
+    // ── System audit trail ───────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
     private JSONObject getAuditMetrics() throws Exception {
@@ -163,13 +207,13 @@ public class Audit implements Action {
 
             while (rs.next()) {
                 JSONObject ev = new JSONObject();
-                ev.put("id",            rs.getString("id"));
-                ev.put("timestamp",     rs.getString("ts"));
-                ev.put("audit_action",  rs.getString("audit_action"));
-                ev.put("details",       rs.getString("details"));
-                ev.put("log_hash",      rs.getString("log_hash"));
-                ev.put("username",      rs.getString("username"));
-                ev.put("email",         rs.getString("email"));
+                ev.put("id",           rs.getString("id"));
+                ev.put("timestamp",    rs.getString("ts"));
+                ev.put("audit_action", rs.getString("audit_action"));
+                ev.put("details",      rs.getString("details"));
+                ev.put("log_hash",     rs.getString("log_hash"));
+                ev.put("username",     rs.getString("username"));
+                ev.put("email",        rs.getString("email"));
                 events.add(ev);
             }
 
@@ -185,6 +229,610 @@ public class Audit implements Action {
         result.put("page",        page);
         result.put("page_size",   pageSize);
         result.put("total_pages", (total + pageSize - 1) / pageSize);
+        return result;
+    }
+
+    // ── Internal audit ───────────────────────────────────────────────────────
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getInternalAuditMetrics() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+
+            pstmt = conn.prepareStatement(
+                "SELECT COUNT(*) FILTER (WHERE status NOT IN ('CLOSED')) AS active_audits, " +
+                "COUNT(*) FILTER (WHERE status = 'CLOSED') AS closed_audits, " +
+                "COUNT(*) AS total_audits, " +
+                "COUNT(*) FILTER (WHERE scheduled_start <= CURRENT_DATE AND status = 'SCHEDULED') AS overdue_start " +
+                "FROM audits"
+            );
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                result.put("active_audits",  rs.getLong("active_audits"));
+                result.put("closed_audits",  rs.getLong("closed_audits"));
+                result.put("total_audits",   rs.getLong("total_audits"));
+                result.put("overdue_start",  rs.getLong("overdue_start"));
+            }
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement(
+                "SELECT COUNT(*) FILTER (WHERE status = 'OPEN') AS open_observations, " +
+                "COUNT(*) FILTER (WHERE priority = 'HIGH' AND status = 'OPEN') AS high_observations, " +
+                "COUNT(*) AS total_observations FROM audit_observations"
+            );
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                result.put("open_observations",  rs.getLong("open_observations"));
+                result.put("high_observations",  rs.getLong("high_observations"));
+                result.put("total_observations", rs.getLong("total_observations"));
+            }
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM evidence_locker");
+            rs = pstmt.executeQuery();
+            result.put("evidence_count", rs.next() ? rs.getLong(1) : 0L);
+
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listAudits(JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        String status = (String) input.get("status");
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(status)) where.append(" AND a.status = ?");
+        if (!isBlank(search)) where.append(" AND a.title ILIKE ?");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            String sql =
+                "SELECT a.id, a.title, a.scope, a.status, " +
+                "TO_CHAR(a.scheduled_start, 'YYYY-MM-DD') AS scheduled_start, " +
+                "TO_CHAR(a.scheduled_end, 'YYYY-MM-DD') AS scheduled_end, " +
+                "f.name AS framework_name, d.name AS department_name, " +
+                "u.username AS lead_auditor_name, " +
+                "(SELECT COUNT(*) FROM audit_observations WHERE audit_id = a.id) AS observation_count, " +
+                "(SELECT COUNT(*) FROM evidence_locker WHERE audit_id = a.id) AS evidence_count " +
+                "FROM audits a " +
+                "LEFT JOIN frameworks f ON f.id = a.framework_id " +
+                "LEFT JOIN departments d ON d.id = a.department_id " +
+                "LEFT JOIN users u ON u.id = a.lead_auditor_id" +
+                where + " ORDER BY a.scheduled_start DESC";
+            pstmt = conn.prepareStatement(sql);
+            int idx = 1;
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) pstmt.setString(idx++, "%" + search + "%");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",                rs.getString("id"));
+                row.put("title",             rs.getString("title"));
+                row.put("scope",             rs.getString("scope"));
+                row.put("status",            rs.getString("status"));
+                row.put("scheduled_start",   rs.getString("scheduled_start"));
+                row.put("scheduled_end",     rs.getString("scheduled_end"));
+                row.put("framework_name",    rs.getString("framework_name"));
+                row.put("department_name",   rs.getString("department_name"));
+                row.put("lead_auditor_name", rs.getString("lead_auditor_name"));
+                row.put("observation_count", rs.getLong("observation_count"));
+                row.put("evidence_count",    rs.getLong("evidence_count"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        result.put("audits",  list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject addAudit(JSONObject input) throws Exception {
+        String title        = (String) input.get("title");
+        String scope        = (String) input.get("scope");
+        String frameworkId  = (String) input.get("framework_id");
+        String departmentId = (String) input.get("department_id");
+        String leadAuditor  = (String) input.get("lead_auditor_id");
+        String startDate    = (String) input.get("scheduled_start");
+        String endDate      = (String) input.get("scheduled_end");
+        if (isBlank(title) || isBlank(scope) || isBlank(startDate) || isBlank(endDate))
+            throw new IllegalArgumentException("title, scope, scheduled_start, scheduled_end are required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO audits (title, scope, framework_id, department_id, lead_auditor_id, scheduled_start, scheduled_end) " +
+                "VALUES (?, ?, ?::uuid, ?::uuid, ?::uuid, ?::date, ?::date) RETURNING id"
+            );
+            pstmt.setString(1, title);
+            pstmt.setString(2, scope);
+            pstmt.setString(3, isBlank(frameworkId)  ? null : frameworkId);
+            pstmt.setString(4, isBlank(departmentId) ? null : departmentId);
+            pstmt.setString(5, isBlank(leadAuditor)  ? null : leadAuditor);
+            pstmt.setString(6, startDate);
+            pstmt.setString(7, endDate);
+            rs = pstmt.executeQuery();
+            rs.next();
+            result.put("id", rs.getString("id"));
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject updateAudit(JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "UPDATE audits SET " +
+                "title           = COALESCE(?, title), " +
+                "scope           = COALESCE(?, scope), " +
+                "framework_id    = COALESCE(?::uuid, framework_id), " +
+                "department_id   = COALESCE(?::uuid, department_id), " +
+                "lead_auditor_id = COALESCE(?::uuid, lead_auditor_id), " +
+                "scheduled_start = COALESCE(?::date, scheduled_start), " +
+                "scheduled_end   = COALESCE(?::date, scheduled_end), " +
+                "status          = COALESCE(?, status) " +
+                "WHERE id = ?::uuid"
+            );
+            pstmt.setString(1, (String) input.get("title"));
+            pstmt.setString(2, (String) input.get("scope"));
+            pstmt.setString(3, (String) input.get("framework_id"));
+            pstmt.setString(4, (String) input.get("department_id"));
+            pstmt.setString(5, (String) input.get("lead_auditor_id"));
+            pstmt.setString(6, (String) input.get("scheduled_start"));
+            pstmt.setString(7, (String) input.get("scheduled_end"));
+            pstmt.setString(8, (String) input.get("status"));
+            pstmt.setString(9, id);
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listObservations(JSONObject input) throws Exception {
+        String auditId = (String) input.get("audit_id");
+        String priority = (String) input.get("priority");
+        String status   = (String) input.get("status");
+        String search   = (String) input.get("search");
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(auditId))  where.append(" AND ao.audit_id = ?::uuid");
+        if (!isBlank(priority)) where.append(" AND ao.priority = ?");
+        if (!isBlank(status))   where.append(" AND ao.status = ?");
+        if (!isBlank(search))   where.append(" AND ao.title ILIKE ?");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            String sql =
+                "SELECT ao.id, ao.audit_id, ao.title, ao.description, ao.priority, ao.status, " +
+                "a.title AS audit_title, " +
+                "r.title AS linked_risk_title, r.risk_code, " +
+                "c.title AS failed_control_title, c.code AS failed_control_code, " +
+                "ar.status AS remediation_status, " +
+                "TO_CHAR(ar.target_date, 'YYYY-MM-DD') AS remediation_target, " +
+                "ar.action_plan " +
+                "FROM audit_observations ao " +
+                "LEFT JOIN audits a ON a.id = ao.audit_id " +
+                "LEFT JOIN risks r ON r.id = ao.linked_risk_id " +
+                "LEFT JOIN controls c ON c.id = ao.failed_control_id " +
+                "LEFT JOIN audit_remediations ar ON ar.observation_id = ao.id" +
+                where +
+                " ORDER BY CASE ao.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END, ao.status";
+            pstmt = conn.prepareStatement(sql);
+            int idx = 1;
+            if (!isBlank(auditId))  pstmt.setString(idx++, auditId);
+            if (!isBlank(priority)) pstmt.setString(idx++, priority);
+            if (!isBlank(status))   pstmt.setString(idx++, status);
+            if (!isBlank(search))   pstmt.setString(idx++, "%" + search + "%");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",                    rs.getString("id"));
+                row.put("audit_id",              rs.getString("audit_id"));
+                row.put("title",                 rs.getString("title"));
+                row.put("description",           rs.getString("description"));
+                row.put("priority",              rs.getString("priority"));
+                row.put("status",                rs.getString("status"));
+                row.put("audit_title",           rs.getString("audit_title"));
+                row.put("linked_risk_title",     rs.getString("linked_risk_title"));
+                row.put("risk_code",             rs.getString("risk_code"));
+                row.put("failed_control_title",  rs.getString("failed_control_title"));
+                row.put("failed_control_code",   rs.getString("failed_control_code"));
+                row.put("remediation_status",    rs.getString("remediation_status"));
+                row.put("remediation_target",    rs.getString("remediation_target"));
+                row.put("action_plan",           rs.getString("action_plan"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success",      true);
+        result.put("observations", list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject addObservation(JSONObject input) throws Exception {
+        String auditId         = (String) input.get("audit_id");
+        String title           = (String) input.get("title");
+        String description     = (String) input.get("description");
+        String priority        = (String) input.get("priority");
+        String linkedRiskId    = (String) input.get("linked_risk_id");
+        String failedControlId = (String) input.get("failed_control_id");
+        if (isBlank(auditId) || isBlank(title) || isBlank(priority))
+            throw new IllegalArgumentException("audit_id, title, and priority are required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO audit_observations (audit_id, title, description, priority, linked_risk_id, failed_control_id) " +
+                "VALUES (?::uuid, ?, ?, ?, ?::uuid, ?::uuid) RETURNING id"
+            );
+            pstmt.setString(1, auditId);
+            pstmt.setString(2, title);
+            pstmt.setString(3, description);
+            pstmt.setString(4, priority);
+            pstmt.setString(5, isBlank(linkedRiskId)    ? null : linkedRiskId);
+            pstmt.setString(6, isBlank(failedControlId) ? null : failedControlId);
+            rs = pstmt.executeQuery();
+            rs.next();
+            result.put("id", rs.getString("id"));
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject updateObservation(JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "UPDATE audit_observations SET " +
+                "title       = COALESCE(?, title), " +
+                "description = COALESCE(?, description), " +
+                "priority    = COALESCE(?, priority), " +
+                "status      = COALESCE(?, status) " +
+                "WHERE id = ?::uuid"
+            );
+            pstmt.setString(1, (String) input.get("title"));
+            pstmt.setString(2, (String) input.get("description"));
+            pstmt.setString(3, (String) input.get("priority"));
+            pstmt.setString(4, (String) input.get("status"));
+            pstmt.setString(5, id);
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listEvidence(JSONObject input) throws Exception {
+        String auditId = (String) input.get("audit_id");
+        String search  = (String) input.get("search");
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(auditId)) where.append(" AND el.audit_id = ?::uuid");
+        if (!isBlank(search))  where.append(" AND el.file_name ILIKE ?");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            String sql =
+                "SELECT el.id, el.file_name, el.file_path, el.sha256_checksum, el.is_locked, " +
+                "TO_CHAR(el.uploaded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') AS uploaded_at, " +
+                "a.title AS audit_title, a.id AS audit_id_val, " +
+                "u.username AS uploaded_by_name " +
+                "FROM evidence_locker el " +
+                "LEFT JOIN audits a ON a.id = el.audit_id " +
+                "LEFT JOIN users u ON u.id = el.uploaded_by" +
+                where + " ORDER BY el.uploaded_at DESC";
+            pstmt = conn.prepareStatement(sql);
+            int idx = 1;
+            if (!isBlank(auditId)) pstmt.setString(idx++, auditId);
+            if (!isBlank(search))  pstmt.setString(idx++, "%" + search + "%");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",               rs.getString("id"));
+                row.put("file_name",        rs.getString("file_name"));
+                row.put("file_path",        rs.getString("file_path"));
+                row.put("sha256_checksum",  rs.getString("sha256_checksum"));
+                row.put("is_locked",        rs.getBoolean("is_locked"));
+                row.put("uploaded_at",      rs.getString("uploaded_at"));
+                row.put("audit_title",      rs.getString("audit_title"));
+                row.put("audit_id",         rs.getString("audit_id_val"));
+                row.put("uploaded_by_name", rs.getString("uploaded_by_name"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success",  true);
+        result.put("evidence", list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject addEvidence(JSONObject input) throws Exception {
+        String fileName          = (String) input.get("file_name");
+        String filePath          = (String) input.get("file_path");
+        String checksum          = (String) input.get("sha256_checksum");
+        String timestampSig      = (String) input.get("timestamp_signature");
+        String uploadedBy        = (String) input.get("uploaded_by");
+        String auditId           = (String) input.get("audit_id");
+        if (isBlank(fileName) || isBlank(filePath))
+            throw new IllegalArgumentException("file_name and file_path are required");
+        if (isBlank(checksum))       checksum       = "unverified";
+        if (isBlank(timestampSig))   timestampSig   = "manual-upload";
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO evidence_locker (file_name, file_path, sha256_checksum, timestamp_signature, uploaded_by, audit_id) " +
+                "VALUES (?, ?, ?, ?, ?::uuid, ?::uuid) RETURNING id"
+            );
+            pstmt.setString(1, fileName);
+            pstmt.setString(2, filePath);
+            pstmt.setString(3, checksum);
+            pstmt.setString(4, timestampSig);
+            pstmt.setString(5, isBlank(uploadedBy) ? null : uploadedBy);
+            pstmt.setString(6, isBlank(auditId)    ? null : auditId);
+            rs = pstmt.executeQuery();
+            rs.next();
+            result.put("id", rs.getString("id"));
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    // ── Dropdown helpers ─────────────────────────────────────────────────────
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listStaff() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT id, username, email FROM users WHERE status = 'ACTIVE' ORDER BY username"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",       rs.getString("id"));
+                row.put("username", rs.getString("username"));
+                row.put("email",    rs.getString("email"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        result.put("staff",   list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listFrameworksDD() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT id, name FROM frameworks ORDER BY name");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",   rs.getString("id"));
+                row.put("name", rs.getString("name"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success",    true);
+        result.put("frameworks", list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listDepartmentsDD() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT id, name FROM departments ORDER BY name");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",   rs.getString("id"));
+                row.put("name", rs.getString("name"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success",     true);
+        result.put("departments", list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listControlsDD() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT id, code, title FROM controls ORDER BY code");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",    rs.getString("id"));
+                row.put("code",  rs.getString("code"));
+                row.put("title", rs.getString("title"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success",  true);
+        result.put("controls", list);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listRisksDD() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT id, risk_code, title FROM risks WHERE status != 'RETIRED' ORDER BY risk_code"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject row = new JSONObject();
+                row.put("id",        rs.getString("id"));
+                row.put("risk_code", rs.getString("risk_code"));
+                row.put("title",     rs.getString("title"));
+                list.add(row);
+            }
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+        result.put("success", true);
+        result.put("risks",   list);
         return result;
     }
 

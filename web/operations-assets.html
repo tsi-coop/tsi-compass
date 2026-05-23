@@ -7,307 +7,224 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
-a{color:inherit;text-decoration:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
 .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
 .side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
-.nav{display:grid;gap:3px}
-.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
 .nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
-.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
-.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
 .side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
-.main{padding:32px}
-.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
-.breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
+.main{padding:32px}.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
 .page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
-.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{height:28px;padding:0 10px;font-size:11px}
 .section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
 .section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
 .section-head h2{margin:0;font-size:15px;font-weight:800}
 .filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
 .filter-bar input{flex:1;min-width:160px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafcfd}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-.pill.good{background:#e6f4ed;color:var(--green)}
-.pill.watch{background:#fef3cd;color:var(--amber)}
-.pill.risk{background:#fde8e8;color:var(--red)}
-.pill.info{background:#e8eeff;color:var(--blue)}
-.pill.neu{background:#f0f4f8;color:var(--muted)}
+.pill.good{background:#e6f4ed;color:var(--green)}.pill.watch{background:#fef3cd;color:var(--amber)}.pill.risk{background:#fde8e8;color:var(--red)}.pill.info{background:#e8eeff;color:var(--blue)}.pill.neu{background:#f0f4f8;color:var(--muted)}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin:1px}
 .row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
-.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
-.form-row{margin-bottom:16px}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
 .form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
-.form-row textarea{height:80px;padding:8px 10px;resize:vertical}
-.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row textarea{height:80px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
 <body>
-<header class="mobilebar">
-  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
-</header>
+<header class="mobilebar"><a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
 <div class="app">
   <aside class="side">
     <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
     <nav class="nav">
-      <a href="dashboard.html">Executive Dashboard</a>
-      <a href="platform.html">Platform &amp; Access</a>
-      <a href="governance.html">Governance &amp; Policy</a>
-      <a href="risks.html">Risk &amp; Vulnerability</a>
-      <a href="controls.html">Compliance &amp; Controls</a>
-      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="dashboard.html">Executive Dashboard</a><a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a><a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a><a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
       <a href="operations-changes.html" class="subnav">Change Management</a>
       <a href="operations-assets.html" class="subnav active">Asset Inventory</a>
       <a href="operations-vendors.html" class="subnav">Vendor Register</a>
       <a href="operations-helpdesk.html" class="subnav">Helpdesk</a>
-      <a href="incidents.html">Incidents &amp; Awareness</a>
-      <a href="reports.html">Reports &amp; Exports</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a><a href="reports.html">Reports &amp; Exports</a>
     </nav>
     <div class="side-foot">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
         <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
-        <div style="min-width:0;flex:1">
-          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
-          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
-        </div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
       </div>
-      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
+      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
       </a>
     </div>
   </aside>
   <main class="main">
     <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Asset Inventory</div>
     <div class="page-header">
-      <div>
-        <div class="eyebrow">IT Operations</div>
-        <h1>Asset Inventory</h1>
-        <p class="subtitle">Complete register of hardware, software, and cloud assets with classification and lifecycle status.</p>
-      </div>
-      <div class="acts">
-        <button class="btn" onclick="openModal('modal-import-assets')">Import CSV</button>
-        <button class="btn primary" onclick="openModal('modal-add-asset')">Add Asset</button>
-      </div>
+      <div><div class="eyebrow">IT Operations</div><h1>Asset Inventory</h1><p class="subtitle">Full inventory of IT assets with criticality, patch status, and lifecycle state tracking.</p></div>
+      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Add Asset</button></div>
     </div>
-
     <div class="section-card">
-      <div class="section-head">
-        <h2>Asset Register</h2>
-        <span style="font-size:12px;color:var(--muted)">Last reconciled: 15 Mar 2026</span>
-      </div>
+      <div class="section-head"><h2>Assets</h2><span id="ast-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
       <div class="filter-bar">
-        <select><option>All Categories</option><option>Server</option><option>Network</option><option>Endpoint</option><option>Cloud</option><option>Software</option></select>
-        <select><option>All Classifications</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
-        <select><option>All Statuses</option><option>Active</option><option>Decommissioned</option><option>Under Review</option></select>
-        <input type="search" placeholder="Search assets…">
+        <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option><option>APPLICATION</option><option>CORE_SERVER</option><option>FIREWALL</option><option>LAPTOP</option><option>DESKTOP</option><option>PRINTER</option><option>OTHER</option></select>
+        <select id="f-crit" onchange="applyFilters()"><option value="">All Criticality</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        <select id="f-patch" onchange="applyFilters()"><option value="">All Patch Statuses</option><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select>
+        <input id="f-search" type="search" placeholder="Search assets…" oninput="applyFilters()">
       </div>
       <table>
-        <thead>
-          <tr>
-            <th>Asset ID</th>
-            <th>Asset Name</th>
-            <th>Category</th>
-            <th>Classification</th>
-            <th>Owner</th>
-            <th>Location</th>
-            <th>Patch Status</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>AST-001</strong></td>
-            <td>CORE-DB-01</td>
-            <td>Server</td>
-            <td><span class="pill risk">Critical</span></td>
-            <td>IT Operations</td>
-            <td>DC-Main Rack A3</td>
-            <td><span class="pill good">Patched</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-002</strong></td>
-            <td>SWIFT-IF-01</td>
-            <td>Server</td>
-            <td><span class="pill risk">Critical</span></td>
-            <td>IT Operations</td>
-            <td>DC-Main Rack A4</td>
-            <td><span class="pill watch">Pending</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-003</strong></td>
-            <td>FW-CORE-01</td>
-            <td>Network</td>
-            <td><span class="pill risk">Critical</span></td>
-            <td>Network Security</td>
-            <td>DC-Main Rack B1</td>
-            <td><span class="pill good">Patched</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-004</strong></td>
-            <td>SW-CORE-01</td>
-            <td>Network</td>
-            <td><span class="pill info">High</span></td>
-            <td>Network Security</td>
-            <td>DC-Main Rack B2</td>
-            <td><span class="pill good">Patched</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-005</strong></td>
-            <td>api.tsicompass.lk</td>
-            <td>Cloud</td>
-            <td><span class="pill risk">Critical</span></td>
-            <td>Architecture</td>
-            <td>AWS ap-south-1</td>
-            <td><span class="pill good">Patched</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-006</strong></td>
-            <td>reports.tsicompass.lk</td>
-            <td>Cloud</td>
-            <td><span class="pill info">High</span></td>
-            <td>Architecture</td>
-            <td>AWS ap-south-1</td>
-            <td><span class="pill watch">Pending</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-007</strong></td>
-            <td>Microsoft 365 E3 License Suite</td>
-            <td>Software</td>
-            <td><span class="pill watch">Medium</span></td>
-            <td>IT Operations</td>
-            <td>Cloud – M365</td>
-            <td><span class="pill good">Current</span></td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>AST-008</strong></td>
-            <td>LEGACY-APP-01</td>
-            <td>Server</td>
-            <td><span class="pill watch">Medium</span></td>
-            <td>IT Operations</td>
-            <td>DC-DR Rack C1</td>
-            <td><span class="pill risk">Overdue</span></td>
-            <td><span class="pill watch">Under Review</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-asset')">Edit</button></div></td>
-          </tr>
-        </tbody>
+        <thead><tr><th>Name</th><th>Category</th><th>Criticality</th><th>Owner</th><th>Patch Status</th><th>Lifecycle</th><th>Actions</th></tr></thead>
+        <tbody id="ast-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </main>
 </div>
 
-<!-- Modal: Add Asset -->
-<div class="modal-overlay" id="modal-add-asset">
+<div class="modal-overlay" id="modal-add">
   <div class="modal">
     <h2>Add Asset</h2>
-    <form onsubmit="submitModal(event,'modal-add-asset')">
-      <div class="form-row half">
-        <div><label>Asset ID</label><input type="text" placeholder="e.g. AST-009" required></div>
-        <div><label>Category</label><select><option>Server</option><option>Network</option><option>Endpoint</option><option>Cloud</option><option>Software</option></select></div>
-      </div>
-      <div class="form-row"><label>Asset Name / Hostname</label><input type="text" placeholder="e.g. PROD-WEB-02" required></div>
-      <div class="form-row half">
-        <div><label>Classification</label><select><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-        <div><label>Owner</label><select><option>IT Operations</option><option>Network Security</option><option>Architecture</option><option>Development</option></select></div>
-      </div>
-      <div class="form-row"><label>Location / Environment</label><input type="text" placeholder="e.g. DC-Main Rack A1 or AWS ap-south-1"></div>
-      <div class="form-row"><label>Notes</label><textarea placeholder="Additional details…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-add-asset')">Cancel</button>
-        <button type="submit" class="btn primary">Add Asset</button>
-      </div>
-    </form>
+    <div class="form-row"><label>Asset Name</label><input id="add-name" required></div>
+    <div class="form-row half">
+      <div><label>Category</label><select id="add-cat"><option>APPLICATION</option><option>CORE_SERVER</option><option>FIREWALL</option><option>LAPTOP</option><option>DESKTOP</option><option>PRINTER</option><option>OTHER</option></select></div>
+      <div><label>Criticality</label><select id="add-crit"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Owner</label><select id="add-owner"><option value="">— Select —</option></select></div>
+      <div><label>Patch Status</label><select id="add-patch"><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select></div>
+    </div>
+    <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn primary" onclick="submitAdd()">Add Asset</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Edit Asset -->
-<div class="modal-overlay" id="modal-edit-asset">
+<div class="modal-overlay" id="modal-edit">
   <div class="modal">
     <h2>Edit Asset</h2>
-    <form onsubmit="submitModal(event,'modal-edit-asset')">
-      <div class="form-row"><label>Asset Name</label><input type="text" value="CORE-DB-01"></div>
-      <div class="form-row half">
-        <div><label>Classification</label><select><option selected>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-        <div><label>Status</label><select><option>Active</option><option>Decommissioned</option><option>Under Review</option></select></div>
-      </div>
-      <div class="form-row"><label>Patch Status</label><select><option>Patched</option><option>Pending</option><option>Overdue</option></select></div>
-      <div class="form-row"><label>Notes</label><textarea placeholder="Update notes…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-edit-asset')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
-      </div>
-    </form>
+    <input type="hidden" id="edit-id">
+    <div class="form-row"><label>Asset Name</label><input id="edit-name"></div>
+    <div class="form-row half">
+      <div><label>Criticality</label><select id="edit-crit"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
+      <div><label>Patch Status</label><select id="edit-patch"><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select></div>
+    </div>
+    <div class="form-row"><label>Lifecycle Status</label><select id="edit-life"><option>ACTIVE</option><option>EOL</option><option>DECOMMISSIONING</option><option>DECOMMISSIONED</option></select></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn primary" onclick="submitEdit()">Save Changes</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Import CSV -->
-<div class="modal-overlay" id="modal-import-assets">
-  <div class="modal">
-    <h2>Import Assets from CSV</h2>
-    <form onsubmit="submitModal(event,'modal-import-assets')">
-      <div class="form-row"><label>CSV File</label><input type="file" accept=".csv" style="height:auto;padding:6px" required></div>
-      <p style="font-size:12px;color:var(--muted)">Columns: Asset ID, Asset Name, Category, Classification, Owner, Location, Status</p>
-      <div class="form-row"><label>Conflict Resolution</label><select><option>Skip duplicates</option><option>Overwrite duplicates</option></select></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-import-assets')">Cancel</button>
-        <button type="submit" class="btn primary">Import</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast">Saved successfully</div>
+<div class="toast" id="toast">Saved</div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='index.html';
+var state={assets:[],staff:[]};
+
+function api(func,body,cb){
+  fetch('/api/v1/ops',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var CRIT_PILL={CRITICAL:'<span class="pill risk">Critical</span>',HIGH:'<span class="pill watch">High</span>',MEDIUM:'<span class="pill info">Medium</span>',LOW:'<span class="pill neu">Low</span>'};
+var PATCH_PILL={CURRENT:'<span class="pill good">Current</span>',PENDING:'<span class="pill watch">Pending</span>',OVERDUE:'<span class="pill risk">Overdue</span>',UNKNOWN:'<span class="pill neu">Unknown</span>'};
+
+function renderAssets(list){
+  var body=document.getElementById('ast-body');
+  var cnt=document.getElementById('ast-count');if(cnt)cnt.textContent=list.length+' asset'+(list.length!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No assets found.</td></tr>';return;}
+  body.innerHTML=list.map(function(a){
+    return '<tr>'+
+      '<td><strong>'+esc(a.name)+'</strong></td>'+
+      '<td><span class="tag">'+esc(a.category)+'</span></td>'+
+      '<td>'+(CRIT_PILL[a.criticality]||esc(a.criticality))+'</td>'+
+      '<td>'+esc(a.owner_name||'—')+'</td>'+
+      '<td>'+(PATCH_PILL[a.patch_status]||esc(a.patch_status||'Unknown'))+'</td>'+
+      '<td>'+esc(a.lifecycle_status||'ACTIVE')+'</td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Edit</button></div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function applyFilters(){
+  var catVal=document.getElementById('f-cat').value;
+  var critVal=document.getElementById('f-crit').value;
+  var patchVal=document.getElementById('f-patch').value;
+  var srVal=document.getElementById('f-search').value.toLowerCase();
+  var list=state.assets.filter(function(a){
+    if(catVal&&a.category!==catVal)return false;
+    if(critVal&&a.criticality!==critVal)return false;
+    if(patchVal&&a.patch_status!==patchVal)return false;
+    if(srVal&&!(a.name||'').toLowerCase().includes(srVal))return false;
+    return true;
+  });
+  renderAssets(list);
+}
+
+function loadAll(){
+  api('list_assets',{},function(err,d){if(err)return;state.assets=d.assets||[];applyFilters();});
+  api('list_staff',{},function(err,d){
+    if(err)return;state.staff=d.staff||[];
+    var sel=document.getElementById('add-owner');
+    state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
+  });
+}
+
+function openAdd(){['add-name','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
+function openEdit(id){
+  var a=state.assets.find(function(x){return x.id===id;});if(!a)return;
+  document.getElementById('edit-id').value=a.id;
+  document.getElementById('edit-name').value=a.name||'';
+  setSelect('edit-crit',a.criticality);setSelect('edit-patch',a.patch_status||'CURRENT');setSelect('edit-life',a.lifecycle_status||'ACTIVE');
+  document.getElementById('modal-edit').classList.add('open');
+}
+function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function submitAdd(){
+  var name=document.getElementById('add-name').value.trim();
+  if(!name){alert('Asset name is required.');return;}
+  api('add_asset',{name:name,category:document.getElementById('add-cat').value,criticality:document.getElementById('add-crit').value,
+    owner_id:document.getElementById('add-owner').value||null,patch_status:document.getElementById('add-patch').value,
+    description:document.getElementById('add-desc').value},function(err){
+    if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Asset added');loadAll();
+  });
+}
+function submitEdit(){
+  var id=document.getElementById('edit-id').value;
+  api('update_asset',{id:id,name:document.getElementById('edit-name').value,criticality:document.getElementById('edit-crit').value,
+    patch_status:document.getElementById('edit-patch').value,lifecycle_status:document.getElementById('edit-life').value},function(err){
+    if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Asset updated');loadAll();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
 (function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadAll();
 })();
 </script>
 </body>

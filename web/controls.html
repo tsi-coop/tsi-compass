@@ -56,7 +56,6 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -105,23 +104,23 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Frameworks</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">ISO 27001 · SOC 2 · CBSL</div>
+        <div class="metric-value" id="m-frameworks">—</div>
+        <div class="metric-note" id="m-frameworks-note">Loading…</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Total Controls</div>
-        <div class="metric-value">94</div>
+        <div class="metric-value" id="m-controls">—</div>
         <div class="metric-note">Across all mapped frameworks</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Compliant</div>
-        <div class="metric-value">82%</div>
-        <div class="metric-note">77 of 94 controls attested</div>
+        <div class="metric-value" id="m-pct">—</div>
+        <div class="metric-note" id="m-pct-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">Active Exceptions</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">2 approved · 1 pending</div>
+        <div class="metric-value" id="m-exceptions">—</div>
+        <div class="metric-note" id="m-exceptions-note">Loading…</div>
       </div>
     </div>
 
@@ -131,9 +130,9 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         <h3>Framework Readiness</h3>
         <p>Track readiness percentages and upcoming deadlines across ISO 27001, SOC 2, CBSL, and GDPR. Schedule assessment activities from the compliance calendar.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>84%</strong><span>ISO 27001</span></div>
-          <div class="hub-stat"><strong>79%</strong><span>SOC 2</span></div>
-          <div class="hub-stat"><strong>83%</strong><span>CBSL</span></div>
+          <div class="hub-stat"><strong id="hs-fw-count">—</strong><span>Frameworks</span></div>
+          <div class="hub-stat"><strong id="hs-fw-compliant">—</strong><span>Controls compliant</span></div>
+          <div class="hub-stat"><strong id="hs-fw-pct">—</strong><span>Avg. readiness</span></div>
         </div>
         <a href="controls-frameworks.html" class="hub-manage">View Frameworks &#8250;</a>
       </div>
@@ -142,9 +141,9 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         <h3>Controls Register</h3>
         <p>Maintain the full controls register mapped to multiple frameworks. Record attestation status, identify gaps, link evidence, and assign control owners.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>94</strong><span>Total controls</span></div>
-          <div class="hub-stat"><strong>8</strong><span>Gaps identified</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Not attested</span></div>
+          <div class="hub-stat"><strong id="hs-ctl-total">—</strong><span>Total controls</span></div>
+          <div class="hub-stat"><strong id="hs-ctl-gap">—</strong><span>Non-compliant</span></div>
+          <div class="hub-stat"><strong id="hs-ctl-pending">—</strong><span>Pending attestation</span></div>
         </div>
         <a href="controls-register.html" class="hub-manage">Manage Controls &#8250;</a>
       </div>
@@ -153,9 +152,9 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         <h3>Exception Register</h3>
         <p>Review and manage policy exceptions with business justifications, compensating controls, expiry tracking, and approval workflows.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>3</strong><span>Active exceptions</span></div>
-          <div class="hub-stat"><strong>2</strong><span>Approved</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Pending review</span></div>
+          <div class="hub-stat"><strong id="hs-exc-total">—</strong><span>Active exceptions</span></div>
+          <div class="hub-stat"><strong id="hs-exc-approved">—</strong><span>Approved</span></div>
+          <div class="hub-stat"><strong id="hs-exc-pending">—</strong><span>Pending review</span></div>
         </div>
         <a href="controls-exceptions.html" class="hub-manage">View Exceptions &#8250;</a>
       </div>
@@ -163,12 +162,48 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
   </main>
 </div>
 <script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('get_controls_metrics',{},function(err,d){
+    if(err)return;
+    set('m-frameworks',      d.frameworks||0);
+    set('m-controls',        d.total_controls||0);
+    set('m-pct',             (d.compliance_pct||0)+'%');
+    set('m-exceptions',      d.active_exceptions||0);
+    set('m-frameworks-note', (d.frameworks||0)+' active frameworks');
+    set('m-pct-note',        (d.compliant_controls||0)+' of '+(d.total_controls||0)+' controls attested');
+    set('m-exceptions-note', (d.approved_exceptions||0)+' approved · '+(d.pending_exceptions||0)+' pending');
+    set('hs-fw-count',       d.frameworks||0);
+    set('hs-fw-compliant',   d.compliant_controls||0);
+    set('hs-fw-pct',         (d.compliance_pct||0)+'%');
+    set('hs-ctl-total',      d.total_controls||0);
+    set('hs-ctl-gap',        d.non_compliant_controls||0);
+    set('hs-ctl-pending',    d.pending_controls||0);
+    set('hs-exc-total',      d.active_exceptions||0);
+    set('hs-exc-approved',   d.approved_exceptions||0);
+    set('hs-exc-pending',    d.pending_exceptions||0);
+  });
 })();
 </script>
 </body>

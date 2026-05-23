@@ -1,278 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – Knowledge Base</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
-a{color:inherit;text-decoration:none}
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
-.nav{display:grid;gap:3px}
-.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
-.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
-.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
-.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
-.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
-.main{padding:32px}
-.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
-.breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
-.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
-.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
-.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.btn.sm{height:28px;padding:0 10px;font-size:11px}
-.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
-.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
-.section-head h2{margin:0;font-size:15px;font-weight:800}
-.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
-.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
-.filter-bar input{flex:1;min-width:160px}
-.article-list{padding:0}
-.article-item{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px;border-bottom:1px solid #f0f4f8;gap:20px}
-.article-item:last-child{border-bottom:none}
-.article-item:hover{background:#fafcfd}
-.article-info{flex:1;min-width:0}
-.article-title{font-size:14px;font-weight:700;margin-bottom:3px;color:var(--teal);cursor:pointer}
-.article-title:hover{text-decoration:underline}
-.article-excerpt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px}
-.article-meta{display:flex;gap:12px;font-size:11px;color:var(--muted)}
-.article-meta span strong{color:var(--ink);font-weight:600}
-.article-actions{display:flex;gap:6px;flex-shrink:0}
-.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin-right:4px}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
-.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
-.form-row{margin-bottom:16px}
-.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
-.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
-.form-row textarea{height:120px;padding:8px 10px;resize:vertical}
-.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
-.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Knowledge Base — TSI Compass</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .filter-bar{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+    .filter-bar select,.filter-bar input{padding:.45rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;background:var(--card);color:var(--text)}
+    .filter-bar input{flex:1;min-width:180px}
+    .badge{display:inline-block;padding:.2rem .55rem;border-radius:12px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+    .badge-draft{background:#f3f4f6;color:#6b7280}
+    .badge-published{background:#d1fae5;color:#065f46}
+    .badge-archived{background:#dbeafe;color:#1e40af}
+    .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem}
+    .article-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem;display:flex;flex-direction:column}
+    .article-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem}
+    .article-card-title{font-weight:600;font-size:.95rem;line-height:1.35;flex:1}
+    .article-category{display:inline-block;font-size:.72rem;color:var(--text-muted);background:var(--sidebar-bg);padding:.15rem .5rem;border-radius:4px;margin-bottom:.5rem}
+    .article-excerpt{font-size:.82rem;color:var(--text-muted);line-height:1.5;flex:1;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .article-meta{font-size:.75rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:.65rem;display:flex;justify-content:space-between;align-items:center}
+    .card-actions{display:flex;gap:.5rem;margin-top:.65rem}
+    .btn{padding:.45rem 1rem;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:500}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-secondary{background:var(--border);color:var(--text)}
+    .btn-sm{padding:.3rem .65rem;font-size:.78rem}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:10px;padding:2rem;width:100%;max-width:580px;max-height:90vh;overflow-y:auto}
+    .modal h3{margin:0 0 1.25rem;font-size:1.05rem}
+    .form-group{margin-bottom:1rem}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.35rem;color:var(--text-muted)}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.875rem;background:var(--bg);color:var(--text);box-sizing:border-box}
+    .form-group textarea{resize:vertical;min-height:100px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .modal-actions{display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.25rem}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;z-index:999;display:none}
+    .toast.show{display:block}
+    .empty-state{text-align:center;padding:3rem;color:var(--text-muted)}
+  </style>
 </head>
 <body>
-<header class="mobilebar">
-  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
-</header>
-<div class="app">
-  <aside class="side">
-    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-    <nav class="nav">
-      <a href="dashboard.html">Executive Dashboard</a>
-      <a href="platform.html">Platform &amp; Access</a>
-      <a href="governance.html">Governance &amp; Policy</a>
-      <a href="risks.html">Risk &amp; Vulnerability</a>
-      <a href="controls.html">Compliance &amp; Controls</a>
-      <a href="evidence.html">Audit &amp; Evidence</a>
-      <a href="operations.html">IT Operations</a>
-      <a href="incidents.html">Incidents &amp; Awareness</a>
-      <a href="incidents-register.html" class="subnav">Incident Register</a>
-      <a href="incidents-training.html" class="subnav">Security Training</a>
-      <a href="incidents-knowledge.html" class="subnav active">Knowledge Base</a>
-      <a href="reports.html">Reports &amp; Exports</a>
-    </nav>
-    <div class="side-foot">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
-        <div style="min-width:0;flex:1">
-          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
-          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
-        </div>
-      </div>
-      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
-      </a>
-    </div>
-  </aside>
-  <main class="main">
-    <div class="breadcrumb"><a href="incidents.html">Incidents &amp; Awareness</a> / Knowledge Base</div>
-    <div class="page-header">
-      <div>
-        <div class="eyebrow">Incidents &amp; Awareness</div>
-        <h1>Knowledge Base</h1>
-        <p class="subtitle">Security procedures, runbooks, and lessons-learned articles for the IT and security teams.</p>
-      </div>
-      <div class="acts">
-        <button class="btn primary" onclick="openModal('modal-add-article')">Add Article</button>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <h2>Articles</h2>
-        <span style="font-size:12px;color:var(--muted)">24 articles</span>
-      </div>
-      <div class="filter-bar">
-        <select><option>All Categories</option><option>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select>
-        <select><option>All Audiences</option><option>IT Security</option><option>IT Operations</option><option>All Staff</option></select>
-        <input type="search" placeholder="Search knowledge base…">
-      </div>
-      <div class="article-list">
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">Incident Response Runbook – Credential Compromise</div>
-            <div class="article-excerpt">Step-by-step response procedure for suspected credential compromise events, including containment, eradication, and recovery steps.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> Runbook</span>
-              <span><strong>Audience:</strong> IT Security</span>
-              <span><strong>Updated:</strong> 12 May 2026</span>
-              <span><strong>Author:</strong> K. Perera</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">DDoS Mitigation Procedure</div>
-            <div class="article-excerpt">Actions to take when a distributed denial-of-service attack is detected, including WAF rule escalation and ISP coordination.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> Runbook</span>
-              <span><strong>Audience:</strong> IT Security, IT Operations</span>
-              <span><strong>Updated:</strong> 02 Apr 2026</span>
-              <span><strong>Author:</strong> D. Wijesekara</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">Lessons Learned: Phishing Campaign May 2026</div>
-            <div class="article-excerpt">Post-incident analysis of the May 2026 phishing event affecting 3 staff members. Root cause, timeline, and recommended awareness improvements.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> Lessons Learned</span>
-              <span><strong>Audience:</strong> All Staff</span>
-              <span><strong>Updated:</strong> 10 May 2026</span>
-              <span><strong>Author:</strong> Security Team</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">How to Report a Suspicious Email</div>
-            <div class="article-excerpt">Simple guide for all staff on identifying and reporting phishing or suspicious emails via the IT Security mailbox and the report button in Outlook.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> FAQ</span>
-              <span><strong>Audience:</strong> All Staff</span>
-              <span><strong>Updated:</strong> 15 Jan 2026</span>
-              <span><strong>Author:</strong> IT Security</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">Backup &amp; Recovery Procedure – Core Systems</div>
-            <div class="article-excerpt">Documented recovery procedures for core banking system backups including RTO/RPO targets and verification steps post-restoration.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> Procedure</span>
-              <span><strong>Audience:</strong> IT Operations</span>
-              <span><strong>Updated:</strong> 28 Feb 2026</span>
-              <span><strong>Author:</strong> N. Fernando</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-        <div class="article-item">
-          <div class="article-info">
-            <div class="article-title" onclick="openModal('modal-edit-article')">Data Classification Policy Summary</div>
-            <div class="article-excerpt">Summary guide for employees explaining the four data classification tiers (Public, Internal, Confidential, Restricted) and handling requirements for each.</div>
-            <div class="article-meta">
-              <span><strong>Category:</strong> Policy Summary</span>
-              <span><strong>Audience:</strong> All Staff</span>
-              <span><strong>Updated:</strong> 10 Mar 2026</span>
-              <span><strong>Author:</strong> Compliance Team</span>
-            </div>
-          </div>
-          <div class="article-actions">
-            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- Modal: Add Article -->
-<div class="modal-overlay" id="modal-add-article">
-  <div class="modal">
-    <h2>Add Article</h2>
-    <form onsubmit="submitModal(event,'modal-add-article')">
-      <div class="form-row"><label>Title</label><input type="text" placeholder="Article title" required></div>
-      <div class="form-row half">
-        <div><label>Category</label><select><option>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select></div>
-        <div><label>Audience</label><select><option>All Staff</option><option>IT Security</option><option>IT Operations</option><option>Management</option></select></div>
-      </div>
-      <div class="form-row"><label>Summary / Excerpt</label><input type="text" placeholder="One-line summary for the article list"></div>
-      <div class="form-row"><label>Content</label><textarea placeholder="Article content (Markdown supported)…" style="height:160px"></textarea></div>
-      <div class="form-row"><label>Tags</label><input type="text" placeholder="e.g. phishing, incident-response, access-control"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-add-article')">Cancel</button>
-        <button type="submit" class="btn primary">Publish Article</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Edit Article -->
-<div class="modal-overlay" id="modal-edit-article">
-  <div class="modal">
-    <h2>Edit Article</h2>
-    <form onsubmit="submitModal(event,'modal-edit-article')">
-      <div class="form-row"><label>Title</label><input type="text" value="Incident Response Runbook – Credential Compromise"></div>
-      <div class="form-row half">
-        <div><label>Category</label><select><option selected>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select></div>
-        <div><label>Audience</label><select><option selected>IT Security</option><option>All Staff</option><option>IT Operations</option></select></div>
-      </div>
-      <div class="form-row"><label>Content</label><textarea style="height:160px">Step-by-step response procedure for suspected credential compromise events…</textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-edit-article')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast">Saved successfully</div>
+<div id="app-shell"></div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
-})();
+var token = localStorage.getItem('token');
+if (!token) location.href = 'index.html';
+</script>
+<script src="js/shell.js"></script>
+
+<div class="main-content" style="padding:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+    <div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">
+        <a href="incidents.html" style="color:var(--accent);text-decoration:none">Incidents &amp; Awareness</a> › Knowledge Base
+      </div>
+      <h2 style="margin:0;font-size:1.3rem">Security Knowledge Base</h2>
+    </div>
+    <button class="btn btn-primary" onclick="openAdd()">+ New Article</button>
+  </div>
+
+  <div class="filter-bar">
+    <select id="f-category" onchange="applyFilters()">
+      <option value="">All Categories</option>
+      <option value="POLICY">Policy</option>
+      <option value="PROCEDURE">Procedure</option>
+      <option value="GUIDELINE">Guideline</option>
+      <option value="RUNBOOK">Runbook</option>
+      <option value="LESSON_LEARNED">Lesson Learned</option>
+      <option value="OTHER">Other</option>
+    </select>
+    <select id="f-status" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="DRAFT">Draft</option>
+      <option value="PUBLISHED">Published</option>
+      <option value="ARCHIVED">Archived</option>
+    </select>
+    <input id="f-search" type="text" placeholder="Search articles…" oninput="applyFilters()"/>
+  </div>
+
+  <div id="articles-grid" class="articles-grid">
+    <div class="empty-state">Loading…</div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>New Knowledge Base Article</h3>
+    <div class="form-group">
+      <label>Title *</label>
+      <input id="a-title" type="text" placeholder="Article title"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="a-category">
+          <option value="">Select…</option>
+          <option value="POLICY">Policy</option>
+          <option value="PROCEDURE">Procedure</option>
+          <option value="GUIDELINE">Guideline</option>
+          <option value="RUNBOOK">Runbook</option>
+          <option value="LESSON_LEARNED">Lesson Learned</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Audience</label>
+        <input id="a-audience" type="text" placeholder="e.g. All Staff, IT Team…"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Content *</label>
+      <textarea id="a-content" style="min-height:140px" placeholder="Article content, steps, or description…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Tags (comma-separated)</label>
+      <input id="a-tags" type="text" placeholder="phishing, email, awareness"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAdd()">Publish Article</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>Edit Article</h3>
+    <input type="hidden" id="e-id"/>
+    <div class="form-group">
+      <label>Title</label>
+      <input id="e-title" type="text"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="e-category">
+          <option value="POLICY">Policy</option>
+          <option value="PROCEDURE">Procedure</option>
+          <option value="GUIDELINE">Guideline</option>
+          <option value="RUNBOOK">Runbook</option>
+          <option value="LESSON_LEARNED">Lesson Learned</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="e-status">
+          <option value="DRAFT">Draft</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="ARCHIVED">Archived</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Audience</label>
+      <input id="e-audience" type="text"/>
+    </div>
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="e-content" style="min-height:140px"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Tags (comma-separated)</label>
+      <input id="e-tags" type="text"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var state = { articles: [] };
+
+function api(func, params) {
+  params = params || {};
+  return fetch('/api/v1/incidents', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(Object.assign({ _func: func }, params))
+  }).then(function(r) { if (r.status === 401) location.href = 'index.html'; return r.json(); });
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, err) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? '#dc2626' : '#1e293b';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+var STATUS_PILL = { DRAFT:'badge-draft', PUBLISHED:'badge-published', ARCHIVED:'badge-archived' };
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function renderCards(rows) {
+  var grid = document.getElementById('articles-grid');
+  if (!rows.length) {
+    grid.innerHTML = '<div class="empty-state">No articles found</div>';
+    return;
+  }
+  grid.innerHTML = rows.map(function(r) {
+    var excerpt = (r.content || '').substring(0, 200) + (r.content && r.content.length > 200 ? '…' : '');
+    return '<div class="article-card">' +
+      '<div class="article-card-top">' +
+        '<div class="article-card-title">' + esc(r.title) + '</div>' +
+        '<span class="badge ' + (STATUS_PILL[r.status]||'') + '">' + esc(r.status||'—') + '</span>' +
+      '</div>' +
+      '<span class="article-category">' + esc((r.category||'').replace(/_/g,' ')) + '</span>' +
+      '<div class="article-excerpt">' + esc(excerpt) + '</div>' +
+      '<div class="article-meta">' +
+        '<span>&#128197; ' + fmtDate(r.updated_at || r.created_at) + '</span>' +
+        '<span>' + esc(r.audience || '') + '</span>' +
+      '</div>' +
+      '<div class="card-actions">' +
+        '<button class="btn btn-sm btn-secondary" onclick=\'openEdit(' + JSON.stringify(r) + ')\'>Edit</button>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function applyFilters() {
+  var category = document.getElementById('f-category').value;
+  var status = document.getElementById('f-status').value;
+  var search = document.getElementById('f-search').value.toLowerCase();
+  var filtered = state.articles.filter(function(r) {
+    if (category && r.category !== category) return false;
+    if (status && r.status !== status) return false;
+    if (search && !((r.title||'').toLowerCase().includes(search) ||
+        (r.content||'').toLowerCase().includes(search) ||
+        (r.tags||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+  renderCards(filtered);
+}
+
+function loadPage() {
+  api('list_knowledge').then(function(res) {
+    if (res.success) {
+      state.articles = res.data || [];
+      renderCards(state.articles);
+    }
+  });
+}
+
+function openAdd() {
+  ['a-title','a-content','a-tags','a-audience'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('a-category').value = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
+
+function submitAdd() {
+  var title = document.getElementById('a-title').value.trim();
+  var content = document.getElementById('a-content').value.trim();
+  var category = document.getElementById('a-category').value;
+  if (!title || !content || !category) { toast('Title, category, and content are required', true); return; }
+  api('add_knowledge', {
+    title: title,
+    content: content,
+    category: category,
+    audience: document.getElementById('a-audience').value.trim(),
+    tags: document.getElementById('a-tags').value.trim(),
+    created_by: localStorage.getItem('user_id') || null
+  }).then(function(res) {
+    if (res.success) { toast('Article published'); closeAdd(); loadPage(); }
+    else toast(res.message || 'Error publishing article', true);
+  });
+}
+
+function openEdit(r) {
+  document.getElementById('e-id').value = r.id;
+  document.getElementById('e-title').value = r.title || '';
+  document.getElementById('e-content').value = r.content || '';
+  document.getElementById('e-category').value = r.category || 'OTHER';
+  document.getElementById('e-status').value = r.status || 'DRAFT';
+  document.getElementById('e-audience').value = r.audience || '';
+  document.getElementById('e-tags').value = r.tags || '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEdit() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function submitEdit() {
+  var id = document.getElementById('e-id').value;
+  api('update_knowledge', {
+    id: id,
+    title: document.getElementById('e-title').value.trim(),
+    content: document.getElementById('e-content').value.trim(),
+    category: document.getElementById('e-category').value,
+    status: document.getElementById('e-status').value,
+    audience: document.getElementById('e-audience').value.trim(),
+    tags: document.getElementById('e-tags').value.trim()
+  }).then(function(res) {
+    if (res.success) { toast('Article updated'); closeEdit(); loadPage(); }
+    else toast(res.message || 'Error updating article', true);
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeAdd(); closeEdit(); }
+});
+
+loadPage();
 </script>
 </body>
 </html>

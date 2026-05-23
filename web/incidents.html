@@ -38,7 +38,6 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .stripe-teal{border-top:4px solid var(--teal)}
 .stripe-blue{border-top:4px solid var(--blue)}
 .stripe-amber{border-top:4px solid var(--amber)}
-.stripe-green{border-top:4px solid var(--green)}
 .stripe-red{border-top:4px solid var(--red)}
 .hub-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
 .hub-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column}
@@ -51,13 +50,12 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
 .hub-manage:hover{color:var(--ink)}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -93,81 +91,114 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
   <main class="main">
     <div class="page-header">
       <div>
-        <div class="eyebrow">Incidents &amp; Security</div>
+        <div class="eyebrow">Incident Management</div>
         <h1>Incidents &amp; Awareness</h1>
-        <p class="subtitle">Incident lifecycle, RCA workspace, security awareness training, and the knowledge base.</p>
+        <p class="subtitle">Incident register with RCA workflow, security awareness training campaigns, and knowledge base.</p>
       </div>
       <div class="acts">
         <a class="btn" href="incidents-knowledge.html">Knowledge Base</a>
-        <a class="btn primary" href="incidents-register.html">Log Incident</a>
+        <a class="btn primary" href="incidents-register.html">Incident Register</a>
       </div>
     </div>
 
     <div class="grid col4 mb">
       <div class="card stripe-red">
         <div class="metric-label">Open Incidents</div>
-        <div class="metric-value">2</div>
-        <div class="metric-note">1 high · 1 medium severity</div>
+        <div class="metric-value" id="m-open">—</div>
+        <div class="metric-note" id="m-open-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
-        <div class="metric-label">High Severity</div>
-        <div class="metric-value">1</div>
-        <div class="metric-note">INC-2026-008 — active</div>
-      </div>
-      <div class="card stripe-green">
-        <div class="metric-label">Training Completion</div>
-        <div class="metric-value">76%</div>
-        <div class="metric-note">Annual phishing awareness</div>
+        <div class="metric-label">Pending RCA</div>
+        <div class="metric-value" id="m-rca">—</div>
+        <div class="metric-note">Root cause analysis required</div>
       </div>
       <div class="card stripe-blue">
-        <div class="metric-label">RCAs Pending</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">Post-incident analysis due</div>
+        <div class="metric-label">Active Campaigns</div>
+        <div class="metric-value" id="m-campaigns">—</div>
+        <div class="metric-note" id="m-campaigns-note">Loading…</div>
+      </div>
+      <div class="card stripe-teal">
+        <div class="metric-label">KB Articles</div>
+        <div class="metric-value" id="m-kb">—</div>
+        <div class="metric-note">Published in knowledge base</div>
       </div>
     </div>
 
     <div class="hub-grid">
       <div class="hub-card">
-        <div class="hub-icon" style="background:#fdeceb">&#128680;</div>
+        <div class="hub-icon" style="background:#fde8e8">&#128680;</div>
         <h3>Incident Register</h3>
-        <p>Log, investigate, and close security incidents. Manage the RCA workspace for active incidents, track escalation paths, and record post-incident analysis.</p>
+        <p>Log and manage security incidents with severity classification, status workflow, and built-in RCA workspace to document root causes and preventative actions.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>2</strong><span>Open</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Active RCA</span></div>
-          <div class="hub-stat"><strong>3</strong><span>Closed YTD</span></div>
+          <div class="hub-stat"><strong id="hs-inc-open">—</strong><span>Open incidents</span></div>
+          <div class="hub-stat"><strong id="hs-inc-high">—</strong><span>Critical / High</span></div>
+          <div class="hub-stat"><strong id="hs-inc-rca">—</strong><span>Pending RCA</span></div>
         </div>
         <a href="incidents-register.html" class="hub-manage">View Incidents &#8250;</a>
       </div>
       <div class="hub-card">
         <div class="hub-icon" style="background:#eaf5f3">&#127891;</div>
         <h3>Security Training</h3>
-        <p>Track security awareness training campaigns, monitor staff completion rates by course, schedule new campaigns, and record attestation for completed courses.</p>
+        <p>Create and manage security awareness campaigns, track enrollment and completion rates, and link training materials including videos, documents, and guidelines.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>76%</strong><span>Overall completion</span></div>
-          <div class="hub-stat"><strong>6</strong><span>Active courses</span></div>
+          <div class="hub-stat"><strong id="hs-trn-active">—</strong><span>Active campaigns</span></div>
+          <div class="hub-stat"><strong id="hs-trn-pct">—</strong><span>Avg. completion</span></div>
         </div>
-        <a href="incidents-training.html" class="hub-manage">View Training &#8250;</a>
+        <a href="incidents-training.html" class="hub-manage">Manage Training &#8250;</a>
       </div>
       <div class="hub-card">
         <div class="hub-icon" style="background:#edf2ff">&#128218;</div>
         <h3>Knowledge Base</h3>
-        <p>Browse and author IT security knowledge base articles including SOPs, how-to guides, architecture docs, and post-incident templates for the security team.</p>
+        <p>Publish security best practices, guidelines, and procedures for staff. Categorise articles by audience and topic to make security knowledge accessible organisation-wide.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>6</strong><span>Published articles</span></div>
-          <div class="hub-stat"><strong>1</strong><span>In draft</span></div>
+          <div class="hub-stat"><strong id="hs-kb-pub">—</strong><span>Published articles</span></div>
+          <div class="hub-stat"><strong id="hs-kb-draft">—</strong><span>Drafts</span></div>
         </div>
-        <a href="incidents-knowledge.html" class="hub-manage">Browse Articles &#8250;</a>
+        <a href="incidents-knowledge.html" class="hub-manage">Browse Knowledge Base &#8250;</a>
       </div>
     </div>
   </main>
 </div>
 <script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/incidents', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('get_incident_metrics',{},function(err,d){
+    if(err)return;
+    set('m-open',          d.open_incidents||0);
+    set('m-rca',           d.pending_rca||0);
+    set('m-campaigns',     d.active_campaigns||0);
+    set('m-kb',            d.published_articles||0);
+    set('m-open-note',     (d.high_severity_incidents||0)+' critical/high severity');
+    set('m-campaigns-note',(d.campaign_completion_pct||0)+'% avg. completion');
+    set('hs-inc-open',     d.open_incidents||0);
+    set('hs-inc-high',     d.high_severity_incidents||0);
+    set('hs-inc-rca',      d.pending_rca||0);
+    set('hs-trn-active',   d.active_campaigns||0);
+    set('hs-trn-pct',      (d.campaign_completion_pct||0)+'%');
+    set('hs-kb-pub',       d.published_articles||0);
+    set('hs-kb-draft',     d.draft_articles||0);
+  });
 })();
 </script>
 </body>

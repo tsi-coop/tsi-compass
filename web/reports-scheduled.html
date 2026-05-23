@@ -1,278 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – Scheduled Reports</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
-a{color:inherit;text-decoration:none}
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
-.nav{display:grid;gap:3px}
-.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
-.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
-.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
-.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
-.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
-.main{padding:32px}
-.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
-.breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
-.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
-.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
-.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.btn.sm{height:28px;padding:0 10px;font-size:11px}
-.btn.danger{background:#fef2f2;border-color:#fde8e8;color:var(--red)}
-.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
-.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
-.section-head h2{margin:0;font-size:15px;font-weight:800}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
-td{padding:13px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafcfd}
-.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-.pill.good{background:#e6f4ed;color:var(--green)}
-.pill.watch{background:#fef3cd;color:var(--amber)}
-.pill.risk{background:#fde8e8;color:var(--red)}
-.pill.info{background:#e8eeff;color:var(--blue)}
-.pill.neu{background:#f0f4f8;color:var(--muted)}
-.schedule-name{font-weight:700;margin-bottom:2px}
-.schedule-dist{font-size:12px;color:var(--muted)}
-.row-actions{display:flex;gap:6px}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
-.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
-.form-row{margin-bottom:16px}
-.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
-.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
-.form-row textarea{height:80px;padding:8px 10px;resize:vertical}
-.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
-.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scheduled Reports — TSI Compass</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .badge{display:inline-block;padding:.2rem .55rem;border-radius:12px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+    .badge-active{background:#d1fae5;color:#065f46}
+    .badge-inactive{background:#f3f4f6;color:#6b7280}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.875rem}
+    th{background:var(--sidebar-bg);padding:.65rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);white-space:nowrap}
+    td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:hover td{background:var(--hover)}
+    .btn{padding:.45rem 1rem;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:500}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-secondary{background:var(--border);color:var(--text)}
+    .btn-sm{padding:.3rem .65rem;font-size:.78rem}
+    .btn-danger-sm{padding:.3rem .65rem;font-size:.78rem;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;cursor:pointer}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:10px;padding:2rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+    .modal h3{margin:0 0 1.25rem;font-size:1.05rem}
+    .form-group{margin-bottom:1rem}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.35rem;color:var(--text-muted)}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.875rem;background:var(--bg);color:var(--text);box-sizing:border-box}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .modal-actions{display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.25rem}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;z-index:999;display:none}
+    .toast.show{display:block}
+    .empty-state{text-align:center;padding:3rem;color:var(--text-muted)}
+    .info-banner{background:var(--sidebar-bg);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:.82rem;color:var(--text-muted);margin-bottom:1.25rem}
+  </style>
 </head>
 <body>
-<header class="mobilebar">
-  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
-</header>
-<div class="app">
-  <aside class="side">
-    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-    <nav class="nav">
-      <a href="dashboard.html">Executive Dashboard</a>
-      <a href="platform.html">Platform &amp; Access</a>
-      <a href="governance.html">Governance &amp; Policy</a>
-      <a href="risks.html">Risk &amp; Vulnerability</a>
-      <a href="controls.html">Compliance &amp; Controls</a>
-      <a href="evidence.html">Audit &amp; Evidence</a>
-      <a href="operations.html">IT Operations</a>
-      <a href="incidents.html">Incidents &amp; Awareness</a>
-      <a href="reports.html">Reports &amp; Exports</a>
-      <a href="reports-dashboards.html" class="subnav">Executive Dashboards</a>
-      <a href="reports-exports.html" class="subnav">Export Reports</a>
-      <a href="reports-scheduled.html" class="subnav active">Scheduled Reports</a>
-    </nav>
-    <div class="side-foot">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
-        <div style="min-width:0;flex:1">
-          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
-          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
-        </div>
-      </div>
-      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
-      </a>
-    </div>
-  </aside>
-  <main class="main">
-    <div class="breadcrumb"><a href="reports.html">Reports &amp; Exports</a> / Scheduled Reports</div>
-    <div class="page-header">
-      <div>
-        <div class="eyebrow">Reports &amp; Exports</div>
-        <h1>Scheduled Reports</h1>
-        <p class="subtitle">Configure recurring report runs delivered automatically to stakeholder distribution lists.</p>
-      </div>
-      <div class="acts">
-        <button class="btn primary" onclick="openModal('modal-schedule-report')">Schedule Report</button>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <h2>Active Schedules</h2>
-        <span style="font-size:12px;color:var(--muted)">5 active schedules</span>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Schedule Name &amp; Distribution</th>
-            <th>Report Type</th>
-            <th>Cadence</th>
-            <th>Format</th>
-            <th>Next Run</th>
-            <th>Last Run</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <div class="schedule-name">Board IT Risk Report</div>
-              <div class="schedule-dist">To: board@tsicompass.lk, ciso@tsicompass.lk</div>
-            </td>
-            <td>IT Risk Executive Summary</td>
-            <td><span class="pill info">Monthly</span></td>
-            <td>PDF</td>
-            <td>01 Jun 2026</td>
-            <td>01 May 2026</td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-schedule')">Edit</button><button class="btn sm danger" onclick="openModal('modal-pause-schedule')">Pause</button></div></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="schedule-name">CISO Weekly Risk Digest</div>
-              <div class="schedule-dist">To: ciso@tsicompass.lk, risk@tsicompass.lk</div>
-            </td>
-            <td>IT Risk Executive Summary</td>
-            <td><span class="pill neu">Weekly</span></td>
-            <td>Excel</td>
-            <td>26 May 2026</td>
-            <td>19 May 2026</td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-schedule')">Edit</button><button class="btn sm danger" onclick="openModal('modal-pause-schedule')">Pause</button></div></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="schedule-name">Compliance Monthly Report</div>
-              <div class="schedule-dist">To: audit@tsicompass.lk, compliance@tsicompass.lk</div>
-            </td>
-            <td>Compliance Status Report</td>
-            <td><span class="pill info">Monthly</span></td>
-            <td>PDF</td>
-            <td>01 Jun 2026</td>
-            <td>01 May 2026</td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-schedule')">Edit</button><button class="btn sm danger" onclick="openModal('modal-pause-schedule')">Pause</button></div></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="schedule-name">Incident Weekly Summary</div>
-              <div class="schedule-dist">To: it-ops@tsicompass.lk, ciso@tsicompass.lk</div>
-            </td>
-            <td>Incident &amp; Security Event Report</td>
-            <td><span class="pill neu">Weekly</span></td>
-            <td>PDF</td>
-            <td>26 May 2026</td>
-            <td>19 May 2026</td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-schedule')">Edit</button><button class="btn sm danger" onclick="openModal('modal-pause-schedule')">Pause</button></div></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="schedule-name">Bi-Monthly Audit Findings</div>
-              <div class="schedule-dist">To: internal-audit@tsicompass.lk, cro@tsicompass.lk</div>
-            </td>
-            <td>Audit Findings Tracker</td>
-            <td><span class="pill watch">Bi-Monthly</span></td>
-            <td>Excel</td>
-            <td>01 Jun 2026</td>
-            <td>01 Apr 2026</td>
-            <td><span class="pill good">Active</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-schedule')">Edit</button><button class="btn sm danger" onclick="openModal('modal-pause-schedule')">Pause</button></div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </main>
-</div>
-
-<!-- Modal: Schedule Report -->
-<div class="modal-overlay" id="modal-schedule-report">
-  <div class="modal">
-    <h2>Schedule Report</h2>
-    <form onsubmit="submitModal(event,'modal-schedule-report')">
-      <div class="form-row"><label>Schedule Name</label><input type="text" placeholder="e.g. Monthly Board Pack" required></div>
-      <div class="form-row"><label>Report Type</label><select><option>IT Risk Executive Summary</option><option>Compliance Status Report</option><option>Audit Findings Tracker</option><option>Incident &amp; Security Event Report</option><option>Change Management Report</option></select></div>
-      <div class="form-row half">
-        <div><label>Cadence</label><select><option>Weekly</option><option>Bi-Monthly</option><option>Monthly</option><option>Quarterly</option></select></div>
-        <div><label>Format</label><select><option>PDF</option><option>Excel</option><option>Both</option></select></div>
-      </div>
-      <div class="form-row"><label>Distribution List (comma-separated emails)</label><input type="text" placeholder="e.g. ciso@tsicompass.lk, board@tsicompass.lk"></div>
-      <div class="form-row"><label>First Run Date</label><input type="date"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-schedule-report')">Cancel</button>
-        <button type="submit" class="btn primary">Create Schedule</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Edit Schedule -->
-<div class="modal-overlay" id="modal-edit-schedule">
-  <div class="modal">
-    <h2>Edit Schedule</h2>
-    <form onsubmit="submitModal(event,'modal-edit-schedule')">
-      <div class="form-row"><label>Schedule Name</label><input type="text" value="Board IT Risk Report"></div>
-      <div class="form-row half">
-        <div><label>Cadence</label><select><option selected>Monthly</option><option>Weekly</option><option>Bi-Monthly</option><option>Quarterly</option></select></div>
-        <div><label>Format</label><select><option selected>PDF</option><option>Excel</option><option>Both</option></select></div>
-      </div>
-      <div class="form-row"><label>Distribution List</label><input type="text" value="board@tsicompass.lk, ciso@tsicompass.lk"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-edit-schedule')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Pause Schedule -->
-<div class="modal-overlay" id="modal-pause-schedule">
-  <div class="modal">
-    <h2>Pause Schedule</h2>
-    <form onsubmit="submitModal(event,'modal-pause-schedule')">
-      <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Pausing this schedule will stop automatic report generation. You can resume at any time.</p>
-      <div class="form-row"><label>Reason (optional)</label><textarea placeholder="Why is this schedule being paused…"></textarea></div>
-      <div class="form-row"><label>Resume Date (optional)</label><input type="date"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-pause-schedule')">Cancel</button>
-        <button type="submit" class="btn danger">Pause Schedule</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast">Saved successfully</div>
+<div id="app-shell"></div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
-})();
+var token = localStorage.getItem('token');
+if (!token) location.href = 'index.html';
+</script>
+<script src="js/shell.js"></script>
+
+<div class="main-content" style="padding:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+    <div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">
+        <a href="reports.html" style="color:var(--accent);text-decoration:none">Reports &amp; Exports</a> › Scheduled Reports
+      </div>
+      <h2 style="margin:0;font-size:1.3rem">Scheduled Reports</h2>
+    </div>
+    <button class="btn btn-primary" onclick="openAdd()">+ New Schedule</button>
+  </div>
+
+  <div class="info-banner">
+    &#8505; Scheduled reports run automatically at the configured cadence and are delivered to the assigned recipient. Toggle a schedule off to pause without deleting it.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Report Type</th>
+          <th>Cadence</th>
+          <th>Next Run</th>
+          <th>Recipient</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="sched-tbody">
+        <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>New Scheduled Report</h3>
+    <div class="form-group">
+      <label>Schedule Name *</label>
+      <input id="a-name" type="text" placeholder="e.g. Weekly Risk Summary"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Report Type *</label>
+        <select id="a-type">
+          <option value="">Select…</option>
+          <option value="RISK_SUMMARY">Risk Summary</option>
+          <option value="COMPLIANCE_STATUS">Compliance Status</option>
+          <option value="INCIDENT_LOG">Incident Log</option>
+          <option value="AUDIT_STATUS">Audit Status</option>
+          <option value="EXECUTIVE_SUMMARY">Executive Summary</option>
+          <option value="ASSET_INVENTORY">Asset Inventory</option>
+          <option value="VENDOR_REPORT">Vendor Report</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cadence *</label>
+        <select id="a-cadence">
+          <option value="">Select…</option>
+          <option value="DAILY">Daily</option>
+          <option value="WEEKLY">Weekly</option>
+          <option value="MONTHLY">Monthly</option>
+          <option value="QUARTERLY">Quarterly</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Recipient</label>
+        <select id="a-recipient"><option value="">Select…</option></select>
+      </div>
+      <div class="form-group">
+        <label>First Run</label>
+        <input id="a-next-run" type="datetime-local"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAdd()">Create Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>Edit Schedule</h3>
+    <input type="hidden" id="e-id"/>
+    <div class="form-group">
+      <label>Schedule Name</label>
+      <input id="e-name" type="text"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Report Type</label>
+        <select id="e-type">
+          <option value="RISK_SUMMARY">Risk Summary</option>
+          <option value="COMPLIANCE_STATUS">Compliance Status</option>
+          <option value="INCIDENT_LOG">Incident Log</option>
+          <option value="AUDIT_STATUS">Audit Status</option>
+          <option value="EXECUTIVE_SUMMARY">Executive Summary</option>
+          <option value="ASSET_INVENTORY">Asset Inventory</option>
+          <option value="VENDOR_REPORT">Vendor Report</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cadence</label>
+        <select id="e-cadence">
+          <option value="DAILY">Daily</option>
+          <option value="WEEKLY">Weekly</option>
+          <option value="MONTHLY">Monthly</option>
+          <option value="QUARTERLY">Quarterly</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Recipient</label>
+        <select id="e-recipient"><option value="">Select…</option></select>
+      </div>
+      <div class="form-group">
+        <label>Next Run</label>
+        <input id="e-next-run" type="datetime-local"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Active</label>
+      <select id="e-active">
+        <option value="true">Yes — Schedule is running</option>
+        <option value="false">No — Paused</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var state = { schedules: [], staff: [] };
+
+function api(func, params) {
+  params = params || {};
+  return fetch('/api/v1/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(Object.assign({ _func: func }, params))
+  }).then(function(r) { if (r.status === 401) location.href = 'index.html'; return r.json(); });
+}
+
+function apiStaff() {
+  return fetch('/api/v1/audit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ _func: 'list_staff' })
+  }).then(function(r) { return r.json(); });
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, err) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? '#dc2626' : '#1e293b';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function fmtDateTimeLocal(s) {
+  if (!s) return '';
+  var d = new Date(s);
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+var TYPE_LABELS = {
+  RISK_SUMMARY:'Risk Summary', COMPLIANCE_STATUS:'Compliance Status', INCIDENT_LOG:'Incident Log',
+  AUDIT_STATUS:'Audit Status', EXECUTIVE_SUMMARY:'Executive Summary',
+  ASSET_INVENTORY:'Asset Inventory', VENDOR_REPORT:'Vendor Report'
+};
+
+function renderTable(rows) {
+  var tb = document.getElementById('sched-tbody');
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty-state">No schedules configured</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(function(r) {
+    var statusBadge = r.is_active
+      ? '<span class="badge badge-active">Active</span>'
+      : '<span class="badge badge-inactive">Paused</span>';
+    return '<tr>' +
+      '<td style="font-weight:500">' + esc(r.name) + '</td>' +
+      '<td>' + esc(TYPE_LABELS[r.report_type] || r.report_type) + '</td>' +
+      '<td>' + esc(r.cadence) + '</td>' +
+      '<td style="white-space:nowrap">' + fmtDate(r.next_run_at) + '</td>' +
+      '<td>' + esc(r.recipient_name || '—') + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td><button class="btn btn-sm btn-secondary" onclick=\'openEdit(' + JSON.stringify(r) + ')\'>Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function populateSelect(id, items, valKey, labelKey, placeholder) {
+  var sel = document.getElementById(id);
+  var first = placeholder ? '<option value="">' + placeholder + '</option>' : '';
+  sel.innerHTML = first + items.map(function(i) {
+    return '<option value="' + esc(i[valKey]) + '">' + esc(i[labelKey]) + '</option>';
+  }).join('');
+}
+
+function loadPage() {
+  return Promise.all([
+    api('list_schedules'),
+    apiStaff()
+  ]).then(function(results) {
+    var schedRes = results[0], staffRes = results[1];
+    if (schedRes.success) {
+      state.schedules = schedRes.data || [];
+      renderTable(state.schedules);
+    }
+    if (staffRes.success) {
+      state.staff = staffRes.data || [];
+      populateSelect('a-recipient', state.staff, 'id', 'name', 'Select…');
+      populateSelect('e-recipient', state.staff, 'id', 'name', 'Select…');
+    }
+  });
+}
+
+function openAdd() {
+  document.getElementById('a-name').value = '';
+  document.getElementById('a-type').value = '';
+  document.getElementById('a-cadence').value = '';
+  document.getElementById('a-recipient').value = '';
+  document.getElementById('a-next-run').value = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
+
+function submitAdd() {
+  var name = document.getElementById('a-name').value.trim();
+  var type = document.getElementById('a-type').value;
+  var cadence = document.getElementById('a-cadence').value;
+  if (!name || !type || !cadence) { toast('Name, type, and cadence are required', true); return; }
+  api('add_schedule', {
+    name: name,
+    report_type: type,
+    cadence: cadence,
+    recipient_id: document.getElementById('a-recipient').value || null,
+    next_run_at: document.getElementById('a-next-run').value || null
+  }).then(function(res) {
+    if (res.success) { toast('Schedule created'); closeAdd(); loadPage(); }
+    else toast(res.message || 'Error creating schedule', true);
+  });
+}
+
+function openEdit(r) {
+  document.getElementById('e-id').value = r.id;
+  document.getElementById('e-name').value = r.name || '';
+  document.getElementById('e-type').value = r.report_type || '';
+  document.getElementById('e-cadence').value = r.cadence || '';
+  document.getElementById('e-recipient').value = r.recipient_id || '';
+  document.getElementById('e-next-run').value = fmtDateTimeLocal(r.next_run_at);
+  document.getElementById('e-active').value = r.is_active ? 'true' : 'false';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEdit() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function submitEdit() {
+  var id = document.getElementById('e-id').value;
+  api('update_schedule', {
+    id: id,
+    name: document.getElementById('e-name').value.trim(),
+    report_type: document.getElementById('e-type').value,
+    cadence: document.getElementById('e-cadence').value,
+    recipient_id: document.getElementById('e-recipient').value || null,
+    next_run_at: document.getElementById('e-next-run').value || null,
+    is_active: document.getElementById('e-active').value
+  }).then(function(res) {
+    if (res.success) { toast('Schedule updated'); closeEdit(); loadPage(); }
+    else toast(res.message || 'Error updating schedule', true);
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeAdd(); closeEdit(); }
+});
+
+loadPage();
 </script>
 </body>
 </html>

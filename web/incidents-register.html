@@ -1,310 +1,428 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – Incident Register</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
-a{color:inherit;text-decoration:none}
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
-.nav{display:grid;gap:3px}
-.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
-.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
-.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
-.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
-.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
-.main{padding:32px}
-.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
-.breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
-.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
-.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
-.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.btn.sm{height:28px;padding:0 10px;font-size:11px}
-.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
-.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
-.section-head h2{margin:0;font-size:15px;font-weight:800}
-.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
-.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
-.filter-bar input{flex:1;min-width:160px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafcfd}
-.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-.pill.good{background:#e6f4ed;color:var(--green)}
-.pill.watch{background:#fef3cd;color:var(--amber)}
-.pill.risk{background:#fde8e8;color:var(--red)}
-.pill.info{background:#e8eeff;color:var(--blue)}
-.pill.neu{background:#f0f4f8;color:var(--muted)}
-.row-actions{display:flex;gap:6px}
-.rca-box{padding:20px;background:#fffbf0;border:1px solid #fde68a;border-radius:8px;margin:20px}
-.rca-box h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--amber)}
-.rca-field{margin-bottom:12px}
-.rca-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px}
-.rca-field p{margin:0;font-size:13px;color:var(--ink);line-height:1.5}
-.rca-field .placeholder{color:var(--muted);font-style:italic}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
-.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
-.form-row{margin-bottom:16px}
-.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
-.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
-.form-row textarea{height:80px;padding:8px 10px;resize:vertical}
-.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
-.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Incident Register — TSI Compass</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .filter-bar{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+    .filter-bar select,.filter-bar input{padding:.45rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;background:var(--card);color:var(--text)}
+    .filter-bar input{flex:1;min-width:180px}
+    .badge{display:inline-block;padding:.2rem .55rem;border-radius:12px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+    .badge-open{background:#fee2e2;color:#991b1b}
+    .badge-investigating{background:#fef3c7;color:#92400e}
+    .badge-contained{background:#dbeafe;color:#1e40af}
+    .badge-resolved{background:#d1fae5;color:#065f46}
+    .badge-closed{background:#f3f4f6;color:#6b7280}
+    .badge-low{background:#f0fdf4;color:#166534}
+    .badge-medium{background:#fef9c3;color:#854d0e}
+    .badge-high{background:#fee2e2;color:#991b1b}
+    .badge-critical{background:#fce7f3;color:#9d174d}
+    .badge-yes{background:#fef3c7;color:#92400e}
+    .badge-no{background:#f3f4f6;color:#6b7280}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.875rem}
+    th{background:var(--sidebar-bg);padding:.65rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);white-space:nowrap}
+    td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:hover td{background:var(--hover)}
+    .btn{padding:.45rem 1rem;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:500}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-secondary{background:var(--border);color:var(--text)}
+    .btn-sm{padding:.3rem .65rem;font-size:.78rem}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:10px;padding:2rem;width:100%;max-width:580px;max-height:90vh;overflow-y:auto}
+    .modal h3{margin:0 0 1.25rem;font-size:1.05rem}
+    .form-group{margin-bottom:1rem}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.35rem;color:var(--text-muted)}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.875rem;background:var(--bg);color:var(--text);box-sizing:border-box}
+    .form-group textarea{resize:vertical;min-height:80px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .section-divider{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:1.25rem 0 .75rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.25rem}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;z-index:999;display:none}
+    .toast.show{display:block}
+    .empty-state{text-align:center;padding:3rem;color:var(--text-muted)}
+  </style>
 </head>
 <body>
-<header class="mobilebar">
-  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
-</header>
-<div class="app">
-  <aside class="side">
-    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-    <nav class="nav">
-      <a href="dashboard.html">Executive Dashboard</a>
-      <a href="platform.html">Platform &amp; Access</a>
-      <a href="governance.html">Governance &amp; Policy</a>
-      <a href="risks.html">Risk &amp; Vulnerability</a>
-      <a href="controls.html">Compliance &amp; Controls</a>
-      <a href="evidence.html">Audit &amp; Evidence</a>
-      <a href="operations.html">IT Operations</a>
-      <a href="incidents.html">Incidents &amp; Awareness</a>
-      <a href="incidents-register.html" class="subnav active">Incident Register</a>
-      <a href="incidents-training.html" class="subnav">Security Training</a>
-      <a href="incidents-knowledge.html" class="subnav">Knowledge Base</a>
-      <a href="reports.html">Reports &amp; Exports</a>
-    </nav>
-    <div class="side-foot">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
-        <div style="min-width:0;flex:1">
-          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
-          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
-        </div>
-      </div>
-      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
-      </a>
-    </div>
-  </aside>
-  <main class="main">
-    <div class="breadcrumb"><a href="incidents.html">Incidents &amp; Awareness</a> / Incident Register</div>
-    <div class="page-header">
-      <div>
-        <div class="eyebrow">Incidents &amp; Awareness</div>
-        <h1>Incident Register</h1>
-        <p class="subtitle">Security and operational incident log with root cause analysis workspace.</p>
-      </div>
-      <div class="acts">
-        <button class="btn primary" onclick="openModal('modal-log-incident')">Log Incident</button>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <h2>Incident Log</h2>
-        <span style="font-size:12px;color:var(--muted)">2 open incidents</span>
-      </div>
-      <div class="filter-bar">
-        <select><option>All Types</option><option>Security</option><option>Operational</option><option>Data Breach</option><option>Availability</option></select>
-        <select><option>All Severities</option><option>P1 – Critical</option><option>P2 – High</option><option>P3 – Medium</option><option>P4 – Low</option></select>
-        <select><option>All Statuses</option><option>Open</option><option>Under Investigation</option><option>RCA Pending</option><option>Closed</option></select>
-        <input type="search" placeholder="Search incidents…">
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Incident ID</th>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Severity</th>
-            <th>Reported By</th>
-            <th>Date / Time</th>
-            <th>Duration</th>
-            <th>RCA</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>INC-2026-008</strong></td>
-            <td>Unauthorised login attempt – Admin console</td>
-            <td>Security</td>
-            <td><span class="pill risk">P1</span></td>
-            <td>SOC Alert</td>
-            <td>20 May 2026 02:14</td>
-            <td>Ongoing</td>
-            <td><span class="pill watch">In Progress</span></td>
-            <td><span class="pill risk">Open</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-update-rca')">Update RCA</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>INC-2026-007</strong></td>
-            <td>Core banking downtime – 47 minutes</td>
-            <td>Availability</td>
-            <td><span class="pill risk">P1</span></td>
-            <td>IT Operations</td>
-            <td>14 May 2026 09:32</td>
-            <td>47 min</td>
-            <td><span class="pill watch">Pending</span></td>
-            <td><span class="pill watch">RCA Pending</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-update-rca')">Update RCA</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>INC-2026-006</strong></td>
-            <td>Phishing email – 3 staff affected</td>
-            <td>Security</td>
-            <td><span class="pill watch">P2</span></td>
-            <td>S. Fernando</td>
-            <td>02 May 2026 11:20</td>
-            <td>4 hours</td>
-            <td><span class="pill good">Complete</span></td>
-            <td><span class="pill good">Closed</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-update-rca')">View</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>INC-2026-005</strong></td>
-            <td>DR failover test – partial failure</td>
-            <td>Operational</td>
-            <td><span class="pill watch">P2</span></td>
-            <td>IT Operations</td>
-            <td>30 Apr 2026 14:00</td>
-            <td>2 hours</td>
-            <td><span class="pill good">Complete</span></td>
-            <td><span class="pill good">Closed</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-update-rca')">View</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>INC-2026-004</strong></td>
-            <td>Data export anomaly – 500 records</td>
-            <td>Data Breach</td>
-            <td><span class="pill risk">P1</span></td>
-            <td>DLP System</td>
-            <td>18 Apr 2026 08:05</td>
-            <td>6 hours</td>
-            <td><span class="pill good">Complete</span></td>
-            <td><span class="pill good">Closed</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-update-rca')">View</button></div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <h2>RCA Workspace — INC-2026-008</h2>
-        <button class="btn sm primary" onclick="openModal('modal-update-rca')">Update RCA</button>
-      </div>
-      <div class="rca-box">
-        <h3>Root Cause Analysis in Progress</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div class="rca-field">
-            <label>Timeline of Events</label>
-            <p>02:14 — SOC alert triggered for 12 failed logins from IP 45.33.32.156<br>02:17 — IP blocked by WAF<br>02:25 — IT Security notified<br>02:40 — Admin account temporarily disabled pending review</p>
-          </div>
-          <div class="rca-field">
-            <label>Affected Systems</label>
-            <p>Admin console (admin.tsicompass.lk)<br>User: svc-batch-admin</p>
-          </div>
-          <div class="rca-field">
-            <label>Immediate Actions Taken</label>
-            <p>IP blocked at WAF. Account disabled. Forensic log collection initiated. Credentials reset for affected account.</p>
-          </div>
-          <div class="rca-field">
-            <label>Root Cause (Preliminary)</label>
-            <p class="placeholder">Under investigation — credential stuffing attack suspected. Awaiting log analysis from SOC.</p>
-          </div>
-          <div class="rca-field">
-            <label>Corrective Actions</label>
-            <p class="placeholder">To be determined pending RCA completion.</p>
-          </div>
-          <div class="rca-field">
-            <label>Lessons Learned</label>
-            <p class="placeholder">To be completed post-closure.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- Modal: Log Incident -->
-<div class="modal-overlay" id="modal-log-incident">
-  <div class="modal">
-    <h2>Log Incident</h2>
-    <form onsubmit="submitModal(event,'modal-log-incident')">
-      <div class="form-row"><label>Title</label><input type="text" placeholder="Short descriptive title" required></div>
-      <div class="form-row half">
-        <div><label>Type</label><select><option>Security</option><option>Operational</option><option>Data Breach</option><option>Availability</option></select></div>
-        <div><label>Severity</label><select><option>P1 – Critical</option><option>P2 – High</option><option>P3 – Medium</option><option>P4 – Low</option></select></div>
-      </div>
-      <div class="form-row half">
-        <div><label>Date &amp; Time</label><input type="datetime-local"></div>
-        <div><label>Reported By</label><input type="text" placeholder="Name or system"></div>
-      </div>
-      <div class="form-row"><label>Description</label><textarea placeholder="What happened, where, and initial impact…" required></textarea></div>
-      <div class="form-row"><label>Immediate Actions Taken</label><textarea placeholder="Steps already taken to contain or mitigate…"></textarea></div>
-      <div class="form-row"><label>Assigned To</label><select><option>SOC Team</option><option>IT Security</option><option>IT Operations</option></select></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-log-incident')">Cancel</button>
-        <button type="submit" class="btn primary">Log Incident</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Update RCA -->
-<div class="modal-overlay" id="modal-update-rca">
-  <div class="modal">
-    <h2>Update RCA</h2>
-    <form onsubmit="submitModal(event,'modal-update-rca')">
-      <div class="form-row"><label>Incident</label><select><option>INC-2026-008</option><option>INC-2026-007</option></select></div>
-      <div class="form-row"><label>Root Cause</label><textarea placeholder="Identified root cause of the incident…"></textarea></div>
-      <div class="form-row"><label>Corrective Actions</label><textarea placeholder="Actions to prevent recurrence…"></textarea></div>
-      <div class="form-row"><label>Lessons Learned</label><textarea placeholder="What we can improve…"></textarea></div>
-      <div class="form-row"><label>RCA Status</label><select><option>In Progress</option><option>Draft Complete</option><option>Approved &amp; Closed</option></select></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-update-rca')">Cancel</button>
-        <button type="submit" class="btn primary">Save RCA</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast">Saved successfully</div>
+<div id="app-shell"></div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
-})();
+var token = localStorage.getItem('token');
+if (!token) location.href = 'index.html';
+</script>
+<script src="js/shell.js"></script>
+
+<div class="main-content" style="padding:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+    <div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">
+        <a href="incidents.html" style="color:var(--accent);text-decoration:none">Incidents &amp; Awareness</a> › Incident Register
+      </div>
+      <h2 style="margin:0;font-size:1.3rem">Incident Register</h2>
+    </div>
+    <button class="btn btn-primary" onclick="openAdd()">+ Report Incident</button>
+  </div>
+
+  <div class="filter-bar">
+    <select id="f-status" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="OPEN">Open</option>
+      <option value="INVESTIGATING">Investigating</option>
+      <option value="CONTAINED">Contained</option>
+      <option value="RESOLVED">Resolved</option>
+      <option value="CLOSED">Closed</option>
+    </select>
+    <select id="f-severity" onchange="applyFilters()">
+      <option value="">All Severities</option>
+      <option value="LOW">Low</option>
+      <option value="MEDIUM">Medium</option>
+      <option value="HIGH">High</option>
+      <option value="CRITICAL">Critical</option>
+    </select>
+    <select id="f-type" onchange="applyFilters()">
+      <option value="">All Types</option>
+      <option value="DATA_BREACH">Data Breach</option>
+      <option value="MALWARE">Malware</option>
+      <option value="PHISHING">Phishing</option>
+      <option value="UNAUTHORIZED_ACCESS">Unauthorized Access</option>
+      <option value="AVAILABILITY">Availability</option>
+      <option value="OTHER">Other</option>
+    </select>
+    <input id="f-search" type="text" placeholder="Search incidents…" oninput="applyFilters()"/>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Incident #</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>RCA Done</th>
+          <th>Reported By</th>
+          <th>Detected</th>
+          <th>Resolved</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="inc-tbody">
+        <tr><td colspan="10" class="empty-state">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>Report Incident</h3>
+    <div class="form-group">
+      <label>Title *</label>
+      <input id="a-title" type="text" placeholder="Brief incident description"/>
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea id="a-desc" placeholder="What happened? Scope, initial impact…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type *</label>
+        <select id="a-type">
+          <option value="">Select…</option>
+          <option value="DATA_BREACH">Data Breach</option>
+          <option value="MALWARE">Malware</option>
+          <option value="PHISHING">Phishing</option>
+          <option value="UNAUTHORIZED_ACCESS">Unauthorized Access</option>
+          <option value="AVAILABILITY">Availability</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Severity *</label>
+        <select id="a-severity">
+          <option value="">Select…</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Detected At</label>
+        <input id="a-detected" type="datetime-local"/>
+      </div>
+      <div class="form-group">
+        <label>Reported By</label>
+        <select id="a-reporter"><option value="">Select…</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAdd()">Report Incident</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>Update Incident</h3>
+    <input type="hidden" id="e-id"/>
+    <div class="form-group">
+      <label>Title</label>
+      <input id="e-title" type="text"/>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="e-desc"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="e-type">
+          <option value="DATA_BREACH">Data Breach</option>
+          <option value="MALWARE">Malware</option>
+          <option value="PHISHING">Phishing</option>
+          <option value="UNAUTHORIZED_ACCESS">Unauthorized Access</option>
+          <option value="AVAILABILITY">Availability</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Severity</label>
+        <select id="e-severity">
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="e-status">
+          <option value="OPEN">Open</option>
+          <option value="INVESTIGATING">Investigating</option>
+          <option value="CONTAINED">Contained</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Assigned To</label>
+        <select id="e-assignee"><option value="">Unassigned</option></select>
+      </div>
+    </div>
+    <div class="section-divider">Root Cause Analysis</div>
+    <div class="form-group">
+      <label>Root Cause</label>
+      <textarea id="e-rootcause" placeholder="Identified root cause…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Lessons Learned</label>
+      <textarea id="e-lessons" placeholder="What did we learn?"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Resolved At</label>
+        <input id="e-resolved" type="datetime-local"/>
+      </div>
+      <div class="form-group">
+        <label>RCA Completed</label>
+        <select id="e-rca">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var state = { incidents: [], staff: [] };
+
+function api(func, params) {
+  params = params || {};
+  return fetch('/api/v1/incidents', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(Object.assign({ _func: func }, params))
+  }).then(function(r) { if (r.status === 401) location.href = 'index.html'; return r.json(); });
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, err) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? '#dc2626' : '#1e293b';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+var STATUS_PILL = { OPEN:'badge-open', INVESTIGATING:'badge-investigating', CONTAINED:'badge-contained', RESOLVED:'badge-resolved', CLOSED:'badge-closed' };
+var SEV_PILL = { LOW:'badge-low', MEDIUM:'badge-medium', HIGH:'badge-high', CRITICAL:'badge-critical' };
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtDateTimeLocal(s) {
+  if (!s) return '';
+  var d = new Date(s);
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function renderTable(rows) {
+  var tb = document.getElementById('inc-tbody');
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="10" class="empty-state">No incidents found</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(function(r) {
+    var rcaBadge = r.rca_completed ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:.8rem">' + esc(r.incident_number || '—') + '</td>' +
+      '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(r.title) + '">' + esc(r.title) + '</td>' +
+      '<td>' + esc((r.incident_type||'').replace(/_/g,' ')) + '</td>' +
+      '<td><span class="badge ' + (SEV_PILL[r.severity]||'') + '">' + esc(r.severity||'—') + '</span></td>' +
+      '<td><span class="badge ' + (STATUS_PILL[r.status]||'') + '">' + esc((r.status||'').replace('_',' ')) + '</span></td>' +
+      '<td>' + rcaBadge + '</td>' +
+      '<td>' + esc(r.reporter_name || '—') + '</td>' +
+      '<td style="white-space:nowrap">' + fmtDate(r.detected_at) + '</td>' +
+      '<td style="white-space:nowrap">' + fmtDate(r.resolved_at) + '</td>' +
+      '<td><button class="btn btn-sm btn-secondary" onclick=\'openEdit(' + JSON.stringify(r) + ')\'>Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function applyFilters() {
+  var status = document.getElementById('f-status').value;
+  var severity = document.getElementById('f-severity').value;
+  var type = document.getElementById('f-type').value;
+  var search = document.getElementById('f-search').value.toLowerCase();
+  var filtered = state.incidents.filter(function(r) {
+    if (status && r.status !== status) return false;
+    if (severity && r.severity !== severity) return false;
+    if (type && r.incident_type !== type) return false;
+    if (search && !((r.title||'').toLowerCase().includes(search) ||
+        (r.incident_number||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+  renderTable(filtered);
+}
+
+function populateSelect(id, items, valKey, labelKey, placeholder) {
+  var sel = document.getElementById(id);
+  var first = placeholder ? '<option value="">' + placeholder + '</option>' : '';
+  sel.innerHTML = first + items.map(function(i) {
+    return '<option value="' + esc(i[valKey]) + '">' + esc(i[labelKey]) + '</option>';
+  }).join('');
+}
+
+function loadPage() {
+  return Promise.all([
+    api('list_incidents'),
+    api('list_staff')
+  ]).then(function(results) {
+    var incRes = results[0], staffRes = results[1];
+    if (incRes.success) {
+      state.incidents = incRes.data || [];
+      renderTable(state.incidents);
+    }
+    if (staffRes.success) {
+      state.staff = staffRes.data || [];
+      populateSelect('a-reporter', state.staff, 'id', 'name', 'Select…');
+      populateSelect('e-assignee', state.staff, 'id', 'name', 'Unassigned');
+    }
+  });
+}
+
+function openAdd() {
+  ['a-title','a-desc'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('a-type').value = '';
+  document.getElementById('a-severity').value = '';
+  document.getElementById('a-detected').value = '';
+  document.getElementById('a-reporter').value = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
+
+function submitAdd() {
+  var title = document.getElementById('a-title').value.trim();
+  var desc = document.getElementById('a-desc').value.trim();
+  var type = document.getElementById('a-type').value;
+  var severity = document.getElementById('a-severity').value;
+  if (!title || !desc || !type || !severity) { toast('Title, description, type, and severity are required', true); return; }
+  api('add_incident', {
+    title: title,
+    description: desc,
+    incident_type: type,
+    severity: severity,
+    detected_at: document.getElementById('a-detected').value || null,
+    reported_by: document.getElementById('a-reporter').value || null
+  }).then(function(res) {
+    if (res.success) { toast('Incident reported'); closeAdd(); loadPage(); }
+    else toast(res.message || 'Error reporting incident', true);
+  });
+}
+
+function openEdit(r) {
+  document.getElementById('e-id').value = r.id;
+  document.getElementById('e-title').value = r.title || '';
+  document.getElementById('e-desc').value = r.description || '';
+  document.getElementById('e-type').value = r.incident_type || 'OTHER';
+  document.getElementById('e-severity').value = r.severity || 'MEDIUM';
+  document.getElementById('e-status').value = r.status || 'OPEN';
+  document.getElementById('e-assignee').value = r.assigned_to || '';
+  document.getElementById('e-rootcause').value = r.root_cause || '';
+  document.getElementById('e-lessons').value = r.lessons_learned || '';
+  document.getElementById('e-resolved').value = fmtDateTimeLocal(r.resolved_at);
+  document.getElementById('e-rca').value = r.rca_completed ? 'true' : 'false';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEdit() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function submitEdit() {
+  var id = document.getElementById('e-id').value;
+  api('update_incident', {
+    id: id,
+    title: document.getElementById('e-title').value.trim(),
+    description: document.getElementById('e-desc').value.trim(),
+    incident_type: document.getElementById('e-type').value,
+    severity: document.getElementById('e-severity').value,
+    status: document.getElementById('e-status').value,
+    assigned_to: document.getElementById('e-assignee').value || null,
+    root_cause: document.getElementById('e-rootcause').value.trim(),
+    lessons_learned: document.getElementById('e-lessons').value.trim(),
+    resolved_at: document.getElementById('e-resolved').value || null,
+    rca_completed: document.getElementById('e-rca').value
+  }).then(function(res) {
+    if (res.success) { toast('Incident updated'); closeEdit(); loadPage(); }
+    else toast(res.message || 'Error updating incident', true);
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeAdd(); closeEdit(); }
+});
+
+loadPage();
 </script>
 </body>
 </html>

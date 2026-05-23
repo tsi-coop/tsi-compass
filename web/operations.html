@@ -50,13 +50,12 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
 .hub-manage:hover{color:var(--ink)}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -95,7 +94,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div>
         <div class="eyebrow">IT Operations</div>
         <h1>IT Operations</h1>
-        <p class="subtitle">Change management, asset and vendor registers, and the IT helpdesk ticketing hub.</p>
+        <p class="subtitle">Change management, asset inventory, vendor register, and helpdesk — with compliance gate enforcement.</p>
       </div>
       <div class="acts">
         <a class="btn" href="operations-helpdesk.html">Helpdesk</a>
@@ -104,81 +103,120 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     </div>
 
     <div class="grid col4 mb">
-      <div class="card stripe-amber">
-        <div class="metric-label">Open Change Requests</div>
-        <div class="metric-value">7</div>
-        <div class="metric-note">1 pending approval · 6 in progress</div>
-      </div>
       <div class="card stripe-blue">
-        <div class="metric-label">Critical Assets</div>
-        <div class="metric-value">23</div>
-        <div class="metric-note">Servers, apps, network devices</div>
+        <div class="metric-label">Open Changes</div>
+        <div class="metric-value" id="m-changes">—</div>
+        <div class="metric-note" id="m-changes-note">Loading…</div>
       </div>
       <div class="card stripe-red">
+        <div class="metric-label">Critical Assets</div>
+        <div class="metric-value" id="m-assets">—</div>
+        <div class="metric-note" id="m-assets-note">Loading…</div>
+      </div>
+      <div class="card stripe-amber">
         <div class="metric-label">Vendor Reviews Due</div>
-        <div class="metric-value">5</div>
-        <div class="metric-note">Risk assessments overdue</div>
+        <div class="metric-value" id="m-vendors">—</div>
+        <div class="metric-note">Within 90 days</div>
       </div>
       <div class="card stripe-teal">
-        <div class="metric-label">Open Helpdesk Tickets</div>
-        <div class="metric-value">12</div>
-        <div class="metric-note">3 high priority</div>
+        <div class="metric-label">Open Tickets</div>
+        <div class="metric-value" id="m-tickets">—</div>
+        <div class="metric-note" id="m-tickets-note">Loading…</div>
       </div>
     </div>
 
     <div class="hub-grid">
       <div class="hub-card">
-        <div class="hub-icon" style="background:#fff4df">&#9881;&#65039;</div>
+        <div class="hub-icon" style="background:#edf2ff">&#128260;</div>
         <h3>Change Management</h3>
-        <p>Manage the full change request pipeline through BRD, Design, Approval, QA, UAT, and Production stages. Raise and approve change requests with rollback plans.</p>
+        <p>Track IT change requests through a staged compliance gate process — BRD, Solution Design, Approval, QA, UAT, and Production Deployment with document requirements at each stage.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>7</strong><span>Open CRs</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Pending approval</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Completed</span></div>
+          <div class="hub-stat"><strong id="hs-cr-open">—</strong><span>Active changes</span></div>
+          <div class="hub-stat"><strong id="hs-cr-approval">—</strong><span>Pending approval</span></div>
+          <div class="hub-stat"><strong id="hs-cr-done">—</strong><span>Completed</span></div>
         </div>
-        <a href="operations-changes.html" class="hub-manage">Manage Changes &#8250;</a>
+        <a href="operations-changes.html" class="hub-manage">View Changes &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#edf2ff">&#128187;</div>
+        <div class="hub-icon" style="background:#eaf5f3">&#128187;</div>
         <h3>Asset Inventory</h3>
-        <p>Maintain the full IT asset inventory with classification, ownership, and review schedules. Covers critical infrastructure, applications, network, and storage assets.</p>
+        <p>Maintain a full inventory of IT assets — applications, servers, firewalls, endpoints — with criticality ratings, patch status, and lifecycle state tracking.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>23</strong><span>Critical assets</span></div>
-          <div class="hub-stat"><strong>3</strong><span>Confidential class</span></div>
+          <div class="hub-stat"><strong id="hs-ast-total">—</strong><span>Total assets</span></div>
+          <div class="hub-stat"><strong id="hs-ast-critical">—</strong><span>Critical</span></div>
+          <div class="hub-stat"><strong id="hs-ast-patch">—</strong><span>Patch overdue</span></div>
         </div>
-        <a href="operations-assets.html" class="hub-manage">View Assets &#8250;</a>
+        <a href="operations-assets.html" class="hub-manage">Asset Register &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#eaf5f3">&#129309;</div>
+        <div class="hub-icon" style="background:#fff4df">&#129309;</div>
         <h3>Vendor Register</h3>
-        <p>Track all third-party vendors with risk scores, contract expiry dates, and review status. Flag overdue risk assessments and manage vendor relationships.</p>
+        <p>Track vendors, their agreement details, license expiry, security questionnaire status, and baseline risk scores. Flag vendors due for periodic review.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>7</strong><span>Active vendors</span></div>
-          <div class="hub-stat"><strong>3</strong><span>Review due</span></div>
+          <div class="hub-stat"><strong id="hs-vnd-total">—</strong><span>Total vendors</span></div>
+          <div class="hub-stat"><strong id="hs-vnd-due">—</strong><span>Review due</span></div>
         </div>
-        <a href="operations-vendors.html" class="hub-manage">Manage Vendors &#8250;</a>
+        <a href="operations-vendors.html" class="hub-manage">Vendor Register &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#fdeceb">&#127881;</div>
+        <div class="hub-icon" style="background:#fde8e8">&#128222;</div>
         <h3>Helpdesk</h3>
-        <p>View and manage the IT helpdesk ticket queue. Log new issues, assign to support staff, escalate high-priority tickets, and track resolution SLAs.</p>
+        <p>Log and track IT helpdesk tickets linked to assets, with priority escalation, assignment to staff, and status workflow from open through to resolution.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>12</strong><span>Open tickets</span></div>
-          <div class="hub-stat"><strong>3</strong><span>High priority</span></div>
-          <div class="hub-stat"><strong>2</strong><span>Escalated</span></div>
+          <div class="hub-stat"><strong id="hs-hd-open">—</strong><span>Open tickets</span></div>
+          <div class="hub-stat"><strong id="hs-hd-high">—</strong><span>High priority</span></div>
+          <div class="hub-stat"><strong id="hs-hd-total">—</strong><span>Total tickets</span></div>
         </div>
-        <a href="operations-helpdesk.html" class="hub-manage">Open Helpdesk &#8250;</a>
+        <a href="operations-helpdesk.html" class="hub-manage">View Helpdesk &#8250;</a>
       </div>
     </div>
   </main>
 </div>
 <script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/ops', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('get_ops_metrics',{},function(err,d){
+    if(err)return;
+    set('m-changes',      d.open_changes||0);
+    set('m-assets',       d.critical_assets||0);
+    set('m-vendors',      d.vendors_due_review||0);
+    set('m-tickets',      d.open_tickets||0);
+    set('m-changes-note', (d.pending_approval||0)+' pending approval');
+    set('m-assets-note',  (d.total_assets||0)+' total assets');
+    set('m-tickets-note', (d.high_priority_tickets||0)+' high priority');
+    set('hs-cr-open',     d.open_changes||0);
+    set('hs-cr-approval', d.pending_approval||0);
+    set('hs-cr-done',     d.completed_changes||0);
+    set('hs-ast-total',   d.total_assets||0);
+    set('hs-ast-critical',d.critical_assets||0);
+    set('hs-ast-patch',   d.patch_overdue||0);
+    set('hs-vnd-total',   d.total_vendors||0);
+    set('hs-vnd-due',     d.vendors_due_review||0);
+    set('hs-hd-open',     d.open_tickets||0);
+    set('hs-hd-high',     d.high_priority_tickets||0);
+    set('hs-hd-total',    d.total_tickets||0);
+  });
 })();
 </script>
 </body>

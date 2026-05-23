@@ -23,7 +23,6 @@ a{color:inherit;text-decoration:none}
 .main{padding:32px}
 .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
 .breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
 .page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
@@ -32,11 +31,14 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.sm{height:28px;padding:0 10px;font-size:11px}
-.btn.approve{background:#e6f4ed;border-color:#b7ddc9;color:var(--green)}
-.btn.reject{background:#fef2f2;border-color:#fde8e8;color:var(--red)}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.success{background:var(--green);border-color:var(--green);color:#fff}
 .section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
 .section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
 .section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
 td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
@@ -48,18 +50,10 @@ tr:hover td{background:#fafcfd}
 .pill.risk{background:#fde8e8;color:var(--red)}
 .pill.info{background:#e8eeff;color:var(--blue)}
 .pill.neu{background:#f0f4f8;color:var(--muted)}
-.row-actions{display:flex;gap:6px;flex-wrap:wrap}
-.exception-detail{padding:20px;border-bottom:1px solid var(--line)}
-.exception-detail:last-child{border-bottom:none}
-.exc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.exc-title{font-size:14px;font-weight:800}
-.exc-meta{display:flex;gap:20px;font-size:12px;color:var(--muted);margin-bottom:8px}
-.exc-meta span strong{color:var(--ink);font-weight:700}
-.exc-body{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
-.exc-actions{display:flex;gap:8px}
+.row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
 .modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
 .form-row{margin-bottom:16px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
@@ -68,6 +62,7 @@ tr:hover td{background:#fafcfd}
 .form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
 </style>
@@ -75,7 +70,6 @@ tr:hover td{background:#fafcfd}
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -114,219 +108,226 @@ tr:hover td{background:#fafcfd}
       <div>
         <div class="eyebrow">Compliance &amp; Controls</div>
         <h1>Exception Register</h1>
-        <p class="subtitle">Formally approved deviations from controls, with compensating measures and review deadlines.</p>
+        <p class="subtitle">Policy and control exceptions with business justifications, compensating controls, and approval workflow.</p>
       </div>
       <div class="acts">
-        <button class="btn primary" onclick="openModal('modal-request-exception')">Request Exception</button>
-      </div>
-    </div>
-
-    <div class="section-card" style="margin-bottom:24px">
-      <div class="section-head">
-        <h2>Pending Approval</h2>
-        <span class="pill watch">1 pending</span>
-      </div>
-      <div class="exception-detail">
-        <div class="exc-header">
-          <div>
-            <div class="exc-title">EXC-004 — Delayed Encryption of Legacy Database</div>
-            <div class="exc-meta">
-              <span><strong>Control:</strong> CTL-007 (Encryption at Rest)</span>
-              <span><strong>Requested by:</strong> Dinesh Wijesekara</span>
-              <span><strong>Submitted:</strong> 18 May 2026</span>
-            </div>
-          </div>
-          <span class="pill watch">Pending Review</span>
-        </div>
-        <div class="exc-body">Legacy payments database cannot be encrypted in-place without a 4-hour outage window. Migration to new encrypted instance planned for Q3 2026. Compensating control: network isolation and enhanced monitoring in place.</div>
-        <div class="exc-actions">
-          <button class="btn sm approve" onclick="openModal('modal-approve-exception')">Approve</button>
-          <button class="btn sm reject" onclick="openModal('modal-reject-exception')">Reject</button>
-          <button class="btn sm" onclick="openModal('modal-edit-exception')">Edit</button>
-        </div>
+        <button class="btn primary" onclick="openAdd()">+ Request Exception</button>
       </div>
     </div>
 
     <div class="section-card">
       <div class="section-head">
-        <h2>Active Exceptions</h2>
-        <span class="pill watch">3 active</span>
+        <h2>Exception Register</h2>
+        <span id="exc-count" style="font-size:12px;color:var(--muted)">Loading…</span>
       </div>
-      <div class="exception-detail">
-        <div class="exc-header">
-          <div>
-            <div class="exc-title">EXC-001 — TLS 1.1 on Partner Integration Endpoint</div>
-            <div class="exc-meta">
-              <span><strong>Control:</strong> CTL-006 (Encryption in Transit)</span>
-              <span><strong>Owner:</strong> Architecture Team</span>
-              <span><strong>Approved:</strong> 12 Jan 2026</span>
-              <span><strong>Expires:</strong> 30 Jun 2026</span>
-            </div>
-          </div>
-          <span class="pill watch">Expiring Soon</span>
-        </div>
-        <div class="exc-body">Partner's legacy system cannot support TLS 1.2+. Compensating control: IP whitelisting and payload-level encryption. Partner upgrade scheduled for Q2 2026 end.</div>
-        <div class="exc-actions">
-          <button class="btn sm" onclick="openModal('modal-edit-exception')">Edit</button>
-          <button class="btn sm approve" onclick="openModal('modal-approve-exception')">Renew</button>
-        </div>
-      </div>
-      <div class="exception-detail">
-        <div class="exc-header">
-          <div>
-            <div class="exc-title">EXC-002 — MFA Bypass for Shared Service Account</div>
-            <div class="exc-meta">
-              <span><strong>Control:</strong> CTL-001 (Access Control Policy)</span>
-              <span><strong>Owner:</strong> IT Security</span>
-              <span><strong>Approved:</strong> 5 Feb 2026</span>
-              <span><strong>Expires:</strong> 31 Aug 2026</span>
-            </div>
-          </div>
-          <span class="pill good">Active</span>
-        </div>
-        <div class="exc-body">Batch processing service account cannot support MFA due to unattended operation requirements. Compensating: dedicated VLAN, no internet access, monthly credential rotation.</div>
-        <div class="exc-actions">
-          <button class="btn sm" onclick="openModal('modal-edit-exception')">Edit</button>
-          <button class="btn sm reject" onclick="openModal('modal-reject-exception')">Revoke</button>
-        </div>
-      </div>
-      <div class="exception-detail">
-        <div class="exc-header">
-          <div>
-            <div class="exc-title">EXC-003 — Delayed Patch on SWIFT Interface Server</div>
-            <div class="exc-meta">
-              <span><strong>Control:</strong> CTL-005 (Asset Management)</span>
-              <span><strong>Owner:</strong> IT Operations</span>
-              <span><strong>Approved:</strong> 10 Mar 2026</span>
-              <span><strong>Expires:</strong> 30 Sep 2026</span>
-            </div>
-          </div>
-          <span class="pill good">Active</span>
-        </div>
-        <div class="exc-body">SWIFT interface server requires vendor certification before OS patches can be applied. Vendor certification for latest patches expected in Q3 2026. Compensating: enhanced WAF rules and IDS signatures.</div>
-        <div class="exc-actions">
-          <button class="btn sm" onclick="openModal('modal-edit-exception')">Edit</button>
-          <button class="btn sm reject" onclick="openModal('modal-reject-exception')">Revoke</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <h2>Closed / Expired Exceptions</h2>
-        <span class="pill neu">2 closed</span>
+      <div class="filter-bar">
+        <select id="f-status" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option>PENDING</option><option>APPROVED</option><option>REJECTED</option><option>EXPIRED</option>
+        </select>
+        <input id="f-search" type="search" placeholder="Search exceptions…" oninput="applyFilters()">
       </div>
       <table>
-        <thead>
-          <tr><th>ID</th><th>Title</th><th>Control</th><th>Closed Date</th><th>Outcome</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>EXC-H-01</strong></td>
-            <td>HTTP on Internal Reporting Tool</td>
-            <td>CTL-006</td>
-            <td>15 Apr 2026</td>
-            <td><span class="pill good">Remediated</span></td>
-          </tr>
-          <tr>
-            <td><strong>EXC-H-02</strong></td>
-            <td>Delayed DR Testing Documentation</td>
-            <td>CTL-004</td>
-            <td>28 Feb 2026</td>
-            <td><span class="pill good">Remediated</span></td>
-          </tr>
-        </tbody>
+        <thead><tr>
+          <th>Policy</th><th>Control</th><th>Reason</th><th>Requested By</th>
+          <th>Expiry</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="exc-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </main>
 </div>
 
-<!-- Modal: Request Exception -->
-<div class="modal-overlay" id="modal-request-exception">
+<!-- Add Exception Modal -->
+<div class="modal-overlay" id="modal-add">
   <div class="modal">
     <h2>Request Exception</h2>
-    <form onsubmit="submitModal(event,'modal-request-exception')">
-      <div class="form-row"><label>Exception Title</label><input type="text" placeholder="Short descriptive title" required></div>
-      <div class="form-row"><label>Control Being Excepted</label><select><option>CTL-001 – Access Control Policy</option><option>CTL-003 – Privileged Access Management</option><option>CTL-006 – Encryption in Transit</option><option>CTL-007 – Encryption at Rest</option><option>CTL-010 – Change Management</option></select></div>
-      <div class="form-row"><label>Business Justification</label><textarea placeholder="Why the control cannot currently be implemented…" required></textarea></div>
-      <div class="form-row"><label>Compensating Controls</label><textarea placeholder="What mitigating measures are in place…"></textarea></div>
-      <div class="form-row half">
-        <div><label>Requested By</label><input type="text" placeholder="Your name"></div>
-        <div><label>Expiry Date</label><input type="date"></div>
-      </div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-request-exception')">Cancel</button>
-        <button type="submit" class="btn primary">Submit Request</button>
-      </div>
-    </form>
+    <div class="form-row half">
+      <div><label>Policy</label><select id="add-policy"><option value="">— Select —</option></select></div>
+      <div><label>Control (Optional)</label><select id="add-control"><option value="">— None —</option></select></div>
+    </div>
+    <div class="form-row"><label>Reason / Business Justification</label><textarea id="add-reason" required></textarea></div>
+    <div class="form-row"><label>Compensating Controls</label><textarea id="add-comp"></textarea></div>
+    <div class="form-row half">
+      <div><label>Requested By</label><select id="add-requester"><option value="">— Select —</option></select></div>
+      <div><label>Expiry Date</label><input id="add-expiry" type="date" required></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn primary" onclick="submitAdd()">Submit Request</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Approve Exception -->
-<div class="modal-overlay" id="modal-approve-exception">
+<!-- Review Modal -->
+<div class="modal-overlay" id="modal-review">
   <div class="modal">
-    <h2>Approve Exception</h2>
-    <form onsubmit="submitModal(event,'modal-approve-exception')">
-      <div class="form-row"><label>Approved By</label><select><option>CISO</option><option>CRO</option><option>IT Director</option></select></div>
-      <div class="form-row"><label>Approval Date</label><input type="date"></div>
-      <div class="form-row"><label>Exception Expiry</label><input type="date"></div>
-      <div class="form-row"><label>Approval Notes</label><textarea placeholder="Conditions or requirements for this exception…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-approve-exception')">Cancel</button>
-        <button type="submit" class="btn approve">Approve</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Reject Exception -->
-<div class="modal-overlay" id="modal-reject-exception">
-  <div class="modal">
-    <h2>Reject / Revoke Exception</h2>
-    <form onsubmit="submitModal(event,'modal-reject-exception')">
-      <div class="form-row"><label>Decision By</label><select><option>CISO</option><option>CRO</option><option>IT Director</option></select></div>
-      <div class="form-row"><label>Reason</label><textarea placeholder="Reason for rejection or revocation…" required></textarea></div>
-      <div class="form-row"><label>Required Remediation Date</label><input type="date"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-reject-exception')">Cancel</button>
-        <button type="submit" class="btn reject">Confirm Rejection</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Edit Exception -->
-<div class="modal-overlay" id="modal-edit-exception">
-  <div class="modal">
-    <h2>Edit Exception</h2>
-    <form onsubmit="submitModal(event,'modal-edit-exception')">
-      <div class="form-row"><label>Exception Title</label><input type="text" value="TLS 1.1 on Partner Integration Endpoint"></div>
-      <div class="form-row"><label>Business Justification</label><textarea>Partner's legacy system cannot support TLS 1.2+.</textarea></div>
-      <div class="form-row"><label>Compensating Controls</label><textarea>IP whitelisting and payload-level encryption.</textarea></div>
-      <div class="form-row half">
-        <div><label>Owner</label><input type="text" value="Architecture Team"></div>
-        <div><label>Expiry Date</label><input type="date" value="2026-06-30"></div>
-      </div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-edit-exception')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
-      </div>
-    </form>
+    <h2>Review Exception</h2>
+    <input type="hidden" id="review-id">
+    <div id="review-detail" style="background:#f3f7f8;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7"></div>
+    <div class="form-row"><label>Your Decision</label>
+      <select id="review-status">
+        <option value="APPROVED">Approve</option>
+        <option value="REJECTED">Reject</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Approver</label><select id="review-approver"><option value="">— Select —</option></select></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-review')">Cancel</button>
+      <button class="btn primary" onclick="submitReview()">Submit Decision</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast">Saved successfully</div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = {exceptions: [], policies: [], controls: [], staff: []};
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+var STATUS_PILL = {
+  'PENDING':  '<span class="pill watch">Pending</span>',
+  'APPROVED': '<span class="pill good">Approved</span>',
+  'REJECTED': '<span class="pill risk">Rejected</span>',
+  'EXPIRED':  '<span class="pill neu">Expired</span>'
+};
+
+function renderExceptions(list) {
+  var body = document.getElementById('exc-body');
+  var cnt  = document.getElementById('exc-count');
+  if(cnt) cnt.textContent = list.length+' exception'+(list.length!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No exceptions found.</td></tr>';return;}
+  body.innerHTML = list.map(function(e){
+    var canReview = e.status==='PENDING';
+    return '<tr>'+
+      '<td>'+esc(e.policy_title||'—')+'</td>'+
+      '<td>'+esc(e.control_code||'—')+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(e.reason)+'">'+esc(e.reason)+'</td>'+
+      '<td>'+esc(e.requester_name||'—')+'</td>'+
+      '<td>'+esc(e.expiry_date||'—')+'</td>'+
+      '<td>'+(STATUS_PILL[e.status]||esc(e.status))+'</td>'+
+      '<td><div class="row-actions">'+
+        (canReview?'<button class="btn sm primary" onclick="openReview(\''+e.id+'\')">Review</button>':'')+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function applyFilters() {
+  var stVal = document.getElementById('f-status').value;
+  var srVal = document.getElementById('f-search').value.toLowerCase();
+  var list = state.exceptions.filter(function(e){
+    if(stVal && e.status!==stVal) return false;
+    if(srVal && !(e.reason||'').toLowerCase().includes(srVal) && !(e.policy_title||'').toLowerCase().includes(srVal)) return false;
+    return true;
+  });
+  renderExceptions(list);
+}
+
+function loadAll() {
+  api('list_exceptions',{},function(err,d){
+    if(err)return;
+    state.exceptions = d.exceptions||[];
+    applyFilters();
+  });
+  api('list_policies',{},function(err,d){
+    if(err)return;
+    state.policies=d.policies||[];
+    ['add-policy'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.policies.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.title;sel.appendChild(o);});
+    });
+  });
+  api('list_controls',{},function(err,d){
+    if(err)return;
+    state.controls=d.controls||[];
+    var sel=document.getElementById('add-control');
+    state.controls.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.code+' – '+c.title;sel.appendChild(o);});
+  });
+  api('list_staff',{},function(err,d){
+    if(err)return;
+    state.staff=d.staff||[];
+    ['add-requester','review-approver'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
+    });
+  });
+}
+
+function openAdd() {
+  ['add-policy','add-control','add-requester'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
+  ['add-reason','add-comp','add-expiry'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openReview(id) {
+  var ex = state.exceptions.find(function(x){return x.id===id;});
+  if(!ex) return;
+  document.getElementById('review-id').value = id;
+  document.getElementById('review-detail').innerHTML =
+    '<strong>Policy:</strong> '+esc(ex.policy_title||'—')+'<br>'+
+    '<strong>Reason:</strong> '+esc(ex.reason)+'<br>'+
+    '<strong>Compensating Controls:</strong> '+esc(ex.compensating_controls||'—')+'<br>'+
+    '<strong>Expiry:</strong> '+esc(ex.expiry_date||'—');
+  document.getElementById('review-approver').selectedIndex=0;
+  document.getElementById('modal-review').classList.add('open');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function submitAdd() {
+  var body = {
+    policy_id:            document.getElementById('add-policy').value,
+    control_id:           document.getElementById('add-control').value||null,
+    reason:               document.getElementById('add-reason').value,
+    compensating_controls:document.getElementById('add-comp').value,
+    requested_by:         document.getElementById('add-requester').value||null,
+    expiry_date:          document.getElementById('add-expiry').value
+  };
+  if(!body.policy_id||!body.reason||!body.expiry_date){alert('Policy, reason, and expiry date are required.');return;}
+  api('add_exception', body, function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal('modal-add');showToast('Exception submitted');loadAll();
+  });
+}
+
+function submitReview() {
+  var id      = document.getElementById('review-id').value;
+  var status  = document.getElementById('review-status').value;
+  var approver= document.getElementById('review-approver').value||null;
+  api('update_exception_status',{id:id,status:status,approver_id:approver},function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal('modal-review');showToast('Exception '+status.toLowerCase());loadAll();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
+});
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadAll();
 })();
 </script>
 </body>

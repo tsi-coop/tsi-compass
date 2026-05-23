@@ -360,7 +360,9 @@ CREATE TABLE assets (
     category VARCHAR(50) NOT NULL CHECK (category IN ('APPLICATION', 'CORE_SERVER', 'FIREWALL', 'LAPTOP', 'DESKTOP', 'PRINTER', 'OTHER')),
     criticality VARCHAR(20) NOT NULL CHECK (criticality IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
     owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    description TEXT
+    description TEXT,
+    patch_status VARCHAR(20) DEFAULT 'CURRENT' CHECK (patch_status IN ('CURRENT', 'PENDING', 'OVERDUE', 'UNKNOWN')),
+    lifecycle_status VARCHAR(30) DEFAULT 'ACTIVE' CHECK (lifecycle_status IN ('ACTIVE', 'EOL', 'DECOMMISSIONING', 'DECOMMISSIONED'))
 );
 
 CREATE TABLE vendors (
@@ -400,6 +402,7 @@ CREATE TABLE incidents (
     rca_business_impact TEXT,
     rca_root_cause TEXT,
     rca_preventative_actions TEXT,
+    resolved_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -421,6 +424,7 @@ CREATE TABLE training_materials (
 CREATE TABLE awareness_campaigns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
+    description TEXT,
     scheduled_start DATE NOT NULL,
     scheduled_end DATE NOT NULL,
     material_id UUID REFERENCES training_materials(id) ON DELETE SET NULL,
@@ -439,7 +443,24 @@ CREATE TABLE best_practices_vault (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
+    category VARCHAR(50) DEFAULT 'General',
+    audience VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'PUBLISHED' CHECK (status IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')),
     author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE scheduled_reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    report_type VARCHAR(50) NOT NULL,
+    cadence VARCHAR(20) NOT NULL CHECK (cadence IN ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY')),
+    recipients TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_run_at TIMESTAMP WITH TIME ZONE,
+    next_run_at TIMESTAMP WITH TIME ZONE,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

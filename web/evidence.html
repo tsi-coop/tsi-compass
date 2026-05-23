@@ -57,7 +57,6 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -95,7 +94,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div>
         <div class="eyebrow">Internal Audit</div>
         <h1>Audit &amp; Evidence</h1>
-        <p class="subtitle">Audit lifecycle, findings remediation, and the immutable cryptographic evidence locker.</p>
+        <p class="subtitle">Internal audit schedule, observation tracking, and tamper-evident evidence locker.</p>
       </div>
       <div class="acts">
         <a class="btn" href="evidence-locker.html">Evidence Locker</a>
@@ -104,57 +103,58 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     </div>
 
     <div class="grid col4 mb">
-      <div class="card stripe-blue">
-        <div class="metric-label">Scheduled Audits</div>
-        <div class="metric-value">5</div>
-        <div class="metric-note">Internal &amp; external audits</div>
-      </div>
-      <div class="card stripe-amber">
-        <div class="metric-label">Open Findings</div>
-        <div class="metric-value">12</div>
-        <div class="metric-note">3 high · 6 medium · 3 low</div>
-      </div>
-      <div class="card stripe-green">
-        <div class="metric-label">Evidence Artifacts</div>
-        <div class="metric-value">128</div>
-        <div class="metric-note">Cryptographically locked</div>
+      <div class="card stripe-teal">
+        <div class="metric-label">Active Audits</div>
+        <div class="metric-value" id="m-active">—</div>
+        <div class="metric-note" id="m-active-note">Loading…</div>
       </div>
       <div class="card stripe-red">
-        <div class="metric-label">Pending Closure</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">Awaiting management sign-off</div>
+        <div class="metric-label">Open Observations</div>
+        <div class="metric-value" id="m-obs">—</div>
+        <div class="metric-note" id="m-obs-note">Loading…</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Evidence Files</div>
+        <div class="metric-value" id="m-evidence">—</div>
+        <div class="metric-note">Tamper-evident locker</div>
+      </div>
+      <div class="card stripe-green">
+        <div class="metric-label">Closed Audits</div>
+        <div class="metric-value" id="m-closed">—</div>
+        <div class="metric-note" id="m-closed-note">Loading…</div>
       </div>
     </div>
 
     <div class="hub-grid">
       <div class="hub-card">
-        <div class="hub-icon" style="background:#edf2ff">&#128197;</div>
+        <div class="hub-icon" style="background:#eaf5f3">&#128197;</div>
         <h3>Audit Schedule</h3>
-        <p>Plan and track internal and external audits, assign lead auditors, define scope and frameworks, and monitor completion status across the audit cycle.</p>
+        <p>Plan and track internal audit engagements across departments and frameworks. Monitor progress through stages from scheduled to final report.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>5</strong><span>Scheduled</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Completed Q1</span></div>
+          <div class="hub-stat"><strong id="hs-aud-active">—</strong><span>Active audits</span></div>
+          <div class="hub-stat"><strong id="hs-aud-total">—</strong><span>Total audits</span></div>
+          <div class="hub-stat"><strong id="hs-aud-overdue">—</strong><span>Overdue start</span></div>
         </div>
         <a href="evidence-audits.html" class="hub-manage">Manage Audits &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#fff4df">&#128270;</div>
+        <div class="hub-icon" style="background:#fde8e8">&#128269;</div>
         <h3>Findings &amp; Observations</h3>
-        <p>Log audit findings, set remediation targets, record management responses, and track closure status from initial observation through to sign-off.</p>
+        <p>Log audit observations with risk linkage and control failure mapping. Track remediation progress and issue closure through the auditee workflow.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>12</strong><span>Open findings</span></div>
-          <div class="hub-stat"><strong>3</strong><span>High priority</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Overdue</span></div>
+          <div class="hub-stat"><strong id="hs-obs-open">—</strong><span>Open findings</span></div>
+          <div class="hub-stat"><strong id="hs-obs-high">—</strong><span>High priority</span></div>
+          <div class="hub-stat"><strong id="hs-obs-total">—</strong><span>Total observations</span></div>
         </div>
         <a href="evidence-findings.html" class="hub-manage">View Findings &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#eaf5f3">&#128274;</div>
+        <div class="hub-icon" style="background:#f0f4f8">&#128274;</div>
         <h3>Evidence Locker</h3>
-        <p>Upload and lock evidence artifacts against specific controls. All files are cryptographically timestamped with SHA-256 and are immutable upon upload.</p>
+        <p>Store and manage audit evidence with SHA-256 integrity checksums, upload timestamps, and immutable locking to ensure tamper-evidence for compliance.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>128</strong><span>Artifacts locked</span></div>
-          <div class="hub-stat"><strong>1</strong><span>Pending lock</span></div>
+          <div class="hub-stat"><strong id="hs-ev-count">—</strong><span>Evidence files</span></div>
+          <div class="hub-stat"><strong id="hs-ev-locked">—</strong><span>Locked</span></div>
         </div>
         <a href="evidence-locker.html" class="hub-manage">Open Locker &#8250;</a>
       </div>
@@ -162,12 +162,47 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
   </main>
 </div>
 <script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/audit', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('get_internal_audit_metrics',{},function(err,d){
+    if(err)return;
+    set('m-active',      d.active_audits||0);
+    set('m-obs',         d.open_observations||0);
+    set('m-evidence',    d.evidence_count||0);
+    set('m-closed',      d.closed_audits||0);
+    set('m-active-note', (d.total_audits||0)+' total · '+(d.overdue_start||0)+' overdue start');
+    set('m-obs-note',    (d.high_observations||0)+' high priority');
+    set('m-closed-note', (d.total_audits||0)+' total audits');
+    set('hs-aud-active',  d.active_audits||0);
+    set('hs-aud-total',   d.total_audits||0);
+    set('hs-aud-overdue', d.overdue_start||0);
+    set('hs-obs-open',    d.open_observations||0);
+    set('hs-obs-high',    d.high_observations||0);
+    set('hs-obs-total',   d.total_observations||0);
+    set('hs-ev-count',    d.evidence_count||0);
+    set('hs-ev-locked',   d.evidence_count||0);
+  });
 })();
 </script>
 </body>

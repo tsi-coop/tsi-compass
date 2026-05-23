@@ -30,6 +30,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .grid{display:grid;gap:16px}
 .col4{grid-template-columns:repeat(4,1fr)}
+.col3{grid-template-columns:repeat(3,1fr)}
 .mb{margin-bottom:24px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
@@ -38,6 +39,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .stripe-teal{border-top:4px solid var(--teal)}
 .stripe-blue{border-top:4px solid var(--blue)}
 .stripe-amber{border-top:4px solid var(--amber)}
+.stripe-red{border-top:4px solid var(--red)}
 .stripe-green{border-top:4px solid var(--green)}
 .hub-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
 .hub-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column}
@@ -50,13 +52,12 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
 .hub-manage:hover{color:var(--ink)}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.col3{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -71,7 +72,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="operations.html">IT Operations</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html" class="active">Reports &amp; Exports</a>
-      <a href="reports-dashboards.html" class="subnav">Executive Dashboards</a>
+      <a href="reports-dashboards.html" class="subnav">Executive Dashboard</a>
       <a href="reports-exports.html" class="subnav">Export Reports</a>
       <a href="reports-scheduled.html" class="subnav">Scheduled Reports</a>
     </nav>
@@ -94,65 +95,66 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div>
         <div class="eyebrow">Reporting</div>
         <h1>Reports &amp; Exports</h1>
-        <p class="subtitle">Real-time executive dashboards, standardized report exports, and automated scheduling.</p>
+        <p class="subtitle">Cross-module executive dashboards, on-demand data exports, and scheduled report delivery.</p>
       </div>
       <div class="acts">
-        <a class="btn" href="reports-scheduled.html">Schedules</a>
-        <a class="btn primary" href="reports-exports.html">Generate Report</a>
+        <a class="btn" href="reports-exports.html">Export Data</a>
+        <a class="btn primary" href="reports-dashboards.html">Live Dashboard</a>
       </div>
     </div>
 
     <div class="grid col4 mb">
-      <div class="card stripe-teal">
-        <div class="metric-label">Active Dashboards</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">Risk · Compliance · Performance</div>
-      </div>
-      <div class="card stripe-blue">
-        <div class="metric-label">Reports Generated</div>
-        <div class="metric-value">47</div>
-        <div class="metric-note">This fiscal year</div>
+      <div class="card stripe-red">
+        <div class="metric-label">Open Risks</div>
+        <div class="metric-value" id="m-risks">—</div>
+        <div class="metric-note" id="m-risks-note">Loading…</div>
       </div>
       <div class="card stripe-green">
-        <div class="metric-label">Scheduled Reports</div>
-        <div class="metric-value">5</div>
-        <div class="metric-note">Weekly &amp; monthly automations</div>
+        <div class="metric-label">Controls Compliance</div>
+        <div class="metric-value" id="m-compliance">—</div>
+        <div class="metric-note" id="m-compliance-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
-        <div class="metric-label">Pending Exports</div>
-        <div class="metric-value">2</div>
-        <div class="metric-note">Generating — check Downloads</div>
+        <div class="metric-label">Open Incidents</div>
+        <div class="metric-value" id="m-incidents">—</div>
+        <div class="metric-note" id="m-incidents-note">Loading…</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Active Audits</div>
+        <div class="metric-value" id="m-audits">—</div>
+        <div class="metric-note" id="m-audits-note">Loading…</div>
       </div>
     </div>
 
     <div class="hub-grid">
       <div class="hub-card">
         <div class="hub-icon" style="background:#eaf5f3">&#128202;</div>
-        <h3>Executive Dashboards</h3>
-        <p>Live IT Risk, Compliance, and Performance dashboards with drill-down metrics for the board and senior management team.</p>
+        <h3>Executive Dashboard</h3>
+        <p>Live cross-module metrics dashboard combining risk posture, compliance status, audit progress, incident counts, and operational health in one view for leadership.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>3</strong><span>Dashboards</span></div>
-          <div class="hub-stat"><strong>Live</strong><span>Data refresh</span></div>
+          <div class="hub-stat"><strong id="hs-dash-risks">—</strong><span>High risks</span></div>
+          <div class="hub-stat"><strong id="hs-dash-vulns">—</strong><span>Critical vulns</span></div>
+          <div class="hub-stat"><strong id="hs-dash-pct">—</strong><span>Compliance</span></div>
         </div>
-        <a href="reports-dashboards.html" class="hub-manage">Open Dashboards &#8250;</a>
+        <a href="reports-dashboards.html" class="hub-manage">Open Dashboard &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#edf2ff">&#128196;</div>
+        <div class="hub-icon" style="background:#fff4df">&#128229;</div>
         <h3>Export Reports</h3>
-        <p>Generate and download standardized PDF and Excel reports covering risk, compliance, audit, incidents, and change management for any period.</p>
+        <p>Generate on-demand CSV exports for any module — risk register, vulnerability log, controls list, audit findings, incident register, and asset inventory.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>5</strong><span>Report types</span></div>
-          <div class="hub-stat"><strong>47</strong><span>Generated YTD</span></div>
+          <div class="hub-stat"><strong>8</strong><span>Export types</span></div>
+          <div class="hub-stat"><strong>CSV</strong><span>Format</span></div>
         </div>
-        <a href="reports-exports.html" class="hub-manage">Export Reports &#8250;</a>
+        <a href="reports-exports.html" class="hub-manage">Export Data &#8250;</a>
       </div>
       <div class="hub-card">
-        <div class="hub-icon" style="background:#fff4df">&#128344;</div>
+        <div class="hub-icon" style="background:#edf2ff">&#128337;</div>
         <h3>Scheduled Reports</h3>
-        <p>Configure recurring report runs delivered automatically to stakeholder distribution lists on weekly, bi-monthly, or monthly cadences.</p>
+        <p>Configure recurring report schedules with cadence, recipient email lists, and report type. Track last run and next scheduled delivery for each configured report.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>5</strong><span>Active schedules</span></div>
-          <div class="hub-stat"><strong>2</strong><span>Run weekly</span></div>
+          <div class="hub-stat"><strong id="hs-sched-active">—</strong><span>Active schedules</span></div>
+          <div class="hub-stat"><strong id="hs-sched-total">—</strong><span>Total configured</span></div>
         </div>
         <a href="reports-scheduled.html" class="hub-manage">Manage Schedules &#8250;</a>
       </div>
@@ -160,12 +162,51 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
   </main>
 </div>
 <script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function apiReports(func, body, cb) {
+  fetch('/api/v1/reports', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  apiReports('get_executive_summary',{},function(err,d){
+    if(err)return;
+    set('m-risks',          d.open_risks||0);
+    set('m-compliance',     (d.compliance_pct||0)+'%');
+    set('m-incidents',      d.open_incidents||0);
+    set('m-audits',         d.active_audits||0);
+    set('m-risks-note',     (d.high_risks||0)+' high severity');
+    set('m-compliance-note',(d.compliant_controls||0)+' of '+(d.total_controls||0)+' controls');
+    set('m-incidents-note', (d.high_incidents||0)+' critical/high');
+    set('m-audits-note',    (d.total_audits||0)+' total audits');
+    set('hs-dash-risks',    d.high_risks||0);
+    set('hs-dash-vulns',    d.critical_vulns||0);
+    set('hs-dash-pct',      (d.compliance_pct||0)+'%');
+  });
+
+  apiReports('list_schedules',{},function(err,d){
+    if(err)return;
+    var scheds = d.schedules||[];
+    var active = scheds.filter(function(s){return s.is_active;}).length;
+    set('hs-sched-active', active);
+    set('hs-sched-total',  scheds.length);
+  });
 })();
 </script>
 </body>
