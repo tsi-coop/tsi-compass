@@ -159,8 +159,11 @@ CREATE TABLE policy_attestations (
 -- MODULE 3: RISK & VULNERABILITY MANAGEMENT
 -- ==========================================
 
+CREATE SEQUENCE risk_code_seq START 1;
+
 CREATE TABLE risks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    risk_code VARCHAR(20) NOT NULL UNIQUE DEFAULT ('R-' || LPAD(nextval('risk_code_seq')::text, 3, '0')),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100) NOT NULL,
@@ -176,15 +179,32 @@ CREATE TABLE risks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE SEQUENCE vuln_code_seq START 1;
+
+CREATE TABLE vapt_engagements (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('EXTERNAL_PENTEST', 'INTERNAL_PENTEST', 'FULL_VAPT', 'VULNERABILITY_SCAN')),
+    vendor VARCHAR(255),
+    scope TEXT,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(20) DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'REMEDIATION', 'CLOSED')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE vulnerabilities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vuln_code VARCHAR(20) NOT NULL UNIQUE DEFAULT ('VPT-' || LPAD(nextval('vuln_code_seq')::text, 3, '0')),
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    source VARCHAR(100) NOT NULL,
+    source VARCHAR(100) NOT NULL DEFAULT 'Manual',
     severity VARCHAR(20) NOT NULL CHECK (severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')),
     status VARCHAR(20) DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'FALSE_POSITIVE')),
     assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
     linked_risk_id UUID REFERENCES risks(id) ON DELETE SET NULL,
+    engagement_id UUID REFERENCES vapt_engagements(id) ON DELETE SET NULL,
+    affected_asset VARCHAR(255),
     sla_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
     mitigation_details TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

@@ -15,6 +15,7 @@
 /api/v1/user=org.tsicoop.compass.service.v1.User
 /api/v1/platform=org.tsicoop.compass.service.v1.Platform
 /api/v1/governance=org.tsicoop.compass.service.v1.Governance
+/api/v1/risk=org.tsicoop.compass.service.v1.Risk
 /api/v1/job=org.tsicoop.compass.service.v1.Job
 /api/v1/ropa=org.tsicoop.compass.service.v1.Ropa
 

@@ -43,14 +43,29 @@ td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#33415
 tr:last-child td{border-bottom:none}
 .grid{display:grid;gap:16px}
 .col2{grid-template-columns:repeat(2,1fr)}
+.empty-row td{text-align:center;color:var(--muted);padding:28px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col2{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+.error-msg{background:#fef2f2;border:1px solid #fde8e8;color:var(--red);border-radius:6px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -91,26 +106,29 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Enterprise risk register with impact/likelihood scoring, treatment strategies, and heatmap view.</p>
       </div>
       <div class="acts">
-        <a class="btn" href="#" onclick="openModal('modal-log-treatment');return false;">Log Treatment</a>
-        <a class="btn primary" href="#" onclick="openModal('modal-add-risk');return false;">Add Risk</a>
+        <button class="btn" onclick="openModal('modal-add-risk')">Add Risk</button>
       </div>
     </div>
 
     <div class="card mb">
-      <div class="section-head"><h2>Enterprise Risk Register</h2><span class="lk">Export Register</span></div>
+      <div class="section-head"><h2>Enterprise Risk Register</h2><span id="risk-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
       <table>
         <thead>
-          <tr><th>Risk ID</th><th>Risk Description</th><th>Category</th><th>Owner</th><th style="text-align:center">Impact</th><th style="text-align:center">Likelihood</th><th style="text-align:center">Score</th><th>Treatment</th><th>Status</th><th></th></tr>
+          <tr>
+            <th>Risk ID</th>
+            <th>Risk Description</th>
+            <th>Category</th>
+            <th>Owner</th>
+            <th style="text-align:center">Impact</th>
+            <th style="text-align:center">Likelihood</th>
+            <th style="text-align:center">Score</th>
+            <th>Treatment</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
         </thead>
-        <tbody>
-          <tr><td><strong>R-001</strong></td><td>Vendor access review overdue — critical system access not recertified</td><td>Third-Party</td><td>IT Operations</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center"><span class="pill risk">16</span></td><td>Mitigate</td><td><span class="pill risk">High</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-002</strong></td><td>Incident response tabletop exercise pending for Q2</td><td>Operational</td><td>Security Team</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center"><span class="pill watch">12</span></td><td>Mitigate</td><td><span class="pill watch">Medium</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-003</strong></td><td>Backup restore evidence incomplete — last successful test unverified</td><td>IT Operations</td><td>Platform Team</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center"><span class="pill watch">9</span></td><td>Mitigate</td><td><span class="pill watch">Medium</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-004</strong></td><td>Policy exception for legacy system access nearing expiry</td><td>Compliance</td><td>A. Gunawardena</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center;font-weight:800">2</td><td style="text-align:center"><span class="pill good">6</span></td><td>Monitor</td><td><span class="pill good">Low</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-005</strong></td><td>Privileged account inventory not current — stale accounts present</td><td>Access Control</td><td>R. Fernando</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center"><span class="pill watch">12</span></td><td>Mitigate</td><td><span class="pill watch">Medium</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-006</strong></td><td>Single point of failure in core banking middleware layer</td><td>IT Infrastructure</td><td>D. Perera</td><td style="text-align:center;font-weight:800">5</td><td style="text-align:center;font-weight:800">2</td><td style="text-align:center"><span class="pill watch">10</span></td><td>Accept</td><td><span class="pill watch">Medium</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-007</strong></td><td>No formal DRP test conducted in current fiscal year</td><td>Continuity</td><td>Platform Team</td><td style="text-align:center;font-weight:800">5</td><td style="text-align:center;font-weight:800">3</td><td style="text-align:center"><span class="pill risk">15</span></td><td>Mitigate</td><td><span class="pill risk">High</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
-          <tr><td><strong>R-008</strong></td><td>Phishing susceptibility — 24% staff training incomplete</td><td>Human Factor</td><td>HR / IT Security</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center;font-weight:800">4</td><td style="text-align:center"><span class="pill risk">16</span></td><td>Mitigate</td><td><span class="pill risk">High</span></td><td><span class="lk" onclick="openModal('modal-edit-risk')">Edit</span></td></tr>
+        <tbody id="risk-tbody">
+          <tr class="empty-row"><td colspan="10">Loading risks…</td></tr>
         </tbody>
       </table>
     </div>
@@ -118,189 +136,348 @@ tr:last-child td{border-bottom:none}
     <div class="card">
       <div class="section-head"><h2>Risk Heatmap (Impact × Likelihood)</h2></div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Likelihood →</div>
-      <table style="border-collapse:separate;border-spacing:3px">
-        <thead>
-          <tr>
-            <th style="width:60px;font-size:10px">Impact ↓</th>
-            <th style="text-align:center;font-size:10px">1 – Rare</th>
-            <th style="text-align:center;font-size:10px">2 – Unlikely</th>
-            <th style="text-align:center;font-size:10px">3 – Possible</th>
-            <th style="text-align:center;font-size:10px">4 – Likely</th>
-            <th style="text-align:center;font-size:10px">5 – Almost Certain</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">5 – Critical</td>
-            <td style="background:#fef3c7;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">5</td>
-            <td style="background:#fde68a;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">10 · R-006</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">15 · R-007</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">20</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">25</td>
-          </tr>
-          <tr>
-            <td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">4 – Major</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">4</td>
-            <td style="background:#fef3c7;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">8</td>
-            <td style="background:#fde68a;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">12 · R-005</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">16 · R-001 · R-008</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">20</td>
-          </tr>
-          <tr>
-            <td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">3 – Moderate</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">3</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">6 · R-004</td>
-            <td style="background:#fef3c7;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">9 · R-003</td>
-            <td style="background:#fde68a;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#374151">12 · R-002</td>
-            <td style="background:#fca5a5;border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:#7f1d1d">15</td>
-          </tr>
-          <tr>
-            <td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">2 – Minor</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">2</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">4</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">6</td>
-            <td style="background:#fef3c7;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">8</td>
-            <td style="background:#fde68a;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">10</td>
-          </tr>
-          <tr>
-            <td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">1 – Negligible</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">1</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">2</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">3</td>
-            <td style="background:#d1fae5;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">4</td>
-            <td style="background:#fef3c7;border-radius:4px;text-align:center;padding:8px;font-size:11px;color:#374151">5</td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="heatmap-wrap"></div>
       <div style="display:flex;gap:12px;margin-top:12px;font-size:11px;font-weight:700">
         <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;display:inline-block"></span>Low (1–5)</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fde68a;display:inline-block"></span>Medium (6–10)</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fca5a5;display:inline-block"></span>High (11–25)</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fde68a;display:inline-block"></span>Medium (6–12)</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fca5a5;display:inline-block"></span>High (13–25)</span>
       </div>
     </div>
   </main>
 </div>
 
-<style>
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-head h2{margin:0;font-size:16px;font-weight:900}
-.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
-.form-field{margin-bottom:15px}
-.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
-.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
-</style>
-
+<!-- Add Risk Modal -->
 <div id="modal-add-risk" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-risk')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add Risk to Register</h2><button class="modal-close" onclick="closeModal('modal-add-risk')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-risk')">
-      <div class="form-field"><label class="form-label">Risk Description</label><textarea class="form-textarea" placeholder="Describe the risk scenario and potential impact…" required></textarea></div>
+    <div class="error-msg" id="add-err"></div>
+    <form onsubmit="submitAddRisk(event)">
+      <div class="form-field"><label class="form-label">Risk Title</label><input class="form-input" id="ar-title" placeholder="Short descriptive title" required></div>
+      <div class="form-field"><label class="form-label">Risk Description</label><textarea class="form-textarea" id="ar-desc" placeholder="Describe the risk scenario and potential impact…"></textarea></div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Category</label>
-          <select class="form-select" required><option value="">Select…</option><option>Third-Party</option><option>Operational</option><option>IT Operations</option><option>Compliance</option><option>Access Control</option><option>IT Infrastructure</option><option>Continuity</option><option>Human Factor</option></select>
+          <select class="form-select" id="ar-cat" required>
+            <option value="">Select…</option>
+            <option>Third-Party</option><option>Operational</option><option>IT Operations</option>
+            <option>Compliance</option><option>Access Control</option><option>IT Infrastructure</option>
+            <option>Continuity</option><option>Human Factor</option><option>Financial</option><option>Regulatory</option>
+          </select>
         </div>
         <div class="form-field"><label class="form-label">Risk Owner</label>
-          <select class="form-select"><option>P. Ratnayake (CRO)</option><option>D. Perera (IT Sec)</option><option>R. Fernando</option><option>Platform Team</option><option>T. Weerasekara</option></select>
+          <select class="form-select" id="ar-owner"><option value="">Unassigned</option></select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Impact (1–5)</label>
-          <select class="form-select"><option>1 – Negligible</option><option>2 – Minor</option><option>3 – Moderate</option><option selected>4 – Major</option><option>5 – Critical</option></select>
+          <select class="form-select" id="ar-impact" required>
+            <option value="1">1 – Negligible</option><option value="2">2 – Minor</option>
+            <option value="3">3 – Moderate</option><option value="4" selected>4 – Major</option><option value="5">5 – Critical</option>
+          </select>
         </div>
         <div class="form-field"><label class="form-label">Likelihood (1–5)</label>
-          <select class="form-select"><option>1 – Rare</option><option>2 – Unlikely</option><option selected>3 – Possible</option><option>4 – Likely</option><option>5 – Almost Certain</option></select>
+          <select class="form-select" id="ar-likelihood" required>
+            <option value="1">1 – Rare</option><option value="2">2 – Unlikely</option>
+            <option value="3" selected>3 – Possible</option><option value="4">4 – Likely</option><option value="5">5 – Almost Certain</option>
+          </select>
         </div>
       </div>
       <div class="form-field"><label class="form-label">Treatment Strategy</label>
-        <select class="form-select"><option>Mitigate</option><option>Accept</option><option>Transfer</option><option>Avoid</option></select>
+        <select class="form-select" id="ar-treatment">
+          <option value="">Select…</option>
+          <option value="MITIGATE">Mitigate</option><option value="ACCEPT">Accept</option>
+          <option value="TRANSFER">Transfer</option><option value="AVOID">Avoid</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-add-risk')">Cancel</button>
-        <button type="submit" class="btn primary">Add to Register</button>
+        <button type="submit" class="btn primary" id="ar-btn">Add to Register</button>
       </div>
     </form>
   </div>
 </div>
 
+<!-- Edit Risk Modal -->
 <div id="modal-edit-risk" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-risk')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit Risk</h2><button class="modal-close" onclick="closeModal('modal-edit-risk')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-risk')">
-      <div class="form-field"><label class="form-label">Risk Description</label><textarea class="form-textarea" required>Vendor access review overdue — critical system access not recertified</textarea></div>
+    <div class="error-msg" id="edit-err"></div>
+    <form onsubmit="submitEditRisk(event)">
+      <input type="hidden" id="er-id">
+      <div class="form-field"><label class="form-label">Risk Title</label><input class="form-input" id="er-title" required></div>
+      <div class="form-field"><label class="form-label">Description</label><textarea class="form-textarea" id="er-desc"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Category</label>
+          <select class="form-select" id="er-cat">
+            <option>Third-Party</option><option>Operational</option><option>IT Operations</option>
+            <option>Compliance</option><option>Access Control</option><option>IT Infrastructure</option>
+            <option>Continuity</option><option>Human Factor</option><option>Financial</option><option>Regulatory</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Owner</label>
+          <select class="form-select" id="er-owner"><option value="">Unassigned</option></select>
+        </div>
+      </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Impact (1–5)</label>
-          <select class="form-select"><option>1 – Negligible</option><option>2 – Minor</option><option>3 – Moderate</option><option selected>4 – Major</option><option>5 – Critical</option></select>
+          <select class="form-select" id="er-impact">
+            <option value="1">1 – Negligible</option><option value="2">2 – Minor</option>
+            <option value="3">3 – Moderate</option><option value="4">4 – Major</option><option value="5">5 – Critical</option>
+          </select>
         </div>
         <div class="form-field"><label class="form-label">Likelihood (1–5)</label>
-          <select class="form-select"><option>1 – Rare</option><option>2 – Unlikely</option><option>3 – Possible</option><option selected>4 – Likely</option><option>5 – Almost Certain</option></select>
+          <select class="form-select" id="er-likelihood">
+            <option value="1">1 – Rare</option><option value="2">2 – Unlikely</option>
+            <option value="3">3 – Possible</option><option value="4">4 – Likely</option><option value="5">5 – Almost Certain</option>
+          </select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Treatment Strategy</label>
-          <select class="form-select"><option selected>Mitigate</option><option>Accept</option><option>Transfer</option><option>Avoid</option></select>
+          <select class="form-select" id="er-treatment">
+            <option value="">None</option>
+            <option value="MITIGATE">Mitigate</option><option value="ACCEPT">Accept</option>
+            <option value="TRANSFER">Transfer</option><option value="AVOID">Avoid</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Risk Owner</label>
-          <select class="form-select"><option selected>IT Operations</option><option>P. Ratnayake</option><option>D. Perera</option><option>R. Fernando</option></select>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select" id="er-status">
+            <option value="IDENTIFIED">Identified</option><option value="ASSESSED">Assessed</option>
+            <option value="TREATED">Treated</option><option value="MONITORED">Monitored</option><option value="RETIRED">Retired</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Mitigating Controls</label><textarea class="form-textarea" id="er-controls" placeholder="Describe controls in place…"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Residual Impact (1–5)</label>
+          <select class="form-select" id="er-res-impact">
+            <option value="">N/A</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Residual Likelihood (1–5)</label>
+          <select class="form-select" id="er-res-likelihood">
+            <option value="">N/A</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-risk')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
+        <button type="submit" class="btn primary" id="er-btn">Save Changes</button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="modal-log-treatment" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-log-treatment')">
-  <div class="modal-box">
-    <div class="modal-head"><h2>Log Risk Treatment</h2><button class="modal-close" onclick="closeModal('modal-log-treatment')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-log-treatment')">
-      <div class="form-field"><label class="form-label">Risk</label>
-        <select class="form-select" required><option value="">Select risk…</option><option>R-001 — Vendor access review overdue</option><option>R-002 — IR tabletop exercise pending</option><option>R-007 — No formal DRP test</option><option>R-008 — Phishing susceptibility</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Treatment Action Taken</label><textarea class="form-textarea" placeholder="Describe the treatment activity completed…" required></textarea></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Date Completed</label><input class="form-input" type="date" required></div>
-        <div class="form-field"><label class="form-label">Residual Risk Score</label><input class="form-input" type="number" min="1" max="25" placeholder="1–25"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="cancel-btn" onclick="closeModal('modal-log-treatment')">Cancel</button>
-        <button type="submit" class="btn primary">Log Treatment</button>
-      </div>
-    </form>
-  </div>
-</div>
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none"></div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { risks: [], staff: [] };
+
+function api(func, body, cb) {
+  fetch('/api/v1/risk', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
 }
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none'},2800);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+function hideErr(id){var el=document.getElementById(id);if(el)el.style.display='none';}
+
+var TREAT_LABEL = {MITIGATE:'Mitigate',ACCEPT:'Accept',TRANSFER:'Transfer',AVOID:'Avoid'};
+var STATUS_LABEL = {IDENTIFIED:'Identified',ASSESSED:'Assessed',TREATED:'Treated',MONITORED:'Monitored',RETIRED:'Retired'};
+
+function scoreColor(s){
+  if(s<=5)return{bg:'#d1fae5',cls:'good'};
+  if(s<=12)return{bg:'#fde68a',cls:'watch'};
+  return{bg:'#fca5a5',cls:'risk'};
+}
+
+function renderRisks() {
+  var tbody = document.getElementById('risk-tbody');
+  if (!state.risks.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No risks in register. Click Add Risk to get started.</td></tr>';
+    document.getElementById('risk-count').textContent = '0 risks';
+    buildHeatmap([]);
+    return;
+  }
+  document.getElementById('risk-count').textContent = state.risks.length + ' risk' + (state.risks.length===1?'':'s');
+  var html = '';
+  state.risks.forEach(function(r) {
+    var sc = scoreColor(r.inherent_risk_score);
+    var statusCls = r.inherent_risk_score >= 13 ? 'risk' : (r.inherent_risk_score >= 6 ? 'watch' : 'good');
+    var statusLabel = STATUS_LABEL[r.status] || r.status;
+    var treatLabel = TREAT_LABEL[r.treatment_strategy] || (r.treatment_strategy || '—');
+    html += '<tr>';
+    html += '<td><strong>' + esc(r.risk_code) + '</strong></td>';
+    html += '<td>' + esc(r.title) + '</td>';
+    html += '<td>' + esc(r.category) + '</td>';
+    html += '<td>' + esc(r.owner_name || '—') + '</td>';
+    html += '<td style="text-align:center;font-weight:800">' + r.inherent_impact + '</td>';
+    html += '<td style="text-align:center;font-weight:800">' + r.inherent_likelihood + '</td>';
+    html += '<td style="text-align:center"><span class="pill ' + sc.cls + '">' + r.inherent_risk_score + '</span></td>';
+    html += '<td>' + treatLabel + '</td>';
+    html += '<td><span class="pill ' + statusCls + '">' + statusLabel + '</span></td>';
+    html += '<td><span class="lk" onclick="openEditRisk(\'' + r.id + '\')">Edit</span></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  buildHeatmap(state.risks);
+}
+
+function buildHeatmap(risks) {
+  var cells = {};
+  for (var i = 1; i <= 5; i++) {
+    for (var l = 1; l <= 5; l++) { cells[i+'_'+l] = []; }
+  }
+  risks.forEach(function(r) {
+    var k = r.inherent_impact + '_' + r.inherent_likelihood;
+    if (cells[k]) cells[k].push(r.risk_code);
+  });
+
+  var likeLabels = ['1 – Rare','2 – Unlikely','3 – Possible','4 – Likely','5 – Almost Certain'];
+  var impLabels = {5:'5 – Critical',4:'4 – Major',3:'3 – Moderate',2:'2 – Minor',1:'1 – Negligible'};
+  var html = '<table style="border-collapse:separate;border-spacing:3px"><thead><tr>';
+  html += '<th style="width:70px;font-size:10px">Impact ↓</th>';
+  likeLabels.forEach(function(l){html+='<th style="text-align:center;font-size:10px">'+l+'</th>';});
+  html += '</tr></thead><tbody>';
+  for (var imp = 5; imp >= 1; imp--) {
+    html += '<tr><td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">' + impLabels[imp] + '</td>';
+    for (var lik = 1; lik <= 5; lik++) {
+      var score = imp * lik;
+      var bg, tc;
+      if (score <= 5) { bg = '#d1fae5'; tc = '#374151'; }
+      else if (score <= 12) { bg = '#fde68a'; tc = '#374151'; }
+      else { bg = '#fca5a5'; tc = '#7f1d1d'; }
+      var codes = cells[imp+'_'+lik];
+      var content = score + (codes.length ? ' · ' + codes.join(' · ') : '');
+      html += '<td style="background:'+bg+';border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:'+tc+'">'+content+'</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('heatmap-wrap').innerHTML = html;
+}
+
+function populateStaffSelects() {
+  var opts = '<option value="">Unassigned</option>';
+  state.staff.forEach(function(s){opts += '<option value="'+s.id+'">'+esc(s.username)+'</option>';});
+  ['ar-owner','er-owner'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function openEditRisk(id) {
+  var r = state.risks.find(function(x){return x.id===id;});
+  if (!r) return;
+  hideErr('edit-err');
+  document.getElementById('er-id').value = r.id;
+  document.getElementById('er-title').value = r.title || '';
+  document.getElementById('er-desc').value = r.description || '';
+  setSelect('er-cat', r.category);
+  setSelect('er-impact', String(r.inherent_impact));
+  setSelect('er-likelihood', String(r.inherent_likelihood));
+  setSelect('er-treatment', r.treatment_strategy || '');
+  setSelect('er-status', r.status || 'IDENTIFIED');
+  document.getElementById('er-controls').value = r.mitigating_controls || '';
+  setSelect('er-res-impact', r.residual_impact ? String(r.residual_impact) : '');
+  setSelect('er-res-likelihood', r.residual_likelihood ? String(r.residual_likelihood) : '');
+  setSelect('er-owner', r.owner_id || '');
+  openModal('modal-edit-risk');
+}
+
+function setSelect(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  for (var i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; return; }
+  }
+}
+
+function submitAddRisk(e) {
+  e.preventDefault();
+  hideErr('add-err');
+  var btn = document.getElementById('ar-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  api('add_risk', {
+    title: document.getElementById('ar-title').value.trim(),
+    description: document.getElementById('ar-desc').value.trim(),
+    category: document.getElementById('ar-cat').value,
+    inherent_impact: parseInt(document.getElementById('ar-impact').value),
+    inherent_likelihood: parseInt(document.getElementById('ar-likelihood').value),
+    treatment_strategy: document.getElementById('ar-treatment').value || null,
+    owner_id: document.getElementById('ar-owner').value || null
+  }, function(err) {
+    btn.textContent = 'Add to Register'; btn.disabled = false;
+    if (err) { showErr('add-err', err); return; }
+    closeModal('modal-add-risk');
+    toast('Risk added to register.');
+    loadRisks();
+  });
+}
+
+function submitEditRisk(e) {
+  e.preventDefault();
+  hideErr('edit-err');
+  var btn = document.getElementById('er-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  var resI = document.getElementById('er-res-impact').value;
+  var resL = document.getElementById('er-res-likelihood').value;
+  api('update_risk', {
+    id: document.getElementById('er-id').value,
+    title: document.getElementById('er-title').value.trim(),
+    description: document.getElementById('er-desc').value.trim(),
+    category: document.getElementById('er-cat').value,
+    inherent_impact: parseInt(document.getElementById('er-impact').value),
+    inherent_likelihood: parseInt(document.getElementById('er-likelihood').value),
+    treatment_strategy: document.getElementById('er-treatment').value || null,
+    status: document.getElementById('er-status').value,
+    mitigating_controls: document.getElementById('er-controls').value.trim() || null,
+    residual_impact: resI ? parseInt(resI) : null,
+    residual_likelihood: resL ? parseInt(resL) : null,
+    owner_id: document.getElementById('er-owner').value || null
+  }, function(err) {
+    btn.textContent = 'Save Changes'; btn.disabled = false;
+    if (err) { showErr('edit-err', err); return; }
+    closeModal('modal-edit-risk');
+    toast('Risk updated.');
+    loadRisks();
+  });
+}
+
+function loadRisks() {
+  api('list_risks', {}, function(err, d) {
+    if (err) return;
+    state.risks = d.risks || [];
+    renderRisks();
+  });
+}
+
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('list_staff', {}, function(err, d) {
+    if (!err) { state.staff = d.staff || []; populateStaffSelects(); }
+    loadRisks();
+  });
 })();
 </script>
 </body>

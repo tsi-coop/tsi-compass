@@ -23,7 +23,6 @@ a{color:inherit;text-decoration:none}
 .main{padding:32px}
 .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
 .breadcrumb a{color:var(--teal);font-weight:600}
-.breadcrumb a:hover{text-decoration:underline}
 .page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
@@ -32,12 +31,11 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.sm{height:28px;padding:0 10px;font-size:11px}
-.btn.danger{background:#fef2f2;border-color:#fde8e8;color:var(--red)}
 .section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
 .section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
 .section-head h2{margin:0;font-size:15px;font-weight:800}
 .filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
-.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff;font-family:inherit}
 .filter-bar input{flex:1;min-width:160px}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
@@ -50,10 +48,10 @@ tr:hover td{background:#fafcfd}
 .pill.risk{background:#fde8e8;color:var(--red)}
 .pill.info{background:#e8eeff;color:var(--blue)}
 .pill.neu{background:#f0f4f8;color:var(--muted)}
-.sev-critical{font-weight:800;color:var(--red)}
-.sev-high{font-weight:700;color:#c05621}
-.sev-medium{font-weight:700;color:var(--amber)}
-.sev-low{font-weight:600;color:var(--green)}
+.sev-CRITICAL{font-weight:800;color:var(--red)}
+.sev-HIGH{font-weight:700;color:#c05621}
+.sev-MEDIUM{font-weight:700;color:var(--amber)}
+.sev-LOW{font-weight:600;color:var(--green)}
 .row-actions{display:flex;gap:6px}
 .grid{display:grid;gap:16px}
 .col4{grid-template-columns:repeat(4,1fr)}
@@ -62,20 +60,22 @@ tr:hover td{background:#fafcfd}
 .metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
 .metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
 .metric-note{color:var(--muted);font-size:12px}
-.stripe-red{border-top:4px solid var(--red)}
-.stripe-amber{border-top:4px solid var(--amber)}
-.stripe-green{border-top:4px solid var(--green)}
-.stripe-blue{border-top:4px solid var(--blue)}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.stripe-red{border-top:4px solid var(--red)}.stripe-amber{border-top:4px solid var(--amber)}
+.stripe-green{border-top:4px solid var(--green)}.stripe-blue{border-top:4px solid var(--blue)}
+.empty-row td{text-align:center;color:var(--muted);padding:28px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:520px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
 .modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
-.form-row{margin-bottom:16px}
+.modal-close{float:right;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center;margin-top:-4px}
+.form-row{margin-bottom:14px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
-.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit;background:#f9fafb}
 .form-row textarea{height:80px;padding:8px 10px;resize:vertical}
-.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff;outline:none}
+.form-half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.error-msg{background:#fef2f2;border:1px solid #fde8e8;color:var(--red);border-radius:6px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}}
@@ -84,7 +84,6 @@ tr:hover td{background:#fafcfd}
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -125,30 +124,29 @@ tr:hover td{background:#fafcfd}
         <p class="subtitle">Penetration test findings and vulnerability scan results with remediation tracking.</p>
       </div>
       <div class="acts">
-        <button class="btn" onclick="openModal('modal-import-scan')">Import Scan</button>
-        <button class="btn primary" onclick="openModal('modal-log-vuln')">Log Vulnerability</button>
+        <button class="btn" onclick="openModal('modal-log-vuln')">Log Vulnerability</button>
       </div>
     </div>
 
     <div class="grid col4 mb">
       <div class="card stripe-red">
         <div class="metric-label">Critical</div>
-        <div class="metric-value">1</div>
+        <div class="metric-value" id="m-crit">—</div>
         <div class="metric-note">Immediate action required</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">High</div>
-        <div class="metric-value">2</div>
+        <div class="metric-value" id="m-high">—</div>
         <div class="metric-note">Remediate within 30 days</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Medium / Low</div>
-        <div class="metric-value">3</div>
+        <div class="metric-value" id="m-medlow">—</div>
         <div class="metric-note">Scheduled remediation</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Resolved (YTD)</div>
-        <div class="metric-value">18</div>
+        <div class="metric-value" id="m-resolved">—</div>
         <div class="metric-note">Verified closed findings</div>
       </div>
     </div>
@@ -156,95 +154,32 @@ tr:hover td{background:#fafcfd}
     <div class="section-card">
       <div class="section-head">
         <h2>VAPT Findings</h2>
-        <span style="font-size:12px;color:var(--muted)">Last scan: 14 May 2026</span>
+        <span id="findings-count" style="font-size:12px;color:var(--muted)">Loading…</span>
       </div>
       <div class="filter-bar">
-        <select><option>All Engagements</option><option>Q1 2026 Pentest</option><option>Q4 2025 Pentest</option><option>Annual VAPT 2025</option></select>
-        <select><option>All Severities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
-        <select><option>All Statuses</option><option>Open</option><option>In Remediation</option><option>Resolved</option><option>Accepted</option></select>
-        <input type="search" placeholder="Search findings…">
+        <select id="f-engagement" onchange="applyFilters()"><option value="">All Engagements</option></select>
+        <select id="f-severity" onchange="applyFilters()">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">Critical</option><option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option><option value="LOW">Low</option>
+        </select>
+        <select id="f-status" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option><option value="ASSIGNED">Assigned</option>
+          <option value="IN_PROGRESS">In Remediation</option><option value="RESOLVED">Resolved</option>
+          <option value="FALSE_POSITIVE">False Positive</option>
+        </select>
+        <input type="search" id="f-search" placeholder="Search findings…" oninput="debouncedFilter()">
       </div>
       <table>
         <thead>
           <tr>
-            <th>Finding ID</th>
-            <th>Title</th>
-            <th>Severity</th>
-            <th>Engagement</th>
-            <th>Affected Asset</th>
-            <th>Reported</th>
-            <th>Due</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>Finding ID</th><th>Title</th><th>Severity</th><th>Engagement</th>
+            <th>Affected Asset</th><th>Reported</th><th>Due</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>VPT-001</strong></td>
-            <td>Unauthenticated RCE via Admin API</td>
-            <td><span class="sev-critical">Critical</span></td>
-            <td>Q1 2026 Pentest</td>
-            <td>api.tsicompass.lk</td>
-            <td>10 Mar 2026</td>
-            <td style="color:var(--red);font-weight:700">28 Mar 2026</td>
-            <td><span class="pill risk">Open</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button><button class="btn sm primary" onclick="openModal('modal-resolve-finding')">Resolve</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>VPT-002</strong></td>
-            <td>SQL Injection in Reporting Module</td>
-            <td><span class="sev-high">High</span></td>
-            <td>Q1 2026 Pentest</td>
-            <td>reports.tsicompass.lk</td>
-            <td>10 Mar 2026</td>
-            <td>09 Apr 2026</td>
-            <td><span class="pill watch">In Remediation</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button><button class="btn sm primary" onclick="openModal('modal-resolve-finding')">Resolve</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>VPT-003</strong></td>
-            <td>Insecure Direct Object Reference</td>
-            <td><span class="sev-high">High</span></td>
-            <td>Q4 2025 Pentest</td>
-            <td>Internal Portal</td>
-            <td>15 Nov 2025</td>
-            <td>15 Dec 2025</td>
-            <td><span class="pill watch">In Remediation</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button><button class="btn sm primary" onclick="openModal('modal-resolve-finding')">Resolve</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>VPT-004</strong></td>
-            <td>Missing HTTP Security Headers</td>
-            <td><span class="sev-medium">Medium</span></td>
-            <td>Q1 2026 Pentest</td>
-            <td>www.tsicompass.lk</td>
-            <td>10 Mar 2026</td>
-            <td>10 May 2026</td>
-            <td><span class="pill watch">In Remediation</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button><button class="btn sm primary" onclick="openModal('modal-resolve-finding')">Resolve</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>VPT-005</strong></td>
-            <td>TLS 1.0 Still Enabled on Legacy Endpoint</td>
-            <td><span class="sev-medium">Medium</span></td>
-            <td>Annual VAPT 2025</td>
-            <td>legacy-api.tsicompass.lk</td>
-            <td>20 Jun 2025</td>
-            <td>20 Aug 2025</td>
-            <td><span class="pill good">Resolved</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button></div></td>
-          </tr>
-          <tr>
-            <td><strong>VPT-006</strong></td>
-            <td>Default Credentials on Network Device</td>
-            <td><span class="sev-low">Low</span></td>
-            <td>Annual VAPT 2025</td>
-            <td>SW-CORE-01</td>
-            <td>20 Jun 2025</td>
-            <td>20 Sep 2025</td>
-            <td><span class="pill good">Resolved</span></td>
-            <td><div class="row-actions"><button class="btn sm" onclick="openModal('modal-edit-finding')">Edit</button></div></td>
-          </tr>
+        <tbody id="vuln-tbody">
+          <tr class="empty-row"><td colspan="9">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -256,174 +191,462 @@ tr:hover td{background:#fafcfd}
       </div>
       <table>
         <thead>
-          <tr>
-            <th>Engagement</th>
-            <th>Type</th>
-            <th>Vendor</th>
-            <th>Scope</th>
-            <th>Date</th>
-            <th>Critical</th>
-            <th>High</th>
-            <th>Medium/Low</th>
-            <th>Status</th>
-          </tr>
+          <tr><th>Engagement</th><th>Type</th><th>Vendor</th><th>Scope</th><th>Dates</th><th>Critical</th><th>High</th><th>Med/Low</th><th>Status</th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Q1 2026 Pentest</strong></td>
-            <td>External Pentest</td>
-            <td>SecureTest LK</td>
-            <td>Web + API</td>
-            <td>3–14 Mar 2026</td>
-            <td style="color:var(--red);font-weight:800">1</td>
-            <td style="color:#c05621;font-weight:700">1</td>
-            <td>2</td>
-            <td><span class="pill watch">In Progress</span></td>
-          </tr>
-          <tr>
-            <td><strong>Q4 2025 Pentest</strong></td>
-            <td>Internal Pentest</td>
-            <td>CyberGuard Pvt Ltd</td>
-            <td>Internal Network</td>
-            <td>10–21 Nov 2025</td>
-            <td style="color:var(--red);font-weight:800">0</td>
-            <td style="color:#c05621;font-weight:700">1</td>
-            <td>3</td>
-            <td><span class="pill watch">Remediation</span></td>
-          </tr>
-          <tr>
-            <td><strong>Annual VAPT 2025</strong></td>
-            <td>Full VAPT</td>
-            <td>SecureTest LK</td>
-            <td>Full Stack</td>
-            <td>15–30 Jun 2025</td>
-            <td style="color:var(--red);font-weight:800">0</td>
-            <td style="color:#c05621;font-weight:700">2</td>
-            <td>8</td>
-            <td><span class="pill good">Closed</span></td>
-          </tr>
+        <tbody id="eng-tbody">
+          <tr class="empty-row"><td colspan="9">Loading…</td></tr>
         </tbody>
       </table>
     </div>
   </main>
 </div>
 
-<!-- Modal: Log Vulnerability -->
+<!-- Log Vulnerability -->
 <div class="modal-overlay" id="modal-log-vuln">
   <div class="modal">
-    <h2>Log Vulnerability</h2>
-    <form onsubmit="submitModal(event,'modal-log-vuln')">
-      <div class="form-row half">
-        <div><label>Finding ID</label><input type="text" placeholder="e.g. VPT-007" required></div>
-        <div><label>Severity</label><select><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+    <div class="modal-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="margin:0">Log Vulnerability</h2>
+      <button class="modal-close" onclick="closeModal('modal-log-vuln')">&#x2715;</button>
+    </div>
+    <div class="error-msg" id="lv-err"></div>
+    <div class="form-half">
+      <div class="form-row"><label>Severity</label>
+        <select id="lv-sev"><option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM" selected>Medium</option><option value="LOW">Low</option></select>
       </div>
-      <div class="form-row"><label>Title</label><input type="text" placeholder="Short descriptive title" required></div>
-      <div class="form-row"><label>Engagement</label><select><option>Q1 2026 Pentest</option><option>Q4 2025 Pentest</option><option>Annual VAPT 2025</option><option>New Engagement</option></select></div>
-      <div class="form-row"><label>Affected Asset(s)</label><input type="text" placeholder="Hostname, URL, or system name"></div>
-      <div class="form-row"><label>Description</label><textarea placeholder="Describe the vulnerability and potential impact…"></textarea></div>
-      <div class="form-row half">
-        <div><label>Date Reported</label><input type="date"></div>
-        <div><label>Remediation Due</label><input type="date"></div>
+      <div class="form-row"><label>Engagement</label>
+        <select id="lv-eng"><option value="">None / Standalone</option></select>
       </div>
-      <div class="form-row"><label>Assigned To</label><select><option>Kavindra Perera</option><option>Nishani Fernando</option><option>Dinesh Wijesekara</option></select></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-log-vuln')">Cancel</button>
-        <button type="submit" class="btn primary">Save Finding</button>
-      </div>
-    </form>
+    </div>
+    <div class="form-row"><label>Title</label><input type="text" id="lv-title" placeholder="Short descriptive title" required></div>
+    <div class="form-row"><label>Affected Asset(s)</label><input type="text" id="lv-asset" placeholder="Hostname, URL, or system name"></div>
+    <div class="form-row"><label>Description</label><textarea id="lv-desc" placeholder="Describe the vulnerability and potential impact…"></textarea></div>
+    <div class="form-half">
+      <div class="form-row"><label>Source / Scan Tool</label><input type="text" id="lv-source" placeholder="e.g. Nessus, Manual"></div>
+      <div class="form-row"><label>Remediation Due</label><input type="date" id="lv-due"></div>
+    </div>
+    <div class="form-row"><label>Assigned To</label>
+      <select id="lv-assignee"><option value="">Unassigned</option></select>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" onclick="closeModal('modal-log-vuln')">Cancel</button>
+      <button type="button" class="btn primary" id="lv-btn" onclick="submitLogVuln()">Save Finding</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Edit Finding -->
+<!-- Edit Finding -->
 <div class="modal-overlay" id="modal-edit-finding">
   <div class="modal">
-    <h2>Edit Finding</h2>
-    <form onsubmit="submitModal(event,'modal-edit-finding')">
-      <div class="form-row half">
-        <div><label>Finding ID</label><input type="text" value="VPT-001"></div>
-        <div><label>Severity</label><select><option selected>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="margin:0">Edit Finding</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit-finding')">&#x2715;</button>
+    </div>
+    <input type="hidden" id="ef-id">
+    <div class="error-msg" id="ef-err"></div>
+    <div class="form-half">
+      <div class="form-row"><label>Severity</label>
+        <select id="ef-sev"><option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option></select>
       </div>
-      <div class="form-row"><label>Title</label><input type="text" value="Unauthenticated RCE via Admin API"></div>
-      <div class="form-row"><label>Status</label><select><option>Open</option><option>In Remediation</option><option>Resolved</option><option>Accepted</option></select></div>
-      <div class="form-row"><label>Assigned To</label><select><option>Kavindra Perera</option><option>Nishani Fernando</option><option>Dinesh Wijesekara</option></select></div>
-      <div class="form-row"><label>Notes</label><textarea placeholder="Remediation notes or updates…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-edit-finding')">Cancel</button>
-        <button type="submit" class="btn primary">Save Changes</button>
+      <div class="form-row"><label>Status</label>
+        <select id="ef-status">
+          <option value="OPEN">Open</option><option value="ASSIGNED">Assigned</option>
+          <option value="IN_PROGRESS">In Remediation</option><option value="RESOLVED">Resolved</option>
+          <option value="FALSE_POSITIVE">False Positive</option>
+        </select>
       </div>
-    </form>
+    </div>
+    <div class="form-row"><label>Title</label><input type="text" id="ef-title"></div>
+    <div class="form-row"><label>Affected Asset</label><input type="text" id="ef-asset"></div>
+    <div class="form-row"><label>Engagement</label>
+      <select id="ef-eng"><option value="">None / Standalone</option></select>
+    </div>
+    <div class="form-row"><label>Assigned To</label>
+      <select id="ef-assignee"><option value="">Unassigned</option></select>
+    </div>
+    <div class="form-row"><label>Mitigation / Remediation Notes</label><textarea id="ef-notes" placeholder="Describe what was done or is in progress…"></textarea></div>
+    <div class="modal-foot">
+      <button type="button" class="btn" onclick="closeModal('modal-edit-finding')">Cancel</button>
+      <button type="button" class="btn primary" id="ef-btn" onclick="submitEditFinding()">Save Changes</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Resolve Finding -->
+<!-- Resolve Finding -->
 <div class="modal-overlay" id="modal-resolve-finding">
   <div class="modal">
-    <h2>Mark as Resolved</h2>
-    <form onsubmit="submitModal(event,'modal-resolve-finding')">
-      <div class="form-row"><label>Resolution Date</label><input type="date"></div>
-      <div class="form-row"><label>Resolved By</label><select><option>Kavindra Perera</option><option>Nishani Fernando</option><option>Dinesh Wijesekara</option></select></div>
-      <div class="form-row"><label>Resolution Summary</label><textarea placeholder="Describe what was done to remediate…" required></textarea></div>
-      <div class="form-row"><label>Verification Evidence (URL or ref)</label><input type="text" placeholder="e.g. EVD-045 or patch ticket #2314"></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-resolve-finding')">Cancel</button>
-        <button type="submit" class="btn primary">Confirm Resolved</button>
-      </div>
-    </form>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="margin:0">Mark as Resolved</h2>
+      <button class="modal-close" onclick="closeModal('modal-resolve-finding')">&#x2715;</button>
+    </div>
+    <input type="hidden" id="rf-id">
+    <div class="error-msg" id="rf-err"></div>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Provide a summary of the remediation. The finding will be marked <strong>Resolved</strong>.</p>
+    <div class="form-row"><label>Resolution Summary</label><textarea id="rf-notes" placeholder="Describe what was done to remediate…"></textarea></div>
+    <div class="modal-foot">
+      <button type="button" class="btn" onclick="closeModal('modal-resolve-finding')">Cancel</button>
+      <button type="button" class="btn primary" id="rf-btn" onclick="submitResolve()">Confirm Resolved</button>
+    </div>
   </div>
 </div>
 
-<!-- Modal: Import Scan -->
-<div class="modal-overlay" id="modal-import-scan">
-  <div class="modal">
-    <h2>Import Scan Results</h2>
-    <form onsubmit="submitModal(event,'modal-import-scan')">
-      <div class="form-row"><label>Scan Tool</label><select><option>Nessus</option><option>Burp Suite</option><option>OpenVAS</option><option>Qualys</option><option>Manual</option></select></div>
-      <div class="form-row"><label>Engagement</label><select><option>Q1 2026 Pentest</option><option>Q4 2025 Pentest</option><option>New Engagement</option></select></div>
-      <div class="form-row"><label>Scan File (.xml / .csv)</label><input type="file" style="height:auto;padding:6px"></div>
-      <div class="form-row"><label>Notes</label><textarea placeholder="Context or scope notes…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-import-scan')">Cancel</button>
-        <button type="submit" class="btn primary">Import</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: New Engagement -->
+<!-- New Engagement -->
 <div class="modal-overlay" id="modal-new-engagement">
   <div class="modal">
-    <h2>New Engagement</h2>
-    <form onsubmit="submitModal(event,'modal-new-engagement')">
-      <div class="form-row"><label>Engagement Name</label><input type="text" placeholder="e.g. Q2 2026 Pentest" required></div>
-      <div class="form-row half">
-        <div><label>Type</label><select><option>External Pentest</option><option>Internal Pentest</option><option>Full VAPT</option><option>Vulnerability Scan</option></select></div>
-        <div><label>Vendor / Firm</label><input type="text" placeholder="Vendor name"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="margin:0">New Engagement</h2>
+      <button class="modal-close" onclick="closeModal('modal-new-engagement')">&#x2715;</button>
+    </div>
+    <div class="error-msg" id="ne-err"></div>
+    <div class="form-row"><label>Engagement Name</label><input type="text" id="ne-name" placeholder="e.g. Q2 2026 Pentest"></div>
+    <div class="form-half">
+      <div class="form-row"><label>Type</label>
+        <select id="ne-type">
+          <option value="EXTERNAL_PENTEST">External Pentest</option><option value="INTERNAL_PENTEST">Internal Pentest</option>
+          <option value="FULL_VAPT">Full VAPT</option><option value="VULNERABILITY_SCAN">Vulnerability Scan</option>
+        </select>
       </div>
-      <div class="form-row half">
-        <div><label>Start Date</label><input type="date"></div>
-        <div><label>End Date</label><input type="date"></div>
-      </div>
-      <div class="form-row"><label>Scope</label><textarea placeholder="Systems and applications in scope…"></textarea></div>
-      <div class="modal-foot">
-        <button type="button" class="btn" onclick="closeModal('modal-new-engagement')">Cancel</button>
-        <button type="submit" class="btn primary">Create Engagement</button>
-      </div>
-    </form>
+      <div class="form-row"><label>Vendor / Firm</label><input type="text" id="ne-vendor" placeholder="Vendor name"></div>
+    </div>
+    <div class="form-half">
+      <div class="form-row"><label>Start Date</label><input type="date" id="ne-start"></div>
+      <div class="form-row"><label>End Date</label><input type="date" id="ne-end"></div>
+    </div>
+    <div class="form-row"><label>Scope</label><textarea id="ne-scope" placeholder="Systems and applications in scope…"></textarea></div>
+    <div class="modal-foot">
+      <button type="button" class="btn" onclick="closeModal('modal-new-engagement')">Cancel</button>
+      <button type="button" class="btn primary" id="ne-btn" onclick="submitNewEngagement()">Create Engagement</button>
+    </div>
   </div>
 </div>
 
-<div class="toast" id="toast">Saved successfully</div>
+<div class="toast" id="toast"></div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
-document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { vulns: [], engagements: [], staff: [] };
+var filterDebounce;
+
+function api(func, body, cb) {
+  fetch('/api/v1/risk', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none'},2800);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+function hideErr(id){var el=document.getElementById(id);if(el)el.style.display='none';}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  var d = new Date(s);
+  if (isNaN(d)) return s.slice(0, 10);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function isOverdue(s) {
+  if (!s) return false;
+  return new Date(s) < new Date();
+}
+
+var STATUS_PILL = {
+  OPEN: '<span class="pill risk">Open</span>',
+  ASSIGNED: '<span class="pill info">Assigned</span>',
+  IN_PROGRESS: '<span class="pill watch">In Remediation</span>',
+  RESOLVED: '<span class="pill good">Resolved</span>',
+  FALSE_POSITIVE: '<span class="pill neu">False Positive</span>'
+};
+
+var ENG_STATUS_PILL = {
+  PLANNED: '<span class="pill info">Planned</span>',
+  IN_PROGRESS: '<span class="pill watch">In Progress</span>',
+  REMEDIATION: '<span class="pill watch">Remediation</span>',
+  CLOSED: '<span class="pill good">Closed</span>'
+};
+
+var TYPE_LABEL = {
+  EXTERNAL_PENTEST:'External Pentest',INTERNAL_PENTEST:'Internal Pentest',
+  FULL_VAPT:'Full VAPT',VULNERABILITY_SCAN:'Vulnerability Scan'
+};
+
+function renderVulns(list) {
+  var tbody = document.getElementById('vuln-tbody');
+  document.getElementById('findings-count').textContent = list.length + ' finding' + (list.length===1?'':'s');
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No findings match the current filters.</td></tr>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(v) {
+    var due = v.sla_deadline ? v.sla_deadline.slice(0,10) : null;
+    var dueStyle = (due && isOverdue(due) && v.status !== 'RESOLVED' && v.status !== 'FALSE_POSITIVE') ? ' style="color:var(--red);font-weight:700"' : '';
+    html += '<tr>';
+    html += '<td><strong>' + esc(v.vuln_code) + '</strong></td>';
+    html += '<td>' + esc(v.title) + '</td>';
+    html += '<td><span class="sev-'+v.severity+'">'+v.severity.charAt(0)+v.severity.slice(1).toLowerCase()+'</span></td>';
+    html += '<td>' + esc(v.engagement_name || v.source || '—') + '</td>';
+    html += '<td>' + esc(v.affected_asset) + '</td>';
+    html += '<td>' + fmtDate(v.created_at) + '</td>';
+    html += '<td' + dueStyle + '>' + fmtDate(due) + '</td>';
+    html += '<td>' + (STATUS_PILL[v.status] || v.status) + '</td>';
+    var actions = '<div class="row-actions"><button class="btn sm" onclick="openEditFinding(\''+v.id+'\')">Edit</button>';
+    if (v.status !== 'RESOLVED' && v.status !== 'FALSE_POSITIVE') {
+      actions += '<button class="btn sm primary" onclick="openResolveFinding(\''+v.id+'\')">Resolve</button>';
+    }
+    actions += '</div>';
+    html += '<td>' + actions + '</td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function renderEngagements() {
+  var tbody = document.getElementById('eng-tbody');
+  if (!state.engagements.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No engagements recorded. Click New Engagement to add one.</td></tr>';
+    return;
+  }
+  var html = '';
+  state.engagements.forEach(function(e) {
+    var dates = '';
+    if (e.start_date || e.end_date) {
+      dates = (e.start_date ? fmtDate(e.start_date) : '?') + ' – ' + (e.end_date ? fmtDate(e.end_date) : 'ongoing');
+    } else { dates = '—'; }
+    html += '<tr>';
+    html += '<td><strong>' + esc(e.name) + '</strong></td>';
+    html += '<td>' + esc(TYPE_LABEL[e.type] || e.type) + '</td>';
+    html += '<td>' + esc(e.vendor) + '</td>';
+    html += '<td>' + esc(e.scope) + '</td>';
+    html += '<td>' + dates + '</td>';
+    html += '<td style="color:var(--red);font-weight:800">' + e.critical_count + '</td>';
+    html += '<td style="color:#c05621;font-weight:700">' + e.high_count + '</td>';
+    html += '<td>' + e.medium_low_count + '</td>';
+    html += '<td>' + (ENG_STATUS_PILL[e.status] || e.status) + '</td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function populateEngagementSelects(current) {
+  var opts = '<option value="">None / Standalone</option>';
+  state.engagements.forEach(function(e){
+    opts += '<option value="'+e.id+'"'+(current===e.id?' selected':'')+'>'+esc(e.name)+'</option>';
+  });
+  ['lv-eng','ef-eng'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+  var fEng = document.getElementById('f-engagement');
+  if (fEng) {
+    var fOpts = '<option value="">All Engagements</option>';
+    state.engagements.forEach(function(e){fOpts += '<option value="'+e.id+'">'+esc(e.name)+'</option>';});
+    fEng.innerHTML = fOpts;
+  }
+}
+
+function populateStaffSelects(current) {
+  var opts = '<option value="">Unassigned</option>';
+  state.staff.forEach(function(s){
+    opts += '<option value="'+s.id+'"'+(current===s.id?' selected':'')+'>'+esc(s.username)+'</option>';
+  });
+  ['lv-assignee','ef-assignee'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function applyFilters() {
+  var eng = document.getElementById('f-engagement').value;
+  var sev = document.getElementById('f-severity').value;
+  var status = document.getElementById('f-status').value;
+  var search = (document.getElementById('f-search').value || '').toLowerCase();
+  var filtered = state.vulns.filter(function(v) {
+    if (eng && v.engagement_id !== eng) return false;
+    if (sev && v.severity !== sev) return false;
+    if (status && v.status !== status) return false;
+    if (search && !(v.title||'').toLowerCase().includes(search) && !(v.affected_asset||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderVulns(filtered);
+}
+
+function debouncedFilter() {
+  clearTimeout(filterDebounce);
+  filterDebounce = setTimeout(applyFilters, 350);
+}
+
+function setSelect(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  for (var i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; return; }
+  }
+}
+
+function openEditFinding(id) {
+  var v = state.vulns.find(function(x){return x.id===id;});
+  if (!v) return;
+  hideErr('ef-err');
+  document.getElementById('ef-id').value = v.id;
+  document.getElementById('ef-title').value = v.title || '';
+  document.getElementById('ef-asset').value = v.affected_asset || '';
+  document.getElementById('ef-notes').value = v.mitigation_details || '';
+  populateEngagementSelects(v.engagement_id);
+  populateStaffSelects(v.assignee_id);
+  setSelect('ef-sev', v.severity);
+  setSelect('ef-status', v.status);
+  setSelect('ef-eng', v.engagement_id || '');
+  setSelect('ef-assignee', v.assignee_id || '');
+  openModal('modal-edit-finding');
+}
+
+function openResolveFinding(id) {
+  document.getElementById('rf-id').value = id;
+  document.getElementById('rf-notes').value = '';
+  hideErr('rf-err');
+  openModal('modal-resolve-finding');
+}
+
+function submitLogVuln() {
+  hideErr('lv-err');
+  var title = document.getElementById('lv-title').value.trim();
+  var due = document.getElementById('lv-due').value;
+  if (!title) { showErr('lv-err','Title is required.'); return; }
+  if (!due) { showErr('lv-err','Remediation due date is required.'); return; }
+  var btn = document.getElementById('lv-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  api('add_vulnerability', {
+    title: title,
+    description: document.getElementById('lv-desc').value.trim() || null,
+    source: document.getElementById('lv-source').value.trim() || 'Manual',
+    severity: document.getElementById('lv-sev').value,
+    engagement_id: document.getElementById('lv-eng').value || null,
+    affected_asset: document.getElementById('lv-asset').value.trim() || null,
+    sla_deadline: due,
+    assignee_id: document.getElementById('lv-assignee').value || null
+  }, function(err) {
+    btn.textContent = 'Save Finding'; btn.disabled = false;
+    if (err) { showErr('lv-err', err); return; }
+    closeModal('modal-log-vuln');
+    toast('Vulnerability logged.');
+    loadAll();
+  });
+}
+
+function submitEditFinding() {
+  hideErr('ef-err');
+  var id = document.getElementById('ef-id').value;
+  var btn = document.getElementById('ef-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  api('update_vulnerability', {
+    id: id,
+    title: document.getElementById('ef-title').value.trim() || null,
+    severity: document.getElementById('ef-sev').value,
+    status: document.getElementById('ef-status').value,
+    assignee_id: document.getElementById('ef-assignee').value || null,
+    mitigation_details: document.getElementById('ef-notes').value.trim() || null,
+    affected_asset: document.getElementById('ef-asset').value.trim() || null,
+    engagement_id: document.getElementById('ef-eng').value || null
+  }, function(err) {
+    btn.textContent = 'Save Changes'; btn.disabled = false;
+    if (err) { showErr('ef-err', err); return; }
+    closeModal('modal-edit-finding');
+    toast('Finding updated.');
+    loadAll();
+  });
+}
+
+function submitResolve() {
+  hideErr('rf-err');
+  var id = document.getElementById('rf-id').value;
+  var notes = document.getElementById('rf-notes').value.trim();
+  if (!notes) { showErr('rf-err','Please provide a resolution summary.'); return; }
+  var btn = document.getElementById('rf-btn');
+  btn.textContent = 'Confirming…'; btn.disabled = true;
+  api('update_vulnerability', {
+    id: id,
+    status: 'RESOLVED',
+    mitigation_details: notes
+  }, function(err) {
+    btn.textContent = 'Confirm Resolved'; btn.disabled = false;
+    if (err) { showErr('rf-err', err); return; }
+    closeModal('modal-resolve-finding');
+    toast('Finding marked as resolved.');
+    loadAll();
+  });
+}
+
+function submitNewEngagement() {
+  hideErr('ne-err');
+  var name = document.getElementById('ne-name').value.trim();
+  if (!name) { showErr('ne-err','Engagement name is required.'); return; }
+  var btn = document.getElementById('ne-btn');
+  btn.textContent = 'Creating…'; btn.disabled = true;
+  api('add_engagement', {
+    name: name,
+    type: document.getElementById('ne-type').value,
+    vendor: document.getElementById('ne-vendor').value.trim() || null,
+    scope: document.getElementById('ne-scope').value.trim() || null,
+    start_date: document.getElementById('ne-start').value || null,
+    end_date: document.getElementById('ne-end').value || null
+  }, function(err) {
+    btn.textContent = 'Create Engagement'; btn.disabled = false;
+    if (err) { showErr('ne-err', err); return; }
+    closeModal('modal-new-engagement');
+    toast('Engagement created.');
+    loadAll();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
+});
+
+function loadAll() {
+  api('get_risk_metrics', {}, function(err, d) {
+    if (err) return;
+    function set(id, v){var el=document.getElementById(id);if(el)el.textContent=v;}
+    set('m-crit',    d.critical_vulns||0);
+    set('m-high',    d.high_vulns||0);
+    set('m-medlow',  d.medium_low_vulns||0);
+    set('m-resolved',d.resolved_ytd||0);
+  });
+
+  api('list_engagements', {}, function(err, d) {
+    if (!err) {
+      state.engagements = d.engagements || [];
+      renderEngagements();
+      populateEngagementSelects('');
+    }
+    api('list_vulnerabilities', {}, function(err2, d2) {
+      if (!err2) {
+        state.vulns = d2.vulnerabilities || [];
+        applyFilters();
+      }
+    });
+  });
+}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('list_staff', {}, function(err, d) {
+    if (!err) { state.staff = d.staff || []; populateStaffSelects(''); }
+    loadAll();
+  });
 })();
 </script>
 </body>
