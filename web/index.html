@@ -91,8 +91,9 @@
                         Recover Access
                     </a>
                 </div>
-                <button type="submit"
-                        class="w-full h-12 bg-[#006a67] text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-[#005a57] active:scale-[0.99] transition-all">
+                <div id="login-error" class="hidden mb-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-[12px] font-semibold text-red-700"></div>
+                <button id="login-btn" type="submit"
+                        class="w-full h-12 bg-[#006a67] text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-[#005a57] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
                     Sign In
                 </button>
             </div>
@@ -102,18 +103,52 @@
 </div>
 
 <script>
-/**
- * Simplified bypass login handler for direct static layout presentation.
- */
 function handleLogin(event) {
     event.preventDefault();
-    
-    // Set mock details so dashboard elements don't read null properties
-    localStorage.setItem('username', 'Demo Administrator');
-    localStorage.setItem('role', 'ADMIN');
-    
-    // Immediate direct routing
-    window.location.href = 'dashboard.html';
+
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var btn = document.getElementById('login-btn');
+    var errBox = document.getElementById('login-error');
+
+    errBox.classList.add('hidden');
+    errBox.textContent = '';
+
+    if (!email || !password) {
+        errBox.textContent = 'Please enter your email address and password.';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Signing in…';
+
+    fetch('/api/v1/admin/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _func: 'login', email: email, password: password })
+    })
+    .then(function(r) { return r.json().then(function(data) { return { status: r.status, body: data }; }); })
+    .then(function(res) {
+        if (res.status === 200 && res.body.success) {
+            localStorage.setItem('token', res.body.token);
+            localStorage.setItem('username', res.body.username);
+            localStorage.setItem('role', res.body.role);
+            window.location.href = 'dashboard.html';
+        } else {
+            var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';
+            errBox.textContent = msg;
+            errBox.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = 'Sign In';
+        }
+    })
+    .catch(function() {
+        errBox.textContent = 'Unable to reach the server. Please check your connection and try again.';
+        errBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In';
+    });
 }
 </script>
 </body>
