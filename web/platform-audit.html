@@ -57,6 +57,7 @@ tr:last-child td{border-bottom:none}
 .page-btns{display:flex;gap:6px}
 .page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
 .page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 /* Modals */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
@@ -128,22 +129,22 @@ tr:last-child td{border-bottom:none}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Events Today</div>
-        <div class="metric-value">7</div>
+        <div class="metric-value" id="m-today">—</div>
         <div class="metric-note">Since 00:00 local time</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Events This Week</div>
-        <div class="metric-value">84</div>
+        <div class="metric-value" id="m-week">—</div>
         <div class="metric-note">Across all modules</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">Critical Events</div>
-        <div class="metric-value">3</div>
+        <div class="metric-value" id="m-critical">—</div>
         <div class="metric-note">High-sensitivity actions</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Active Users Today</div>
-        <div class="metric-value">9</div>
+        <div class="metric-value" id="m-active-users">—</div>
         <div class="metric-note">Unique users with activity</div>
       </div>
     </div>
@@ -158,151 +159,22 @@ tr:last-child td{border-bottom:none}
         </span>
       </div>
       <div class="filter-bar">
-        <select>
-          <option value="">All Modules</option>
-          <option>Auth</option>
-          <option>User Management</option>
-          <option>Risk Register</option>
-          <option>Controls</option>
-          <option>Audit</option>
-          <option>Policy Register</option>
-          <option>Incidents</option>
-          <option>Operations</option>
-        </select>
-        <select>
-          <option value="">All Users</option>
-          <option>P. Ratnayake</option>
-          <option>D. Perera</option>
-          <option>S. Jayawardena</option>
-          <option>R. Fernando</option>
-          <option>A. Gunawardena</option>
-          <option>T. Weerasekara</option>
-        </select>
-        <select>
-          <option value="">All Action Types</option>
-          <option>Login / Logout</option>
-          <option>Create</option>
-          <option>Update</option>
-          <option>Approve</option>
-          <option>Delete</option>
-          <option>Export</option>
-        </select>
-        <input type="date" title="From date" style="width:140px">
-        <input type="date" title="To date" style="width:140px">
-        <input type="search" placeholder="Search events…" style="flex:1;min-width:180px">
+        <input id="f-search" type="search" placeholder="Search actions…" style="flex:1;min-width:180px">
+        <input id="f-date-from" type="date" title="From date" style="width:140px">
+        <input id="f-date-to" type="date" title="To date" style="width:140px">
+        <button class="btn" onclick="loadEvents(1)">Apply</button>
       </div>
       <table>
         <thead>
-          <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Module</th><th>IP Address</th><th>Details</th></tr>
+          <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Details</th><th>Hash</th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-23 11:22:04</td>
-            <td><strong>T. Weerasekara</strong></td>
-            <td><span class="pill watch">RISK_UPDATED</span></td>
-            <td>Risk Register</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.22</td>
-            <td style="color:var(--muted);font-size:12px">Risk score updated — R-014: Vendor Access Review (12→16)</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-23 10:05:18</td>
-            <td><strong>R. Fernando</strong></td>
-            <td><span class="pill risk">USER_MODIFIED</span></td>
-            <td>User Management</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.14</td>
-            <td style="color:var(--muted);font-size:12px">Role changed for C. Dissanayake: Analyst → Operations Lead</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-23 09:14:55</td>
-            <td><strong>P. Ratnayake</strong></td>
-            <td><span class="pill good">POLICY_APPROVED</span></td>
-            <td>Policy Register</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.5</td>
-            <td style="color:var(--muted);font-size:12px">Information Security Policy v3.2 approved and published</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-23 08:42:30</td>
-            <td><strong>D. Perera</strong></td>
-            <td><span class="pill neu">LOGIN</span></td>
-            <td>Auth</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.14</td>
-            <td style="color:var(--muted);font-size:12px">Successful sign-in from Head Office</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 17:31:09</td>
-            <td><strong>S. Jayawardena</strong></td>
-            <td><span class="pill info">FINDING_CREATED</span></td>
-            <td>Audit</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.31</td>
-            <td style="color:var(--muted);font-size:12px">New audit finding logged: OF-2026-012 — Access review gap</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 16:10:44</td>
-            <td><strong>A. Gunawardena</strong></td>
-            <td><span class="pill good">CONTROL_ATTESTED</span></td>
-            <td>Controls</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.9</td>
-            <td style="color:var(--muted);font-size:12px">Evidence submitted for control A.9.2.1 — User Provisioning</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 14:55:22</td>
-            <td><strong>R. Fernando</strong></td>
-            <td><span class="pill risk">EXCEPTION_REQUESTED</span></td>
-            <td>Controls</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.14</td>
-            <td style="color:var(--muted);font-size:12px">Exception EX-2026-003 submitted for data retention policy</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 13:20:01</td>
-            <td><strong>P. Ratnayake</strong></td>
-            <td><span class="pill watch">RISK_CREATED</span></td>
-            <td>Risk Register</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.5</td>
-            <td style="color:var(--muted);font-size:12px">New risk registered: R-015 — Cloud vendor SLA breach exposure</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 11:08:37</td>
-            <td><strong>D. Perera</strong></td>
-            <td><span class="pill info">INCIDENT_CREATED</span></td>
-            <td>Incidents</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.14</td>
-            <td style="color:var(--muted);font-size:12px">Incident INC-2026-009 raised: Phishing email campaign detected</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-22 09:45:12</td>
-            <td><strong>T. Weerasekara</strong></td>
-            <td><span class="pill neu">LOGIN</span></td>
-            <td>Auth</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.22</td>
-            <td style="color:var(--muted);font-size:12px">Successful sign-in from Head Office</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-21 17:02:50</td>
-            <td><strong>A. Gunawardena</strong></td>
-            <td><span class="pill good">EVIDENCE_UPLOADED</span></td>
-            <td>Audit</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.9</td>
-            <td style="color:var(--muted);font-size:12px">Evidence artifact EV-2026-041 uploaded to evidence locker</td>
-          </tr>
-          <tr>
-            <td style="font-family:monospace;font-size:12px;white-space:nowrap">2026-05-21 15:33:28</td>
-            <td><strong>R. Fernando</strong></td>
-            <td><span class="pill info">CR_APPROVED</span></td>
-            <td>Operations</td>
-            <td style="font-family:monospace;font-size:12px;color:var(--muted)">192.168.1.14</td>
-            <td style="color:var(--muted);font-size:12px">Change request CR-2026-019 approved and moved to QA stage</td>
-          </tr>
+        <tbody id="events-tbody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>
         </tbody>
       </table>
       <div class="pagination">
-        <span>Showing 1–12 of 84 events</span>
-        <div class="page-btns">
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn">…</button>
-          <button class="page-btn">7</button>
-        </div>
+        <span id="page-info">—</span>
+        <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
   </main>
@@ -312,7 +184,7 @@ tr:last-child td{border-bottom:none}
 <div id="modal-export-log" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-export-log')">
   <div class="modal-box">
     <div class="modal-head"><h2>Export Audit Log</h2><button class="modal-close" onclick="closeModal('modal-export-log')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-export-log')">
+    <form onsubmit="submitExport(event)">
       <div class="form-row">
         <div class="form-field"><label class="form-label">From Date</label><input class="form-input" type="date"></div>
         <div class="form-field"><label class="form-label">To Date</label><input class="form-input" type="date"></div>
@@ -338,28 +210,208 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
-}
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+// ── Token guard ──────────────────────────────────────────────────────────────
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) { window.location.replace('index.html'); }
+
+// ── Sidebar user info ────────────────────────────────────────────────────────
+(function() {
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) {
+    var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    av.textContent = i || 'U';
+  }
 })();
+
+// ── Modal helpers ────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── Toast helper ─────────────────────────────────────────────────────────────
+function showToast(msg, isError) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;background:' + (isError ? '#b42318' : '#006a67');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+// ── Export modal submit ──────────────────────────────────────────────────────
+function submitExport(e) {
+  e.preventDefault();
+  closeModal('modal-export-log');
+  showToast('Export functionality coming soon');
+}
+
+// ── API helper ───────────────────────────────────────────────────────────────
+function api(func, body, cb) {
+  var payload = Object.assign({ _func: func }, body || {});
+  fetch('/api/v1/admin/audit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) {
+    if (res.status === 401) { localStorage.clear(); window.location.replace('index.html'); return null; }
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (data.success === false) { cb(data.message || 'Error', null); return; }
+    cb(null, data);
+  })
+  .catch(function(e) { cb(e.message || 'Network error', null); });
+}
+
+// ── Action pill class ────────────────────────────────────────────────────────
+function pillClass(action) {
+  var a = (action || '').toUpperCase();
+  if (/LOGIN|LOGOUT/.test(a)) return 'neu';
+  if (/CREATE|ADD|PROVISION/.test(a)) return 'good';
+  if (/UPDATE|EDIT|MODIFY|RESET|SAVE/.test(a)) return 'info';
+  if (/DELETE|SUSPEND|DEACTIVAT/.test(a)) return 'risk';
+  if (/APPROVE|ATTEST|VERIFY/.test(a)) return 'good';
+  return 'watch';
+}
+
+// ── Metrics ──────────────────────────────────────────────────────────────────
+function loadMetrics() {
+  api('get_audit_metrics', {}, function(err, data) {
+    if (err) { showToast('Failed to load metrics: ' + err, true); return; }
+    document.getElementById('m-today').textContent = data.events_today != null ? data.events_today : '—';
+    document.getElementById('m-week').textContent = data.events_week != null ? data.events_week : '—';
+    document.getElementById('m-critical').textContent = data.critical_events != null ? data.critical_events : '—';
+    document.getElementById('m-active-users').textContent = data.active_users_today != null ? data.active_users_today : '—';
+  });
+}
+
+// ── Events table ─────────────────────────────────────────────────────────────
+var _currentPage = 1;
+
+function loadEvents(page) {
+  _currentPage = page || 1;
+  var tbody = document.getElementById('events-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>';
+
+  var search = (document.getElementById('f-search').value || '').trim();
+  var dateFrom = document.getElementById('f-date-from').value;
+  var dateTo = document.getElementById('f-date-to').value;
+
+  var body = { page: _currentPage, page_size: 20 };
+  if (search) body.search = search;
+  if (dateFrom) body.date_from = dateFrom;
+  if (dateTo) body.date_to = dateTo;
+
+  api('list_events', body, function(err, data) {
+    if (err) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--red);padding:32px">' + escHtml(err) + '</td></tr>';
+      return;
+    }
+    renderTable(data);
+    renderPagination(data);
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderTable(data) {
+  var tbody = document.getElementById('events-tbody');
+  var events = data.events || [];
+  if (!events.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No events found.</td></tr>';
+    return;
+  }
+  var rows = events.map(function(ev) {
+    var ts = ev.timestamp ? ev.timestamp.replace('T', ' ').slice(0, 19) : '—';
+    var user = ev.username || ev.email || 'System';
+    var action = ev.audit_action || '—';
+    var cls = pillClass(action);
+    var details = ev.details ? (ev.details.length > 80 ? ev.details.slice(0, 80) + '…' : ev.details) : '—';
+    var hash = ev.log_hash ? ev.log_hash.slice(0, 8) : '—';
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:12px;white-space:nowrap">' + escHtml(ts) + '</td>' +
+      '<td><strong>' + escHtml(user) + '</strong></td>' +
+      '<td><span class="pill ' + cls + '">' + escHtml(action) + '</span></td>' +
+      '<td style="color:var(--muted);font-size:12px">' + escHtml(details) + '</td>' +
+      '<td style="font-family:monospace;font-size:11px;color:var(--muted)">' + escHtml(hash) + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = rows.join('');
+}
+
+function renderPagination(data) {
+  var total = data.total_count || 0;
+  var page = data.page || 1;
+  var pageSize = data.page_size || 20;
+  var totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
+
+  var from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  var to = Math.min(page * pageSize, total);
+  document.getElementById('page-info').textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' events';
+
+  var btnsEl = document.getElementById('page-btns');
+  btnsEl.innerHTML = '';
+
+  if (totalPages <= 1) return;
+
+  var pages = buildPageList(page, totalPages);
+  pages.forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'page-btn' + (p === page ? ' active' : '');
+    btn.textContent = p === '…' ? '…' : String(p);
+    if (p === '…') {
+      btn.disabled = true;
+    } else {
+      (function(pg) {
+        btn.onclick = function() { loadEvents(pg); };
+      })(p);
+    }
+    btnsEl.appendChild(btn);
+  });
+}
+
+function buildPageList(current, total) {
+  if (total <= 7) {
+    var arr = [];
+    for (var i = 1; i <= total; i++) arr.push(i);
+    return arr;
+  }
+  // Always show first, last, current, and neighbours; fill with ellipsis
+  var set = [1, total, current];
+  if (current - 1 > 1) set.push(current - 1);
+  if (current + 1 < total) set.push(current + 1);
+  if (current - 2 > 1) set.push(current - 2);
+  if (current + 2 < total) set.push(current + 2);
+
+  var unique = set.filter(function(v, i, a) { return a.indexOf(v) === i; }).sort(function(a, b) { return a - b; });
+
+  // Insert ellipsis where gaps exist
+  var result = [];
+  for (var j = 0; j < unique.length; j++) {
+    if (j > 0 && unique[j] - unique[j - 1] > 1) result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0, 9); // cap at 9 items (7 pages + 2 ellipsis)
+}
+
+// ── Search debounce ───────────────────────────────────────────────────────────
+var _debounceTimer = null;
+document.getElementById('f-search').addEventListener('input', function() {
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(function() { loadEvents(1); }, 400);
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadMetrics();
+loadEvents(1);
 </script>
 </body>
 </html>

@@ -479,6 +479,75 @@ EXECUTE FUNCTION prevent_audit_log_modification();
 
 
 -- ==========================================
+-- ROLE PERMISSIONS MATRIX
+-- ==========================================
+
+CREATE TABLE role_permissions (
+    role VARCHAR(50) NOT NULL,
+    module VARCHAR(50) NOT NULL,
+    permission_level VARCHAR(10) NOT NULL DEFAULT 'NONE' CHECK (permission_level IN ('NONE', 'READ', 'WRITE', 'ADMIN')),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (role, module)
+);
+
+-- Seed default permission matrix
+INSERT INTO role_permissions (role, module, permission_level) VALUES
+('ADMIN',               'platform',   'ADMIN'),
+('ADMIN',               'governance', 'ADMIN'),
+('ADMIN',               'risks',      'ADMIN'),
+('ADMIN',               'controls',   'ADMIN'),
+('ADMIN',               'evidence',   'ADMIN'),
+('ADMIN',               'operations', 'ADMIN'),
+('ADMIN',               'incidents',  'ADMIN'),
+('ADMIN',               'reports',    'ADMIN'),
+('ADMIN',               'helpdesk',   'ADMIN'),
+('RISK_OWNER',          'platform',   'NONE'),
+('RISK_OWNER',          'governance', 'READ'),
+('RISK_OWNER',          'risks',      'ADMIN'),
+('RISK_OWNER',          'controls',   'WRITE'),
+('RISK_OWNER',          'evidence',   'READ'),
+('RISK_OWNER',          'operations', 'READ'),
+('RISK_OWNER',          'incidents',  'READ'),
+('RISK_OWNER',          'reports',    'WRITE'),
+('RISK_OWNER',          'helpdesk',   'NONE'),
+('COMPLIANCE_OFFICER',  'platform',   'READ'),
+('COMPLIANCE_OFFICER',  'governance', 'ADMIN'),
+('COMPLIANCE_OFFICER',  'risks',      'WRITE'),
+('COMPLIANCE_OFFICER',  'controls',   'ADMIN'),
+('COMPLIANCE_OFFICER',  'evidence',   'WRITE'),
+('COMPLIANCE_OFFICER',  'operations', 'READ'),
+('COMPLIANCE_OFFICER',  'incidents',  'READ'),
+('COMPLIANCE_OFFICER',  'reports',    'WRITE'),
+('COMPLIANCE_OFFICER',  'helpdesk',   'READ'),
+('INTERNAL_AUDITOR',    'platform',   'READ'),
+('INTERNAL_AUDITOR',    'governance', 'READ'),
+('INTERNAL_AUDITOR',    'risks',      'READ'),
+('INTERNAL_AUDITOR',    'controls',   'WRITE'),
+('INTERNAL_AUDITOR',    'evidence',   'ADMIN'),
+('INTERNAL_AUDITOR',    'operations', 'READ'),
+('INTERNAL_AUDITOR',    'incidents',  'WRITE'),
+('INTERNAL_AUDITOR',    'reports',    'WRITE'),
+('INTERNAL_AUDITOR',    'helpdesk',   'READ'),
+('IT_STAFF',            'platform',   'NONE'),
+('IT_STAFF',            'governance', 'NONE'),
+('IT_STAFF',            'risks',      'NONE'),
+('IT_STAFF',            'controls',   'NONE'),
+('IT_STAFF',            'evidence',   'NONE'),
+('IT_STAFF',            'operations', 'WRITE'),
+('IT_STAFF',            'incidents',  'WRITE'),
+('IT_STAFF',            'reports',    'NONE'),
+('IT_STAFF',            'helpdesk',   'ADMIN'),
+('USER',                'platform',   'NONE'),
+('USER',                'governance', 'READ'),
+('USER',                'risks',      'READ'),
+('USER',                'controls',   'READ'),
+('USER',                'evidence',   'NONE'),
+('USER',                'operations', 'NONE'),
+('USER',                'incidents',  'READ'),
+('USER',                'reports',    'READ'),
+('USER',                'helpdesk',   'ADMIN');
+
+-- ==========================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
 -- ==========================================
 

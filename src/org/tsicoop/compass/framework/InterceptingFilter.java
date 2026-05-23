@@ -141,14 +141,14 @@ public class InterceptingFilter implements Filter {
             // Forward to Wallet Service logic
             // The Wallet service handles its own 'validateSyncToken' logic internally
             InputProcessor.processInput(req, res);
-            executeAction("org.tsicoop.dpdpcms.service.v1.Wallet", req, res);
+            executeAction("org.tsicoop.compass.service.v1.Wallet", req, res);
             return;
         }
 
         if ("GET".equalsIgnoreCase(method) && uri.contains("/admin/job")) {
             InputProcessor.processInput(req, res);
             InputProcessor.processAdminHeader(req, res);
-            executeAction("org.tsicoop.dpdpcms.service.v1.Job", req, res);
+            executeAction("org.tsicoop.compass.service.v1.Job", req, res);
             return;
         }
 

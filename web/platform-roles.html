@@ -123,7 +123,6 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Define Role-Based Access Control (RBAC) for all system roles with granular module-level permissions.</p>
       </div>
       <div class="acts">
-        <button class="btn" onclick="openModal('modal-edit-permissions')">Edit Permissions</button>
         <button class="btn primary" onclick="openModal('modal-add-role')">Add Role</button>
       </div>
     </div>
@@ -138,63 +137,8 @@ tr:last-child td{border-bottom:none}
         <thead>
           <tr><th>Role</th><th>Description</th><th>Users</th><th>Access Level</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Chief Risk Officer</strong></td>
-            <td style="color:var(--muted);font-size:12px">Full platform access; approves risks, policies, and exceptions</td>
-            <td>1</td>
-            <td><span class="pill good">Full Admin</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>IT Security Lead</strong></td>
-            <td style="color:var(--muted);font-size:12px">Admin access to security modules; manages VAPT and incidents</td>
-            <td>2</td>
-            <td><span class="pill good">Full Admin</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>Compliance Officer</strong></td>
-            <td style="color:var(--muted);font-size:12px">Read/write across compliance and governance; no user admin</td>
-            <td>3</td>
-            <td><span class="pill info">Read + Write</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>Internal Auditor</strong></td>
-            <td style="color:var(--muted);font-size:12px">Read/write for audit and evidence; read-only for all other modules</td>
-            <td>4</td>
-            <td><span class="pill info">Read + Write</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>Risk Analyst</strong></td>
-            <td style="color:var(--muted);font-size:12px">Read access to risk and compliance; can submit new risk records</td>
-            <td>5</td>
-            <td><span class="pill neu">Read Only</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>IT Administrator</strong></td>
-            <td style="color:var(--muted);font-size:12px">Admin for platform and operations modules; scoped to IT systems</td>
-            <td>3</td>
-            <td><span class="pill watch">Scoped Admin</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>Department Manager</strong></td>
-            <td style="color:var(--muted);font-size:12px">Read-only dashboard access; receives policy attestation requests</td>
-            <td>12</td>
-            <td><span class="pill neu">Read Only</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
-          <tr>
-            <td><strong>IT Support Staff</strong></td>
-            <td style="color:var(--muted);font-size:12px">Helpdesk module only; can create and update tickets</td>
-            <td>17</td>
-            <td><span class="pill neu">Helpdesk Only</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-permissions')">Edit Permissions</button></td>
-          </tr>
+        <tbody id="roles-tbody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -215,116 +159,16 @@ tr:last-child td{border-bottom:none}
           <thead>
             <tr>
               <th class="row-head">Module</th>
-              <th>CRO</th>
-              <th>Sec Lead</th>
+              <th>Admin</th>
+              <th>Risk Owner</th>
               <th>Compliance</th>
               <th>Auditor</th>
-              <th>Risk Analyst</th>
-              <th>IT Admin</th>
-              <th>Dept Mgr</th>
-              <th>IT Support</th>
+              <th>IT Staff</th>
+              <th>User</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="row-head">Platform &amp; Access</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Governance &amp; Policy</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Risk &amp; Vulnerability</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Compliance &amp; Controls</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Audit &amp; Evidence</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">IT Operations</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm write">Write</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Incidents &amp; Awareness</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Reports &amp; Exports</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm write">Write</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-            </tr>
-            <tr>
-              <td class="row-head">Helpdesk</td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm read">Read</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm admin">Admin</span></td>
-              <td><span class="perm none">None</span></td>
-              <td><span class="perm admin">Admin</span></td>
-            </tr>
+          <tbody id="matrix-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -336,7 +180,7 @@ tr:last-child td{border-bottom:none}
 <div id="modal-add-role" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-role')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add New Role</h2><button class="modal-close" onclick="closeModal('modal-add-role')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-role')">
+    <form onsubmit="submitAddRole(event)">
       <div class="form-field"><label class="form-label">Role Name</label><input class="form-input" placeholder="e.g. Data Privacy Officer" required></div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Access Level</label>
@@ -361,27 +205,11 @@ tr:last-child td{border-bottom:none}
 <!-- Modal: Edit Permissions -->
 <div id="modal-edit-permissions" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-permissions')">
   <div class="modal-box wide">
-    <div class="modal-head"><h2>Edit Role Permissions</h2><button class="modal-close" onclick="closeModal('modal-edit-permissions')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-permissions')">
-      <div class="form-field"><label class="form-label">Role</label>
-        <select class="form-select">
-          <option>Chief Risk Officer</option><option>IT Security Lead</option><option selected>Compliance Officer</option>
-          <option>Internal Auditor</option><option>Risk Analyst</option><option>IT Administrator</option>
-          <option>Department Manager</option><option>IT Support Staff</option>
-        </select>
-      </div>
+    <div class="modal-head"><h2 id="ep-title">Edit Permissions</h2><button class="modal-close" onclick="closeModal('modal-edit-permissions')">&#x2715;</button></div>
+    <input type="hidden" id="ep-role">
+    <form onsubmit="submitEditPermissions(event)">
       <p style="margin:0 0 12px;font-size:12px;color:var(--muted)">Set per-module access level for this role.</p>
-      <div class="perm-grid">
-        <div class="perm-row"><span>Platform &amp; Access</span><select><option>None</option><option selected>Read</option><option>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>Governance &amp; Policy</span><select><option>None</option><option>Read</option><option>Write</option><option selected>Admin</option></select></div>
-        <div class="perm-row"><span>Risk &amp; Vulnerability</span><select><option>None</option><option>Read</option><option selected>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>Compliance &amp; Controls</span><select><option>None</option><option>Read</option><option>Write</option><option selected>Admin</option></select></div>
-        <div class="perm-row"><span>Audit &amp; Evidence</span><select><option>None</option><option>Read</option><option selected>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>IT Operations</span><select><option>None</option><option selected>Read</option><option>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>Incidents &amp; Awareness</span><select><option>None</option><option selected>Read</option><option>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>Reports &amp; Exports</span><select><option>None</option><option>Read</option><option selected>Write</option><option>Admin</option></select></div>
-        <div class="perm-row"><span>Helpdesk</span><select><option>None</option><option selected>Read</option><option>Write</option><option>Admin</option></select></div>
-      </div>
+      <div class="perm-grid" id="ep-perm-grid"></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-permissions')">Cancel</button>
         <button type="submit" class="btn primary">Save Permissions</button>
@@ -391,28 +219,223 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
-}
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+// Token guard
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) { window.location.replace('index.html'); }
+
+// Sidebar user info
+(function() {
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) {
+    var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    av.textContent = i || 'U';
+  }
 })();
+
+// State cache
+var state = { roles: [], permissions: [] };
+
+// Role metadata
+var ROLE_META = {
+  ADMIN:               { label: 'Administrator',      desc: 'Full platform access; manages users, org structure, and all modules',                                      pill: '<span class="pill good">Full Admin</span>' },
+  RISK_OWNER:          { label: 'Risk Owner',          desc: 'Manages risk register and vulnerability tracking; write access to controls',                               pill: '<span class="pill info">Read + Write</span>' },
+  COMPLIANCE_OFFICER:  { label: 'Compliance Officer',  desc: 'Admin access to governance and controls; manages policies and compliance calendar',                        pill: '<span class="pill info">Read + Write</span>' },
+  INTERNAL_AUDITOR:    { label: 'Internal Auditor',    desc: 'Admin access to audit and evidence; read/write across compliance modules',                                 pill: '<span class="pill info">Read + Write</span>' },
+  IT_STAFF:            { label: 'IT Staff',            desc: 'Scoped to IT operations, incidents, and helpdesk; no GRC module access',                                   pill: '<span class="pill watch">Scoped Access</span>' },
+  USER:                { label: 'User',                desc: 'Read access to dashboard modules; can raise helpdesk tickets',                                             pill: '<span class="pill neu">Read Only</span>' }
+};
+
+// Module metadata (ordered)
+var MODULES = [
+  { key: 'platform',    label: 'Platform & Access' },
+  { key: 'governance',  label: 'Governance & Policy' },
+  { key: 'risks',       label: 'Risk & Vulnerability' },
+  { key: 'controls',    label: 'Compliance & Controls' },
+  { key: 'evidence',    label: 'Audit & Evidence' },
+  { key: 'operations',  label: 'IT Operations' },
+  { key: 'incidents',   label: 'Incidents & Awareness' },
+  { key: 'reports',     label: 'Reports & Exports' },
+  { key: 'helpdesk',    label: 'Helpdesk' }
+];
+
+// Role column order for matrix
+var ROLE_ORDER = ['ADMIN', 'RISK_OWNER', 'COMPLIANCE_OFFICER', 'INTERNAL_AUDITOR', 'IT_STAFF', 'USER'];
+
+// API helper
+function api(func, body, cb) {
+  var payload = Object.assign({ _func: func }, body || {});
+  fetch('/api/v1/admin/platform', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) {
+    if (res.status === 401) { localStorage.clear(); window.location.replace('index.html'); return null; }
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (data.success === false) { cb(data.message || 'Error', null); return; }
+    cb(null, data);
+  })
+  .catch(function(e) { cb(e.message || 'Network error', null); });
+}
+
+// Toast helper
+function showToast(msg, isError) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;background:' + (isError ? '#b42318' : '#006a67');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+// Modal helpers
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Render roles table
+function renderRoles() {
+  var tbody = document.getElementById('roles-tbody');
+  if (!state.roles.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No roles found.</td></tr>';
+    return;
+  }
+  var html = '';
+  state.roles.forEach(function(r) {
+    var meta = ROLE_META[r.role] || { label: r.role, desc: '', pill: '<span class="pill neu">Unknown</span>' };
+    html += '<tr>';
+    html += '<td><strong>' + meta.label + '</strong></td>';
+    html += '<td style="color:var(--muted);font-size:12px">' + meta.desc + '</td>';
+    html += '<td>' + (r.user_count != null ? r.user_count : '—') + '</td>';
+    html += '<td>' + meta.pill + '</td>';
+    html += '<td><button class="tbl-action" onclick="openEditPermissions(\'' + r.role + '\')">Edit Permissions</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+// Render permission matrix
+function renderMatrix() {
+  var tbody = document.getElementById('matrix-tbody');
+  if (!state.permissions.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No permissions data.</td></tr>';
+    return;
+  }
+
+  // Build lookup: perms[role][module] = permission_level
+  var perms = {};
+  state.permissions.forEach(function(p) {
+    if (!perms[p.role]) perms[p.role] = {};
+    perms[p.role][p.module] = p.permission_level;
+  });
+
+  var html = '';
+  MODULES.forEach(function(mod) {
+    html += '<tr><td class="row-head">' + mod.label + '</td>';
+    ROLE_ORDER.forEach(function(role) {
+      var level = (perms[role] && perms[role][mod.key]) ? perms[role][mod.key] : 'NONE';
+      var cls = level.toLowerCase();
+      var lbl = level.charAt(0) + level.slice(1).toLowerCase();
+      html += '<td><span class="perm ' + cls + '">' + lbl + '</span></td>';
+    });
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+// Open Edit Permissions modal for a specific role
+function openEditPermissions(role) {
+  var meta = ROLE_META[role] || { label: role };
+  document.getElementById('ep-title').textContent = 'Edit Permissions — ' + meta.label;
+  document.getElementById('ep-role').value = role;
+
+  // Build lookup for this role from cached permissions
+  var rolePerm = {};
+  state.permissions.forEach(function(p) {
+    if (p.role === role) rolePerm[p.module] = p.permission_level;
+  });
+
+  var grid = document.getElementById('ep-perm-grid');
+  var html = '';
+  MODULES.forEach(function(mod) {
+    var current = rolePerm[mod.key] || 'NONE';
+    html += '<div class="perm-row">';
+    html += '<span>' + mod.label + '</span>';
+    html += '<select data-module="' + mod.key + '">';
+    ['NONE', 'READ', 'WRITE', 'ADMIN'].forEach(function(lvl) {
+      var sel = (lvl === current) ? ' selected' : '';
+      html += '<option value="' + lvl + '"' + sel + '>' + lvl.charAt(0) + lvl.slice(1).toLowerCase() + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+
+  openModal('modal-edit-permissions');
+}
+
+// Submit Edit Permissions
+function submitEditPermissions(e) {
+  e.preventDefault();
+  var role = document.getElementById('ep-role').value;
+  var selects = document.querySelectorAll('#ep-perm-grid select[data-module]');
+  var permissions = [];
+  selects.forEach(function(sel) {
+    permissions.push({ module: sel.getAttribute('data-module'), permission_level: sel.value });
+  });
+
+  var btn = e.submitter;
+  var orig = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+  api('save_role_permissions', { role: role, permissions: permissions }, function(err) {
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (err) { showToast(err, true); return; }
+    closeModal('modal-edit-permissions');
+    showToast('Permissions saved successfully.');
+    loadAll();
+  });
+}
+
+// Submit Add Role — custom roles not supported
+function submitAddRole(e) {
+  e.preventDefault();
+  closeModal('modal-add-role');
+  showToast('Custom roles are not supported in this version.');
+}
+
+// Load roles summary
+function loadRoles() {
+  api('list_roles_summary', {}, function(err, data) {
+    if (err) { showToast(err, true); return; }
+    state.roles = data.roles || [];
+    renderRoles();
+  });
+}
+
+// Load permission matrix
+function loadPermissions() {
+  api('get_role_permissions', {}, function(err, data) {
+    if (err) { showToast(err, true); return; }
+    state.permissions = data.permissions || [];
+    renderMatrix();
+  });
+}
+
+// Init
+function loadAll() {
+  loadRoles();
+  loadPermissions();
+}
+
+loadAll();
 </script>
 </body>
 </html>

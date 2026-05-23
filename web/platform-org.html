@@ -109,8 +109,8 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Map your office hierarchy, departments, designations, and linked compliance responsibilities.</p>
       </div>
       <div class="acts">
-        <button class="btn" onclick="openModal('modal-add-dept')">Add Department</button>
-        <button class="btn primary" onclick="openModal('modal-add-location')">Add Location</button>
+        <button class="btn" onclick="openAddDeptModal()">Add Department</button>
+        <button class="btn primary" onclick="openAddOrgModal()">Add Location</button>
       </div>
     </div>
 
@@ -118,45 +118,14 @@ tr:last-child td{border-bottom:none}
     <div class="card mb">
       <div class="section-head">
         <h2>Office Locations</h2>
-        <button class="btn sm" onclick="openModal('modal-add-location')">+ Add Location</button>
+        <button class="btn sm" onclick="openAddOrgModal()">+ Add Location</button>
       </div>
       <table>
         <thead>
-          <tr><th>Location</th><th>Type</th><th>Address</th><th>Departments</th><th>Status</th><th></th></tr>
+          <tr><th>Location</th><th>Type</th><th>Parent</th><th>Departments</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Head Office — Colombo</strong></td>
-            <td><span class="pill good">Primary</span></td>
-            <td style="color:var(--muted)">123 Union Place, Colombo 02</td>
-            <td>7</td>
-            <td><span class="pill good">Active</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Regional Office — Kandy</strong></td>
-            <td><span class="pill neu">Regional</span></td>
-            <td style="color:var(--muted)">47 Dalada Veediya, Kandy</td>
-            <td>3</td>
-            <td><span class="pill good">Active</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Regional Office — Galle</strong></td>
-            <td><span class="pill neu">Regional</span></td>
-            <td style="color:var(--muted)">28 Church Street, Galle</td>
-            <td>2</td>
-            <td><span class="pill good">Active</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Data Centre — Colombo</strong></td>
-            <td><span class="pill info">Facility</span></td>
-            <td style="color:var(--muted)">45 Rajagiriya Road, Colombo 05</td>
-            <td>2</td>
-            <td><span class="pill good">Active</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
-          </tr>
+        <tbody id="orgs-tbody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -165,23 +134,14 @@ tr:last-child td{border-bottom:none}
     <div class="card mb">
       <div class="section-head">
         <h2>Departments</h2>
-        <button class="btn sm" onclick="openModal('modal-add-dept')">+ Add Department</button>
+        <button class="btn sm" onclick="openAddDeptModal()">+ Add Department</button>
       </div>
       <table>
         <thead>
-          <tr><th>Department</th><th>Location</th><th>Department Head</th><th>Staff</th><th>Status</th><th></th></tr>
+          <tr><th>Department</th><th>Location</th><th>Staff</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr><td><strong>IT Department</strong></td><td>Head Office</td><td>Dilshan Perera</td><td>12</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Compliance &amp; Risk</strong></td><td>Head Office</td><td>Priya Ratnayake</td><td>8</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Finance</strong></td><td>Head Office</td><td>Kasun Bandara</td><td>6</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Operations</strong></td><td>Head Office</td><td>Chathuri Dissanayake</td><td>9</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>HR</strong></td><td>Head Office</td><td>Nimesha Wickramasinghe</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>IT Support</strong></td><td>Regional — Kandy</td><td>Suresh Wijeratne</td><td>4</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Branch Operations</strong></td><td>Regional — Kandy</td><td>Chamari Perera</td><td>7</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Customer Service</strong></td><td>Regional — Galle</td><td>Ruwani Silva</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Infrastructure &amp; Security</strong></td><td>Data Centre</td><td>Roshan Fernando</td><td>6</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
-          <tr><td><strong>Platform Engineering</strong></td><td>Data Centre</td><td>Nuwan Jayasinghe</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+        <tbody id="depts-tbody">
+          <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -194,51 +154,10 @@ tr:last-child td{border-bottom:none}
       </div>
       <table>
         <thead>
-          <tr><th>Designation</th><th>Department</th><th>Key Result Areas</th><th>GRC Role</th><th></th></tr>
+          <tr><th>Designation</th><th>Key Result Areas</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Chief Risk Officer</strong></td>
-            <td>Compliance &amp; Risk</td>
-            <td style="color:var(--muted);font-size:12px">Risk Oversight, Board Reporting, Regulatory Compliance</td>
-            <td><span class="pill good">Risk Owner</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>IT Security Lead</strong></td>
-            <td>IT Department</td>
-            <td style="color:var(--muted);font-size:12px">Vulnerability Management, Incident Response, VAPT Oversight</td>
-            <td><span class="pill info">Security Lead</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Compliance Officer</strong></td>
-            <td>Compliance &amp; Risk</td>
-            <td style="color:var(--muted);font-size:12px">Policy Lifecycle, Framework Mapping, Attestation Tracking</td>
-            <td><span class="pill info">Policy Owner</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Internal Auditor</strong></td>
-            <td>Compliance &amp; Risk</td>
-            <td style="color:var(--muted);font-size:12px">Audit Scheduling, Finding Logs, Evidence Collection</td>
-            <td><span class="pill info">Audit Lead</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>IT Administrator</strong></td>
-            <td>IT Department</td>
-            <td style="color:var(--muted);font-size:12px">User Provisioning, Asset Management, Change Requests</td>
-            <td><span class="pill watch">IT Admin</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
-          <tr>
-            <td><strong>Risk Analyst</strong></td>
-            <td>Compliance &amp; Risk</td>
-            <td style="color:var(--muted);font-size:12px">Risk Identification, VAPT Coordination, Remediation Tracking</td>
-            <td><span class="pill neu">Analyst</span></td>
-            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
-          </tr>
+        <tbody id="desigs-tbody">
+          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -249,18 +168,19 @@ tr:last-child td{border-bottom:none}
 <div id="modal-add-location" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-location')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add Office Location</h2><button class="modal-close" onclick="closeModal('modal-add-location')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-location')">
-      <div class="form-field"><label class="form-label">Location Name</label><input class="form-input" placeholder="e.g. Regional Office — Jaffna" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Type</label>
-          <select class="form-select"><option>Head Office</option><option>Regional Office</option><option>Branch</option><option>Data Centre</option><option>Facility</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">Status</label>
-          <select class="form-select"><option>Active</option><option>Inactive</option><option>Planned</option></select>
-        </div>
+    <form id="form-add-location" onsubmit="handleAddOrg(event)">
+      <div class="form-field"><label class="form-label">Location Name</label><input id="al-name" class="form-input" placeholder="e.g. Regional Office — Jaffna" required></div>
+      <div class="form-field"><label class="form-label">Type</label>
+        <select id="al-type" class="form-select" required>
+          <option value="HEAD_OFFICE">Head Office</option>
+          <option value="REGIONAL_OFFICE">Regional Office</option>
+          <option value="BRANCH">Branch</option>
+          <option value="DEPARTMENT">Department</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Address</label><input class="form-input" placeholder="Street address"></div>
-      <div class="form-field"><label class="form-label">Location Head</label><input class="form-input" placeholder="Name of location head"></div>
+      <div class="form-field"><label class="form-label">Parent Location <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <select id="al-parent" class="form-select"></select>
+      </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-add-location')">Cancel</button>
         <button type="submit" class="btn primary">Add Location</button>
@@ -273,18 +193,19 @@ tr:last-child td{border-bottom:none}
 <div id="modal-edit-location" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-location')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit Office Location</h2><button class="modal-close" onclick="closeModal('modal-edit-location')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-location')">
-      <div class="form-field"><label class="form-label">Location Name</label><input class="form-input" value="Head Office — Colombo" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Type</label>
-          <select class="form-select"><option selected>Head Office</option><option>Regional Office</option><option>Branch</option><option>Data Centre</option><option>Facility</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">Status</label>
-          <select class="form-select"><option selected>Active</option><option>Inactive</option></select>
-        </div>
+    <form id="form-edit-location" onsubmit="handleEditOrg(event)">
+      <div class="form-field"><label class="form-label">Location Name</label><input id="el-name" class="form-input" required></div>
+      <div class="form-field"><label class="form-label">Type</label>
+        <select id="el-type" class="form-select" required>
+          <option value="HEAD_OFFICE">Head Office</option>
+          <option value="REGIONAL_OFFICE">Regional Office</option>
+          <option value="BRANCH">Branch</option>
+          <option value="DEPARTMENT">Department</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Address</label><input class="form-input" value="123 Union Place, Colombo 02"></div>
-      <div class="form-field"><label class="form-label">Location Head</label><input class="form-input" value="Priya Ratnayake"></div>
+      <div class="form-field"><label class="form-label">Parent Location <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <select id="el-parent" class="form-select"></select>
+      </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-location')">Cancel</button>
         <button type="submit" class="btn primary">Save Changes</button>
@@ -297,18 +218,13 @@ tr:last-child td{border-bottom:none}
 <div id="modal-add-dept" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-dept')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add Department</h2><button class="modal-close" onclick="closeModal('modal-add-dept')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-dept')">
-      <div class="form-field"><label class="form-label">Department Name</label><input class="form-input" placeholder="e.g. Digital Banking" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Location</label>
-          <select class="form-select" required><option value="">Select…</option><option>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">Status</label>
-          <select class="form-select"><option>Active</option><option>Inactive</option></select>
-        </div>
+    <form id="form-add-dept" onsubmit="handleAddDept(event)">
+      <div class="form-field"><label class="form-label">Department Name</label><input id="ad-name" class="form-input" placeholder="e.g. Digital Banking" required></div>
+      <div class="form-field"><label class="form-label">Location</label>
+        <select id="ad-org" class="form-select" required>
+          <option value="">Select…</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Department Head</label><input class="form-input" placeholder="Name of department head"></div>
-      <div class="form-field"><label class="form-label">Primary Function</label><input class="form-input" placeholder="Brief description of department's function"></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-add-dept')">Cancel</button>
         <button type="submit" class="btn primary">Add Department</button>
@@ -321,18 +237,13 @@ tr:last-child td{border-bottom:none}
 <div id="modal-edit-dept" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-dept')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit Department</h2><button class="modal-close" onclick="closeModal('modal-edit-dept')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-dept')">
-      <div class="form-field"><label class="form-label">Department Name</label><input class="form-input" value="IT Department" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Location</label>
-          <select class="form-select"><option selected>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">Status</label>
-          <select class="form-select"><option selected>Active</option><option>Inactive</option></select>
-        </div>
+    <form id="form-edit-dept" onsubmit="handleEditDept(event)">
+      <div class="form-field"><label class="form-label">Department Name</label><input id="ed-name" class="form-input" required></div>
+      <div class="form-field"><label class="form-label">Location</label>
+        <select id="ed-org" class="form-select" required>
+          <option value="">Select…</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Department Head</label><input class="form-input" value="Dilshan Perera"></div>
-      <div class="form-field"><label class="form-label">Primary Function</label><input class="form-input" value="IT infrastructure, security, and platform management"></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-dept')">Cancel</button>
         <button type="submit" class="btn primary">Save Changes</button>
@@ -345,17 +256,9 @@ tr:last-child td{border-bottom:none}
 <div id="modal-add-designation" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-designation')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add Designation</h2><button class="modal-close" onclick="closeModal('modal-add-designation')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-designation')">
-      <div class="form-field"><label class="form-label">Designation Title</label><input class="form-input" placeholder="e.g. Data Privacy Officer" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select" required><option value="">Select…</option><option>IT Department</option><option>Compliance &amp; Risk</option><option>Finance</option><option>Operations</option><option>HR</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">GRC Role</label>
-          <select class="form-select"><option>Risk Owner</option><option>Policy Owner</option><option>Audit Lead</option><option>Security Lead</option><option>IT Admin</option><option>Analyst</option><option>Viewer</option></select>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-label">Key Result Areas</label><textarea class="form-textarea" placeholder="Comma-separated KRAs, e.g. Risk Assessment, Vendor Review, Policy Drafting"></textarea></div>
+    <form id="form-add-designation" onsubmit="handleAddDesig(event)">
+      <div class="form-field"><label class="form-label">Designation Title</label><input id="ades-title" class="form-input" placeholder="e.g. Data Privacy Officer" required></div>
+      <div class="form-field"><label class="form-label">Key Result Areas (one per line or comma-separated)</label><textarea id="ades-kras" class="form-textarea" placeholder="e.g. Risk Assessment, Vendor Review, Policy Drafting"></textarea></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-add-designation')">Cancel</button>
         <button type="submit" class="btn primary">Add Designation</button>
@@ -368,17 +271,9 @@ tr:last-child td{border-bottom:none}
 <div id="modal-edit-designation" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-designation')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit Designation</h2><button class="modal-close" onclick="closeModal('modal-edit-designation')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-designation')">
-      <div class="form-field"><label class="form-label">Designation Title</label><input class="form-input" value="Chief Risk Officer" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select"><option selected>Compliance &amp; Risk</option><option>IT Department</option><option>Finance</option><option>Operations</option><option>HR</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">GRC Role</label>
-          <select class="form-select"><option selected>Risk Owner</option><option>Policy Owner</option><option>Audit Lead</option><option>Security Lead</option><option>IT Admin</option><option>Analyst</option></select>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-label">Key Result Areas</label><textarea class="form-textarea">Risk Oversight, Board Reporting, Regulatory Compliance</textarea></div>
+    <form id="form-edit-designation" onsubmit="handleEditDesig(event)">
+      <div class="form-field"><label class="form-label">Designation Title</label><input id="edes-title" class="form-input" required></div>
+      <div class="form-field"><label class="form-label">Key Result Areas (one per line or comma-separated)</label><textarea id="edes-kras" class="form-textarea"></textarea></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-designation')">Cancel</button>
         <button type="submit" class="btn primary">Save Changes</button>
@@ -388,27 +283,344 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { organizations: [], departments: [], designations: [] };
+var editOrgId = null, editDeptId = null, editDesigId = null;
+
+var ORG_TYPE_LABELS = {
+  HEAD_OFFICE: 'Head Office',
+  REGIONAL_OFFICE: 'Regional Office',
+  BRANCH: 'Branch',
+  DEPARTMENT: 'Department'
+};
+
+function api(func, body, cb) {
+  var payload = Object.assign({ _func: func }, body || {});
+  fetch('/api/v1/admin/platform', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + TOKEN
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+      return;
+    }
+    return res.json().then(function(data) {
+      if (!data.success) {
+        cb(data.error || 'Request failed', null);
+      } else {
+        cb(null, data);
+      }
+    });
+  })
+  .catch(function(err) {
+    cb(err.message || 'Network error', null);
+  });
 }
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+
+function showToast(msg, isErr) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);max-width:320px';
+  t.style.background = isErr ? 'var(--red)' : 'var(--teal)';
+  t.style.color = '#fff';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function populateOrgSelect(selectId, selectedId, includeEmpty) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  if (includeEmpty) {
+    var opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'None';
+    sel.appendChild(opt);
+  }
+  state.organizations.forEach(function(org) {
+    var opt = document.createElement('option');
+    opt.value = org.id;
+    opt.textContent = org.name + ' (' + (ORG_TYPE_LABELS[org.type] || org.type) + ')';
+    if (selectedId != null && String(org.id) === String(selectedId)) {
+      opt.selected = true;
+    }
+    sel.appendChild(opt);
+  });
+}
+
+function loadAll() {
+  var done = 0;
+  var errors = [];
+
+  function finish() {
+    done++;
+    if (done === 3) {
+      if (errors.length) showToast('Some data failed to load: ' + errors.join(', '), true);
+      renderOrgs();
+      renderDepts();
+      renderDesigs();
+    }
+  }
+
+  api('list_organizations', {}, function(err, res) {
+    if (err) { errors.push('Organizations'); } else { state.organizations = res.organizations || []; }
+    finish();
+  });
+
+  api('list_departments', {}, function(err, res) {
+    if (err) { errors.push('Departments'); } else { state.departments = res.departments || []; }
+    finish();
+  });
+
+  api('list_designations', {}, function(err, res) {
+    if (err) { errors.push('Designations'); } else { state.designations = res.designations || []; }
+    finish();
+  });
+}
+
+function renderOrgs() {
+  var tbody = document.getElementById('orgs-tbody');
+  if (!tbody) return;
+  if (!state.organizations.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No locations found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.organizations.map(function(org) {
+    var typeLabel = ORG_TYPE_LABELS[org.type] || esc(org.type);
+    var parent = org.parent_name ? esc(org.parent_name) : '<span style="color:var(--muted)">&#x2014;</span>';
+    var deptCount = org.dept_count != null ? org.dept_count : '&#x2014;';
+    return '<tr>' +
+      '<td><strong>' + esc(org.name) + '</strong></td>' +
+      '<td><span class="pill neu">' + esc(typeLabel) + '</span></td>' +
+      '<td>' + parent + '</td>' +
+      '<td>' + deptCount + '</td>' +
+      '<td><button class="tbl-action" onclick="openEditOrgModal(' + esc(org.id) + ')">Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderDepts() {
+  var tbody = document.getElementById('depts-tbody');
+  if (!tbody) return;
+  if (!state.departments.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No departments found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.departments.map(function(dept) {
+    var staff = dept.user_count != null ? dept.user_count : '&#x2014;';
+    return '<tr>' +
+      '<td><strong>' + esc(dept.name) + '</strong></td>' +
+      '<td>' + esc(dept.org_name || '') + '</td>' +
+      '<td>' + staff + '</td>' +
+      '<td><button class="tbl-action" onclick="openEditDeptModal(' + esc(dept.id) + ')">Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderDesigs() {
+  var tbody = document.getElementById('desigs-tbody');
+  if (!tbody) return;
+  if (!state.designations.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px">No designations found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.designations.map(function(desig) {
+    var kras = desig.kra_titles
+      ? '<span style="color:var(--muted);font-size:12px">' + esc(desig.kra_titles) + '</span>'
+      : '<span style="color:var(--muted)">&#x2014;</span>';
+    return '<tr>' +
+      '<td><strong>' + esc(desig.title) + '</strong></td>' +
+      '<td>' + kras + '</td>' +
+      '<td><button class="tbl-action" onclick="openEditDesigModal(' + esc(desig.id) + ')">Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+window.openAddOrgModal = function() {
+  document.getElementById('form-add-location').reset();
+  populateOrgSelect('al-parent', null, true);
+  openModal('modal-add-location');
+};
+
+window.openEditOrgModal = function(id) {
+  var org = state.organizations.find(function(o) { return String(o.id) === String(id); });
+  if (!org) return;
+  editOrgId = org.id;
+  document.getElementById('el-name').value = org.name || '';
+  var elType = document.getElementById('el-type');
+  if (elType) elType.value = org.type || 'HEAD_OFFICE';
+  populateOrgSelect('el-parent', org.parent_id, true);
+  openModal('modal-edit-location');
+};
+
+window.openAddDeptModal = function() {
+  document.getElementById('form-add-dept').reset();
+  populateOrgSelect('ad-org', null, false);
+  // ensure blank first option
+  var sel = document.getElementById('ad-org');
+  if (sel && (!sel.options.length || sel.options[0].value !== '')) {
+    var blank = document.createElement('option');
+    blank.value = ''; blank.textContent = 'Select…';
+    sel.insertBefore(blank, sel.firstChild);
+  }
+  openModal('modal-add-dept');
+};
+
+window.openEditDeptModal = function(id) {
+  var dept = state.departments.find(function(d) { return String(d.id) === String(id); });
+  if (!dept) return;
+  editDeptId = dept.id;
+  document.getElementById('ed-name').value = dept.name || '';
+  populateOrgSelect('ed-org', dept.org_id, false);
+  openModal('modal-edit-dept');
+};
+
+window.openEditDesigModal = function(id) {
+  var desig = state.designations.find(function(d) { return String(d.id) === String(id); });
+  if (!desig) return;
+  editDesigId = desig.id;
+  document.getElementById('edes-title').value = desig.title || '';
+  document.getElementById('edes-kras').value = desig.kra_titles || '';
+  openModal('modal-edit-designation');
+};
+
+function setSubmitState(btn, loading, origText) {
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Saving…' : origText;
+}
+
+function handleAddOrg(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Add Location';
+  setSubmitState(btn, true, origText);
+  var name = document.getElementById('al-name').value.trim();
+  var type = document.getElementById('al-type').value;
+  var parentVal = document.getElementById('al-parent').value;
+  var body = { name: name, type: type };
+  if (parentVal) body.parent_id = parentVal;
+  api('add_organization', body, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-add-location');
+    showToast('Location added successfully.');
+    loadAll();
+  });
+}
+
+function handleEditOrg(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Save Changes';
+  setSubmitState(btn, true, origText);
+  var name = document.getElementById('el-name').value.trim();
+  var type = document.getElementById('el-type').value;
+  var parentVal = document.getElementById('el-parent').value;
+  var body = { id: editOrgId, name: name, type: type };
+  if (parentVal) body.parent_id = parentVal;
+  api('update_organization', body, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-edit-location');
+    showToast('Location updated successfully.');
+    loadAll();
+  });
+}
+
+function handleAddDept(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Add Department';
+  setSubmitState(btn, true, origText);
+  var name = document.getElementById('ad-name').value.trim();
+  var orgId = document.getElementById('ad-org').value;
+  api('add_department', { name: name, org_id: orgId }, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-add-dept');
+    showToast('Department added successfully.');
+    loadAll();
+  });
+}
+
+function handleEditDept(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Save Changes';
+  setSubmitState(btn, true, origText);
+  var name = document.getElementById('ed-name').value.trim();
+  var orgId = document.getElementById('ed-org').value;
+  api('update_department', { id: editDeptId, name: name, org_id: orgId }, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-edit-dept');
+    showToast('Department updated successfully.');
+    loadAll();
+  });
+}
+
+function handleAddDesig(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Add Designation';
+  setSubmitState(btn, true, origText);
+  var title = document.getElementById('ades-title').value.trim();
+  var kras = document.getElementById('ades-kras').value.trim();
+  api('add_designation', { title: title, kras: kras }, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-add-designation');
+    showToast('Designation added successfully.');
+    loadAll();
+  });
+}
+
+function handleEditDesig(e) {
+  e.preventDefault();
+  var btn = e.submitter, origText = btn ? btn.textContent : 'Save Changes';
+  setSubmitState(btn, true, origText);
+  var title = document.getElementById('edes-title').value.trim();
+  var kras = document.getElementById('edes-kras').value.trim();
+  api('update_designation', { id: editDesigId, title: title, kras: kras }, function(err) {
+    setSubmitState(btn, false, origText);
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-edit-designation');
+    showToast('Designation updated successfully.');
+    loadAll();
+  });
+}
+
+// Init
+(function() {
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) {
+    var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    av.textContent = i || 'U';
+  }
+  loadAll();
 })();
 </script>
 </body>

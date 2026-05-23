@@ -125,7 +125,7 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="acts">
         <button class="btn" onclick="openModal('modal-reset-password')">Reset Password</button>
-        <button class="btn primary" onclick="openModal('modal-provision-user')">Provision User</button>
+        <button class="btn primary" onclick="openProvisionModal()">Provision User</button>
       </div>
     </div>
 
@@ -133,22 +133,22 @@ tr:last-child td{border-bottom:none}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Active Users</div>
-        <div class="metric-value">47</div>
+        <div class="metric-value" id="mu-active">—</div>
         <div class="metric-note">Currently enabled accounts</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">Pending</div>
-        <div class="metric-value">3</div>
+        <div class="metric-value" id="mu-pending">—</div>
         <div class="metric-note">Awaiting provisioning</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Inactive</div>
-        <div class="metric-value">2</div>
+        <div class="metric-value" id="mu-inactive">—</div>
         <div class="metric-note">Deactivated accounts</div>
       </div>
       <div class="card stripe-red">
         <div class="metric-label">Access Issues</div>
-        <div class="metric-value">2</div>
+        <div class="metric-value" id="mu-issues">—</div>
         <div class="metric-note">Require review</div>
       </div>
     </div>
@@ -157,135 +157,35 @@ tr:last-child td{border-bottom:none}
     <div class="card mb">
       <div class="section-head">
         <h2>All Users</h2>
-        <button class="btn sm" onclick="openModal('modal-provision-user')">+ Provision User</button>
+        <button class="btn sm" onclick="openProvisionModal()">+ Provision User</button>
       </div>
       <div class="filter-bar">
-        <select>
+        <select id="f-dept">
           <option value="">All Departments</option>
-          <option>IT Department</option>
-          <option>Compliance &amp; Risk</option>
-          <option>Finance</option>
-          <option>Operations</option>
-          <option>HR</option>
         </select>
-        <select>
+        <select id="f-role">
           <option value="">All Roles</option>
-          <option>Chief Risk Officer</option>
-          <option>IT Security Lead</option>
-          <option>Compliance Officer</option>
-          <option>Internal Auditor</option>
-          <option>Risk Analyst</option>
-          <option>IT Administrator</option>
+          <option value="ADMIN">Administrator</option>
+          <option value="RISK_OWNER">Risk Owner</option>
+          <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
+          <option value="INTERNAL_AUDITOR">Internal Auditor</option>
+          <option value="IT_STAFF">IT Staff</option>
+          <option value="USER">Standard User</option>
         </select>
-        <select>
+        <select id="f-status">
           <option value="">All Statuses</option>
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Pending</option>
+          <option value="ACTIVE">Active</option>
+          <option value="SUSPENDED">Inactive</option>
+          <option value="PENDING">Pending</option>
         </select>
-        <input type="search" placeholder="Search by name or email…" style="flex:1;min-width:200px">
+        <input id="f-search" type="search" placeholder="Search by name or email…" style="flex:1;min-width:200px">
       </div>
       <table>
         <thead>
-          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Last Login</th><th>Status</th><th></th></tr>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">PR</div><strong>Priya Ratnayake</strong></div></td>
-            <td style="color:var(--muted)">p.ratnayake@tsicoop.org</td>
-            <td>Chief Risk Officer</td>
-            <td>Compliance &amp; Risk</td>
-            <td>Today, 09:14</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">DP</div><strong>Dilshan Perera</strong></div></td>
-            <td style="color:var(--muted)">d.perera@tsicoop.org</td>
-            <td>IT Security Lead</td>
-            <td>IT Department</td>
-            <td>Today, 08:42</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">SJ</div><strong>Sanduni Jayawardena</strong></div></td>
-            <td style="color:var(--muted)">s.jayawardena@tsicoop.org</td>
-            <td>Internal Auditor</td>
-            <td>Compliance &amp; Risk</td>
-            <td>Yesterday, 16:55</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">RF</div><strong>Roshan Fernando</strong></div></td>
-            <td style="color:var(--muted)">r.fernando@tsicoop.org</td>
-            <td>IT Administrator</td>
-            <td>IT Department</td>
-            <td>Today, 10:05</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">AG</div><strong>Amali Gunawardena</strong></div></td>
-            <td style="color:var(--muted)">a.gunawardena@tsicoop.org</td>
-            <td>Compliance Officer</td>
-            <td>Compliance &amp; Risk</td>
-            <td>2 days ago</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">TW</div><strong>Thilanka Weerasekara</strong></div></td>
-            <td style="color:var(--muted)">t.weerasekara@tsicoop.org</td>
-            <td>Risk Analyst</td>
-            <td>Compliance &amp; Risk</td>
-            <td>Today, 11:22</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar">KB</div><strong>Kasun Bandara</strong></div></td>
-            <td style="color:var(--muted)">k.bandara@tsicoop.org</td>
-            <td>Finance Manager</td>
-            <td>Finance</td>
-            <td>Yesterday, 14:30</td>
-            <td><span class="pill good">Active</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action red" onclick="openModal('modal-deactivate-user')">Deactivate</button>
-            </td>
-          </tr>
-          <tr>
-            <td><div class="avatar-cell"><div class="avatar" style="background:var(--muted)">CD</div><strong>Chathuri Dissanayake</strong></div></td>
-            <td style="color:var(--muted)">c.dissanayake@tsicoop.org</td>
-            <td>Operations Lead</td>
-            <td>Operations</td>
-            <td>14 days ago</td>
-            <td><span class="pill watch">Inactive</span></td>
-            <td>
-              <button class="tbl-action" onclick="openModal('modal-edit-user')">Edit</button>
-              <button class="tbl-action" style="color:var(--green)" onclick="openModal('modal-activate-user')">Activate</button>
-            </td>
-          </tr>
+        <tbody id="users-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
         </tbody>
       </table>
     </div>
@@ -293,37 +193,8 @@ tr:last-child td{border-bottom:none}
     <!-- Pending Provisioning -->
     <div class="card">
       <div class="section-head"><h2>Pending Provisioning</h2></div>
-      <div style="display:grid;gap:10px">
-        <div class="pending-item">
-          <div class="pending-info">
-            <strong>Nimesha Wickramasinghe</strong>
-            <span>n.wickramasinghe@tsicoop.org &middot; HR Manager &middot; Head Office</span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn sm" onclick="openModal('modal-edit-user')">Review</button>
-            <button class="btn sm primary" onclick="openModal('modal-provision-user')">Approve</button>
-          </div>
-        </div>
-        <div class="pending-item">
-          <div class="pending-info">
-            <strong>Suresh Wijeratne</strong>
-            <span>s.wijeratne@tsicoop.org &middot; IT Support &middot; Regional — Kandy</span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn sm" onclick="openModal('modal-edit-user')">Review</button>
-            <button class="btn sm primary" onclick="openModal('modal-provision-user')">Approve</button>
-          </div>
-        </div>
-        <div class="pending-item">
-          <div class="pending-info">
-            <strong>Ruwani Silva</strong>
-            <span>r.silva@tsicoop.org &middot; Customer Service Lead &middot; Regional — Galle</span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn sm" onclick="openModal('modal-edit-user')">Review</button>
-            <button class="btn sm primary" onclick="openModal('modal-provision-user')">Approve</button>
-          </div>
-        </div>
+      <div id="pending-list" style="display:grid;gap:10px">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Loading…</div>
       </div>
     </div>
   </main>
@@ -333,26 +204,28 @@ tr:last-child td{border-bottom:none}
 <div id="modal-provision-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-provision-user')">
   <div class="modal-box">
     <div class="modal-head"><h2>Provision New User</h2><button class="modal-close" onclick="closeModal('modal-provision-user')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-provision-user')">
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">First Name</label><input class="form-input" placeholder="First name" required></div>
-        <div class="form-field"><label class="form-label">Last Name</label><input class="form-input" placeholder="Last name" required></div>
-      </div>
-      <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" type="email" placeholder="user@tsicoop.org" required></div>
+    <form id="form-provision">
+      <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="pu-name" placeholder="Full name" required></div>
+      <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="pu-email" type="email" placeholder="user@tsicoop.org" required></div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Role</label>
-          <select class="form-select" required><option value="">Select role…</option><option>Chief Risk Officer</option><option>IT Security Lead</option><option>Compliance Officer</option><option>Internal Auditor</option><option>Risk Analyst</option><option>IT Administrator</option><option>Department Manager</option><option>IT Support Staff</option></select>
+          <select class="form-select" id="pu-role" required>
+            <option value="">Select role…</option>
+            <option value="ADMIN">Administrator</option>
+            <option value="RISK_OWNER">Risk Owner</option>
+            <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
+            <option value="INTERNAL_AUDITOR">Internal Auditor</option>
+            <option value="IT_STAFF">IT Staff</option>
+            <option value="USER">Standard User</option>
+          </select>
         </div>
         <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select" required><option value="">Select…</option><option>IT Department</option><option>Compliance &amp; Risk</option><option>Finance</option><option>Operations</option><option>HR</option></select>
+          <select class="form-select" id="pu-dept" required>
+            <option value="">Loading…</option>
+          </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-label">Office Location</label>
-        <select class="form-select"><option>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Send welcome email</label>
-        <select class="form-select"><option>Yes — send credentials via email</option><option>No — I will share credentials manually</option></select>
-      </div>
+      <div class="form-field"><label class="form-label">Initial Password</label><input class="form-input" id="pu-password" type="password" placeholder="Min. 10 characters" required></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-provision-user')">Cancel</button>
         <button type="submit" class="btn primary">Provision User</button>
@@ -365,25 +238,32 @@ tr:last-child td{border-bottom:none}
 <div id="modal-edit-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-user')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit User</h2><button class="modal-close" onclick="closeModal('modal-edit-user')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-user')">
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">First Name</label><input class="form-input" value="Priya" required></div>
-        <div class="form-field"><label class="form-label">Last Name</label><input class="form-input" value="Ratnayake" required></div>
-      </div>
-      <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" type="email" value="p.ratnayake@tsicoop.org" required></div>
+    <form id="form-edit-user">
+      <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="eu-name" required></div>
+      <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="eu-email" type="email" required></div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Role</label>
-          <select class="form-select"><option selected>Chief Risk Officer</option><option>IT Security Lead</option><option>Compliance Officer</option><option>Internal Auditor</option><option>Risk Analyst</option><option>IT Administrator</option><option>Department Manager</option><option>IT Support Staff</option></select>
+          <select class="form-select" id="eu-role">
+            <option value="ADMIN">Administrator</option>
+            <option value="RISK_OWNER">Risk Owner</option>
+            <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
+            <option value="INTERNAL_AUDITOR">Internal Auditor</option>
+            <option value="IT_STAFF">IT Staff</option>
+            <option value="USER">Standard User</option>
+          </select>
         </div>
         <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select"><option>IT Department</option><option selected>Compliance &amp; Risk</option><option>Finance</option><option>Operations</option><option>HR</option></select>
+          <select class="form-select" id="eu-dept">
+            <option value="">Loading…</option>
+          </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-label">Office Location</label>
-        <select class="form-select"><option selected>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
-      </div>
       <div class="form-field"><label class="form-label">Account Status</label>
-        <select class="form-select"><option selected>Active</option><option>Inactive</option></select>
+        <select class="form-select" id="eu-status">
+          <option value="ACTIVE">Active</option>
+          <option value="PENDING">Pending</option>
+          <option value="SUSPENDED">Suspended</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-user')">Cancel</button>
@@ -397,23 +277,19 @@ tr:last-child td{border-bottom:none}
 <div id="modal-reset-password" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-reset-password')">
   <div class="modal-box">
     <div class="modal-head"><h2>Reset User Password</h2><button class="modal-close" onclick="closeModal('modal-reset-password')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-reset-password')">
+    <form id="form-reset-pwd">
       <div class="form-field"><label class="form-label">Select User</label>
-        <select class="form-select" required>
+        <select class="form-select" id="rp-user" required>
           <option value="">Select user…</option>
-          <option>Priya Ratnayake</option><option>Dilshan Perera</option><option>Sanduni Jayawardena</option>
-          <option>Roshan Fernando</option><option>Amali Gunawardena</option><option>Thilanka Weerasekara</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-label">Reset Method</label>
-        <select class="form-select"><option>Send password reset link via email</option><option>Generate temporary password</option></select>
-      </div>
+      <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="rp-password" type="password" placeholder="Min. 10 characters" required></div>
       <div class="form-field" style="background:#fff4df;border:1px solid #f6d860;border-radius:7px;padding:10px 12px">
         <p style="margin:0;font-size:12px;color:var(--amber);font-weight:700">The user will be required to change their password on next login.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-reset-password')">Cancel</button>
-        <button type="submit" class="btn primary">Send Reset</button>
+        <button type="submit" class="btn primary">Reset Password</button>
       </div>
     </form>
   </div>
@@ -423,13 +299,16 @@ tr:last-child td{border-bottom:none}
 <div id="modal-deactivate-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-deactivate-user')">
   <div class="modal-box">
     <div class="modal-head"><h2>Deactivate User</h2><button class="modal-close" onclick="closeModal('modal-deactivate-user')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-deactivate-user')">
-      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Deactivating <strong>Priya Ratnayake</strong> will immediately revoke system access. All owned records, risks, and controls will remain assigned to this user until reassigned.</p>
+    <form id="form-deactivate">
+      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Deactivating <strong id="deactivate-name">this user</strong> will immediately revoke system access. All owned records, risks, and controls will remain assigned to this user until reassigned.</p>
       <div class="form-field"><label class="form-label">Reason for Deactivation</label>
-        <select class="form-select"><option>Resigned / Left organisation</option><option>Role change — pending reprovisioning</option><option>Security review</option><option>Extended leave</option><option>Other</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Reassign Owned Items To</label>
-        <select class="form-select"><option value="">Leave unassigned for now</option><option>Dilshan Perera</option><option>Sanduni Jayawardena</option><option>Roshan Fernando</option></select>
+        <select class="form-select">
+          <option>Resigned / Left organisation</option>
+          <option>Role change — pending reprovisioning</option>
+          <option>Security review</option>
+          <option>Extended leave</option>
+          <option>Other</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-deactivate-user')">Cancel</button>
@@ -439,48 +318,396 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- Modal: Activate User -->
-<div id="modal-activate-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-activate-user')">
-  <div class="modal-box">
-    <div class="modal-head"><h2>Reactivate User</h2><button class="modal-close" onclick="closeModal('modal-activate-user')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-activate-user')">
-      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Reactivating <strong>Chathuri Dissanayake</strong> will restore access to all previously assigned modules and permissions.</p>
-      <div class="form-field"><label class="form-label">Confirm Role</label>
-        <select class="form-select"><option>Operations Lead</option><option>Department Manager</option><option>Risk Analyst</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Send welcome back email</label>
-        <select class="form-select"><option>Yes</option><option>No</option></select>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="cancel-btn" onclick="closeModal('modal-activate-user')">Cancel</button>
-        <button type="submit" class="btn primary">Reactivate User</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { users: [], departments: [] };
+var editId = null, deactivateId = null;
+var searchTimer = null;
+
+var ROLES = {
+  ADMIN: 'Administrator',
+  RISK_OWNER: 'Risk Owner',
+  COMPLIANCE_OFFICER: 'Compliance Officer',
+  INTERNAL_AUDITOR: 'Internal Auditor',
+  IT_STAFF: 'IT Staff',
+  USER: 'Standard User'
+};
+
+function api(func, body, cb) {
+  var payload = Object.assign({ _func: func }, body || {});
+  fetch('/api/v1/admin/platform', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + TOKEN
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+      return;
+    }
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (!data.success) {
+      cb(data.error || 'An error occurred', null);
+    } else {
+      cb(null, data);
+    }
+  })
+  .catch(function(err) {
+    cb(err.message || 'Network error', null);
+  });
 }
-(function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+
+function showToast(msg, isErr) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;max-width:320px;line-height:1.4';
+  t.style.background = isErr ? 'var(--red)' : 'var(--teal)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function statusPill(s) {
+  var cls = s === 'ACTIVE' ? 'good' : s === 'PENDING' ? 'watch' : 'risk';
+  var label = s === 'ACTIVE' ? 'Active' : s === 'PENDING' ? 'Pending' : 'Suspended';
+  return '<span class="pill ' + cls + '">' + label + '</span>';
+}
+
+function initials(name) {
+  if (!name) return 'U';
+  var parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function populateDeptSelect(selectId, selectedId) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select department…</option>';
+  state.departments.forEach(function(d) {
+    var opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    if (selectedId && String(d.id) === String(selectedId)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function loadDepts(cb) {
+  api('list_departments', {}, function(err, data) {
+    if (err) {
+      showToast('Failed to load departments: ' + err, true);
+      if (cb) cb();
+      return;
+    }
+    state.departments = data.departments || [];
+
+    // Populate filter dropdown
+    var fDept = document.getElementById('f-dept');
+    if (fDept) {
+      fDept.innerHTML = '<option value="">All Departments</option>';
+      state.departments.forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = d.name;
+        fDept.appendChild(opt);
+      });
+    }
+
+    // Populate provision and edit dept selects
+    populateDeptSelect('pu-dept', null);
+    populateDeptSelect('eu-dept', null);
+
+    if (cb) cb();
+  });
+}
+
+function loadUsers() {
+  var dept = document.getElementById('f-dept').value || null;
+  var role = document.getElementById('f-role').value || null;
+  var status = document.getElementById('f-status').value || null;
+  var search = document.getElementById('f-search').value.trim() || null;
+
+  var params = {};
+  if (dept) params.department_id = dept;
+  if (role) params.role = role;
+  if (status) params.status = status;
+  if (search) params.search = search;
+
+  document.getElementById('users-tbody').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>';
+
+  api('list_users', params, function(err, data) {
+    if (err) {
+      showToast('Failed to load users: ' + err, true);
+      document.getElementById('users-tbody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error loading users.</td></tr>';
+      return;
+    }
+    state.users = data.users || [];
+    renderUsers(state.users);
+    populateResetUserSelect();
+  });
+}
+
+function renderUsers(users) {
+  var active = 0, pending = 0, suspended = 0;
+  users.forEach(function(u) {
+    if (u.status === 'ACTIVE') active++;
+    else if (u.status === 'PENDING') pending++;
+    else if (u.status === 'SUSPENDED') suspended++;
+  });
+
+  document.getElementById('mu-active').textContent = active;
+  document.getElementById('mu-pending').textContent = pending;
+  document.getElementById('mu-inactive').textContent = suspended;
+  document.getElementById('mu-issues').textContent = suspended;
+
+  var mainUsers = users.filter(function(u) { return u.status !== 'PENDING'; });
+  var pendingUsers = users.filter(function(u) { return u.status === 'PENDING'; });
+
+  // Render main table
+  var tbody = document.getElementById('users-tbody');
+  if (mainUsers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
+  } else {
+    tbody.innerHTML = mainUsers.map(function(u) {
+      var name = esc(u.username || u.email);
+      var ini = initials(u.username || u.email);
+      var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
+      var roleLabel = esc(ROLES[u.role] || u.role || '—');
+      var deptLabel = esc(u.department_name || '—');
+      var actions = '';
+      if (u.status === 'SUSPENDED') {
+        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
+          '<button class="tbl-action" style="color:var(--green)" onclick="activateUser(' + u.id + ')">Activate</button>';
+      } else {
+        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
+          '<button class="tbl-action red" onclick="openDeactivateModal(' + u.id + ')">Deactivate</button>';
+      }
+      return '<tr>' +
+        '<td><div class="avatar-cell"><div class="avatar" style="background:' + avatarBg + '">' + esc(ini) + '</div><strong>' + name + '</strong></div></td>' +
+        '<td style="color:var(--muted)">' + esc(u.email) + '</td>' +
+        '<td>' + roleLabel + '</td>' +
+        '<td>' + deptLabel + '</td>' +
+        '<td>' + statusPill(u.status) + '</td>' +
+        '<td>' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // Render pending list
+  var pendingList = document.getElementById('pending-list');
+  if (pendingUsers.length === 0) {
+    pendingList.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">No pending users.</div>';
+  } else {
+    pendingList.innerHTML = pendingUsers.map(function(u) {
+      var name = esc(u.username || u.email);
+      var roleLabel = esc(ROLES[u.role] || u.role || '—');
+      var deptLabel = esc(u.department_name || '—');
+      return '<div class="pending-item">' +
+        '<div class="pending-info">' +
+        '<strong>' + name + '</strong>' +
+        '<span>' + esc(u.email) + ' &middot; ' + roleLabel + ' &middot; ' + deptLabel + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+        '<button class="btn sm" onclick="openEditModal(' + u.id + ')">Review</button>' +
+        '<button class="btn sm primary" onclick="approveUser(' + u.id + ')">Approve</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+}
+
+function populateResetUserSelect() {
+  var sel = document.getElementById('rp-user');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select user…</option>';
+  state.users
+    .filter(function(u) { return u.status === 'ACTIVE'; })
+    .forEach(function(u) {
+      var opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = (u.username || u.email) + ' (' + esc(u.email) + ')';
+      sel.appendChild(opt);
+    });
+}
+
+window.openEditModal = function(id) {
+  var user = null;
+  for (var i = 0; i < state.users.length; i++) {
+    if (String(state.users[i].id) === String(id)) { user = state.users[i]; break; }
+  }
+  if (!user) { showToast('User not found', true); return; }
+  editId = id;
+  document.getElementById('eu-name').value = user.username || '';
+  document.getElementById('eu-email').value = user.email || '';
+  document.getElementById('eu-role').value = user.role || 'USER';
+  document.getElementById('eu-status').value = user.status || 'ACTIVE';
+  populateDeptSelect('eu-dept', user.department_id);
+  openModal('modal-edit-user');
+};
+
+window.openDeactivateModal = function(id) {
+  var user = null;
+  for (var i = 0; i < state.users.length; i++) {
+    if (String(state.users[i].id) === String(id)) { user = state.users[i]; break; }
+  }
+  deactivateId = id;
+  var nameEl = document.getElementById('deactivate-name');
+  if (nameEl) nameEl.textContent = user ? (user.username || user.email) : 'this user';
+  openModal('modal-deactivate-user');
+};
+
+window.activateUser = function(id) {
+  api('set_user_status', { id: id, status: 'ACTIVE' }, function(err) {
+    if (err) { showToast('Failed to activate user: ' + err, true); return; }
+    showToast('User activated successfully.');
+    loadUsers();
+  });
+};
+
+window.approveUser = function(id) {
+  api('set_user_status', { id: id, status: 'ACTIVE' }, function(err) {
+    if (err) { showToast('Failed to approve user: ' + err, true); return; }
+    showToast('User approved and activated.');
+    loadUsers();
+  });
+};
+
+window.openProvisionModal = function() {
+  populateDeptSelect('pu-dept', null);
+  document.getElementById('form-provision').reset();
+  openModal('modal-provision-user');
+};
+
+// Form: Provision User
+document.getElementById('form-provision').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = e.submitter;
+  var orig = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Provisioning…'; btn.disabled = true; }
+
+  var name = document.getElementById('pu-name').value.trim();
+  var parts = name.split(/\s+/);
+  var username = parts.join('_').toLowerCase();
+
+  api('provision_user', {
+    username: username,
+    email: document.getElementById('pu-email').value.trim(),
+    password: document.getElementById('pu-password').value,
+    role: document.getElementById('pu-role').value,
+    department_id: document.getElementById('pu-dept').value
+  }, function(err) {
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (err) { showToast('Failed to provision user: ' + err, true); return; }
+    closeModal('modal-provision-user');
+    showToast('User provisioned successfully.');
+    loadUsers();
+  });
+});
+
+// Form: Edit User
+document.getElementById('form-edit-user').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = e.submitter;
+  var orig = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+  api('update_user', {
+    id: editId,
+    username: document.getElementById('eu-name').value.trim(),
+    email: document.getElementById('eu-email').value.trim(),
+    role: document.getElementById('eu-role').value,
+    department_id: document.getElementById('eu-dept').value,
+    status: document.getElementById('eu-status').value
+  }, function(err) {
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (err) { showToast('Failed to update user: ' + err, true); return; }
+    closeModal('modal-edit-user');
+    showToast('User updated successfully.');
+    loadUsers();
+  });
+});
+
+// Form: Deactivate User
+document.getElementById('form-deactivate').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = e.submitter;
+  var orig = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Deactivating…'; btn.disabled = true; }
+
+  api('set_user_status', { id: deactivateId, status: 'SUSPENDED' }, function(err) {
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (err) { showToast('Failed to deactivate user: ' + err, true); return; }
+    closeModal('modal-deactivate-user');
+    showToast('User deactivated.');
+    loadUsers();
+  });
+});
+
+// Form: Reset Password
+document.getElementById('form-reset-pwd').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = e.submitter;
+  var orig = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Resetting…'; btn.disabled = true; }
+
+  api('reset_user_password', {
+    id: document.getElementById('rp-user').value,
+    new_password: document.getElementById('rp-password').value
+  }, function(err) {
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (err) { showToast('Failed to reset password: ' + err, true); return; }
+    closeModal('modal-reset-password');
+    document.getElementById('form-reset-pwd').reset();
+    showToast('Password reset successfully.');
+  });
+});
+
+// Filter change handlers
+document.getElementById('f-dept').addEventListener('change', loadUsers);
+document.getElementById('f-role').addEventListener('change', loadUsers);
+document.getElementById('f-status').addEventListener('change', loadUsers);
+document.getElementById('f-search').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadUsers, 400);
+});
+
+// Init: load sidebar user info, then load departments and users
+(function() {
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) {
+    var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    av.textContent = i || 'U';
+  }
+  loadDepts(loadUsers);
 })();
 </script>
 </body>

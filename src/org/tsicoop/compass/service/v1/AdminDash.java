@@ -1,4 +1,4 @@
-package org.tsicoop.dpdpcms.service.v1;
+package org.tsicoop.compass.service.v1;
 
 import org.tsicoop.compass.framework.Action;
 import org.tsicoop.compass.framework.InputProcessor;

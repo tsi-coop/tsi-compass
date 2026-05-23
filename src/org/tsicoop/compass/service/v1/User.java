@@ -1,4 +1,4 @@
-package org.tsicoop.dpdpcms.service.v1;
+package org.tsicoop.compass.service.v1;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

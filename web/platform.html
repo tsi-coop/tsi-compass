@@ -98,23 +98,23 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Office Locations</div>
-        <div class="metric-value">4</div>
-        <div class="metric-note">Head office + 3 regional</div>
+        <div class="metric-value" id="m-orgs">—</div>
+        <div class="metric-note" id="m-orgs-note">Loading…</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Departments</div>
-        <div class="metric-value">12</div>
+        <div class="metric-value" id="m-depts">—</div>
         <div class="metric-note">Across all locations</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Active Users</div>
-        <div class="metric-value">47</div>
-        <div class="metric-note">3 pending provisioning</div>
+        <div class="metric-value" id="m-users">—</div>
+        <div class="metric-note" id="m-users-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
-        <div class="metric-label">Access Issues</div>
-        <div class="metric-value">2</div>
-        <div class="metric-note">Require immediate review</div>
+        <div class="metric-label">Suspended Users</div>
+        <div class="metric-value" id="m-suspended">—</div>
+        <div class="metric-note">Require access review</div>
       </div>
     </div>
 
@@ -128,7 +128,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
           <p>Configure the office hierarchy, departments, designations, and Key Result Areas that define the organizational map.</p>
         </div>
         <div class="card-foot">
-          <span class="card-stat"><strong>4</strong> locations &middot; <strong>12</strong> departments</span>
+          <span class="card-stat" id="sc-org-stat"><strong>—</strong> locations &middot; <strong>—</strong> departments</span>
           <span class="open-link">Manage <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
         </div>
       </a>
@@ -142,7 +142,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
           <p>Provision, edit, and deactivate system users. Manage authentication settings and access provisioning workflows.</p>
         </div>
         <div class="card-foot">
-          <span class="card-stat"><strong>47</strong> active &middot; <strong>3</strong> pending</span>
+          <span class="card-stat" id="sc-users-stat"><strong>—</strong> active &middot; <strong>—</strong> pending</span>
           <span class="open-link">Manage <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
         </div>
       </a>
@@ -179,11 +179,47 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 </div>
 <script>
 (function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  var token = localStorage.getItem('token');
+  if (!token) { window.location.replace('index.html'); return; }
+
+  var n = localStorage.getItem('username') || '';
+  var r = localStorage.getItem('role') || '';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) { var i = n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase(); av.textContent = i || 'U'; }
+
+  fetch('/api/v1/admin/platform', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ _func: 'get_platform_metrics' })
+  })
+  .then(function(r) {
+    if (r.status === 401) { localStorage.clear(); window.location.replace('index.html'); return null; }
+    return r.json();
+  })
+  .then(function(d) {
+    if (!d) return;
+    var orgs = d.org_count != null ? d.org_count : '—';
+    var depts = d.dept_count != null ? d.dept_count : '—';
+    var active = d.active_users != null ? d.active_users : '—';
+    var pending = d.pending_users != null ? d.pending_users : '—';
+    var suspended = d.suspended_users != null ? d.suspended_users : '—';
+
+    var el = document.getElementById('m-orgs'); if (el) el.textContent = orgs;
+    el = document.getElementById('m-depts'); if (el) el.textContent = depts;
+    el = document.getElementById('m-users'); if (el) el.textContent = active;
+    el = document.getElementById('m-suspended'); if (el) el.textContent = suspended;
+    el = document.getElementById('m-orgs-note'); if (el) el.textContent = orgs === 1 ? '1 location' : orgs + ' locations total';
+    el = document.getElementById('m-users-note'); if (el) el.textContent = pending + ' pending provisioning';
+    el = document.getElementById('sc-org-stat');
+    if (el) el.innerHTML = '<strong>' + orgs + '</strong> locations &middot; <strong>' + depts + '</strong> departments';
+    el = document.getElementById('sc-users-stat');
+    if (el) el.innerHTML = '<strong>' + active + '</strong> active &middot; <strong>' + pending + '</strong> pending';
+  })
+  .catch(function() {});
 })();
 </script>
 </body>
