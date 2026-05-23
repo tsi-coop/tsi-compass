@@ -48,6 +48,12 @@ public class AdminDash implements Action {
                 case "list_access_logs":
                     OutputProcessor.send(res, 200, listAuditLogsFromDb());
                     break;
+                case "get_dashboard_metrics":
+                    OutputProcessor.send(res, 200, getDashboardMetrics());
+                    break;
+                case "list_recent_activity":
+                    OutputProcessor.send(res, 200, listRecentActivity());
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function", req.getRequestURI());
             }
@@ -225,5 +231,77 @@ public class AdminDash implements Action {
     @Override
     public boolean validate(String method, HttpServletRequest req, HttpServletResponse res) {
         return "POST".equalsIgnoreCase(method);
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getDashboardMetrics() throws SQLException {
+        PoolDB pool = new PoolDB();
+        Connection conn = null;
+        JSONObject r = new JSONObject();
+        try {
+            conn = pool.getConnection();
+
+            r.put("active_users",   getSimpleCount(conn, pool, "SELECT COUNT(*) FROM users WHERE status = 'ACTIVE'"));
+            r.put("pending_users",  getSimpleCount(conn, pool, "SELECT COUNT(*) FROM users WHERE status = 'PENDING'"));
+            r.put("org_count",      getSimpleCount(conn, pool, "SELECT COUNT(*) FROM organizations"));
+            r.put("dept_count",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM departments"));
+
+            r.put("open_risks",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM risks WHERE status != 'RETIRED'"));
+            r.put("high_risks",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM risks WHERE inherent_risk_score >= 15 AND status != 'RETIRED'"));
+
+            r.put("policies_total",        getSimpleCount(conn, pool, "SELECT COUNT(*) FROM policies"));
+            r.put("policies_draft_review", getSimpleCount(conn, pool, "SELECT COUNT(*) FROM policies WHERE status IN ('DRAFT','UNDER_REVIEW')"));
+
+            r.put("controls_total",    getSimpleCount(conn, pool, "SELECT COUNT(*) FROM controls"));
+            r.put("controls_attested", getSimpleCount(conn, pool,
+                "SELECT COUNT(DISTINCT control_id) FROM control_attestations WHERE status IN ('COMPLIANT','APPROVED')"));
+
+            int total    = r.get("controls_total")    instanceof Integer ? (Integer) r.get("controls_total")    : 0;
+            int attested = r.get("controls_attested") instanceof Integer ? (Integer) r.get("controls_attested") : 0;
+            r.put("readiness_pct", total > 0 ? (int) Math.round(100.0 * attested / total) : 0);
+
+            r.put("evidence_count",      getSimpleCount(conn, pool, "SELECT COUNT(*) FROM evidence_locker"));
+            r.put("open_incidents",      getSimpleCount(conn, pool, "SELECT COUNT(*) FROM incidents WHERE status NOT IN ('RESOLVED','CLOSED')"));
+            r.put("critical_incidents",  getSimpleCount(conn, pool, "SELECT COUNT(*) FROM incidents WHERE status NOT IN ('RESOLVED','CLOSED') AND severity IN ('CRITICAL','HIGH')"));
+            r.put("audit_events_today",  getSimpleCount(conn, pool, "SELECT COUNT(*) FROM system_audit_trail WHERE timestamp >= CURRENT_DATE"));
+
+        } finally {
+            if (pool != null && conn != null) pool.cleanup(null, null, conn);
+        }
+        r.put("success", true);
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listRecentActivity() throws SQLException {
+        PoolDB pool = new PoolDB();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray events = new JSONArray();
+        try {
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT TO_CHAR(sat.timestamp AT TIME ZONE 'UTC','YYYY-MM-DD HH24:MI:SS') AS ts, " +
+                "sat.audit_action, sat.context_details::text AS details, u.username " +
+                "FROM system_audit_trail sat LEFT JOIN users u ON u.id = sat.user_id " +
+                "ORDER BY sat.timestamp DESC LIMIT 10"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject ev = new JSONObject();
+                ev.put("timestamp",    rs.getString("ts"));
+                ev.put("audit_action", rs.getString("audit_action"));
+                ev.put("details",      rs.getString("details"));
+                ev.put("username",     rs.getString("username"));
+                events.add(ev);
+            }
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("events", events);
+        return result;
     }
 }
