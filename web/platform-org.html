@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Org Structure</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:2px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.main{padding:32px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:6px}
+.breadcrumb a{color:var(--teal);font-weight:700}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:30px;padding:0 10px;font-size:11px}
+.grid{display:grid;gap:16px}
+.col2{grid-template-columns:repeat(2,1fr)}
+.mb{margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.tbl-action{font-size:11px;font-weight:800;color:var(--teal);cursor:pointer;background:none;border:none;padding:2px 0;text-decoration:none}
+.tbl-action+.tbl-action{margin-left:10px}
+.tbl-action.red{color:var(--red)}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+/* Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.modal-close:hover{background:#f5f9f8;color:var(--ink)}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col2{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="platform-org.html" class="subnav active">Org Structure</a>
+      <a href="platform-users.html" class="subnav">User Management</a>
+      <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
+      <a href="platform-audit.html" class="subnav">Audit Trail</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="breadcrumb"><a href="platform.html">Platform &amp; Access</a> / Org Structure</div>
+        <h1>Organization Structure</h1>
+        <p class="subtitle">Map your office hierarchy, departments, designations, and linked compliance responsibilities.</p>
+      </div>
+      <div class="acts">
+        <button class="btn" onclick="openModal('modal-add-dept')">Add Department</button>
+        <button class="btn primary" onclick="openModal('modal-add-location')">Add Location</button>
+      </div>
+    </div>
+
+    <!-- Office Locations -->
+    <div class="card mb">
+      <div class="section-head">
+        <h2>Office Locations</h2>
+        <button class="btn sm" onclick="openModal('modal-add-location')">+ Add Location</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Location</th><th>Type</th><th>Address</th><th>Departments</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Head Office — Colombo</strong></td>
+            <td><span class="pill good">Primary</span></td>
+            <td style="color:var(--muted)">123 Union Place, Colombo 02</td>
+            <td>7</td>
+            <td><span class="pill good">Active</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Regional Office — Kandy</strong></td>
+            <td><span class="pill neu">Regional</span></td>
+            <td style="color:var(--muted)">47 Dalada Veediya, Kandy</td>
+            <td>3</td>
+            <td><span class="pill good">Active</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Regional Office — Galle</strong></td>
+            <td><span class="pill neu">Regional</span></td>
+            <td style="color:var(--muted)">28 Church Street, Galle</td>
+            <td>2</td>
+            <td><span class="pill good">Active</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Data Centre — Colombo</strong></td>
+            <td><span class="pill info">Facility</span></td>
+            <td style="color:var(--muted)">45 Rajagiriya Road, Colombo 05</td>
+            <td>2</td>
+            <td><span class="pill good">Active</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-location')">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Departments -->
+    <div class="card mb">
+      <div class="section-head">
+        <h2>Departments</h2>
+        <button class="btn sm" onclick="openModal('modal-add-dept')">+ Add Department</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Department</th><th>Location</th><th>Department Head</th><th>Staff</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>IT Department</strong></td><td>Head Office</td><td>Dilshan Perera</td><td>12</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Compliance &amp; Risk</strong></td><td>Head Office</td><td>Priya Ratnayake</td><td>8</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Finance</strong></td><td>Head Office</td><td>Kasun Bandara</td><td>6</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Operations</strong></td><td>Head Office</td><td>Chathuri Dissanayake</td><td>9</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>HR</strong></td><td>Head Office</td><td>Nimesha Wickramasinghe</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>IT Support</strong></td><td>Regional — Kandy</td><td>Suresh Wijeratne</td><td>4</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Branch Operations</strong></td><td>Regional — Kandy</td><td>Chamari Perera</td><td>7</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Customer Service</strong></td><td>Regional — Galle</td><td>Ruwani Silva</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Infrastructure &amp; Security</strong></td><td>Data Centre</td><td>Roshan Fernando</td><td>6</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+          <tr><td><strong>Platform Engineering</strong></td><td>Data Centre</td><td>Nuwan Jayasinghe</td><td>5</td><td><span class="pill good">Active</span></td><td><button class="tbl-action" onclick="openModal('modal-edit-dept')">Edit</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Designations & KRAs -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Designations &amp; Key Result Areas</h2>
+        <button class="btn sm" onclick="openModal('modal-add-designation')">+ Add Designation</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Designation</th><th>Department</th><th>Key Result Areas</th><th>GRC Role</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Chief Risk Officer</strong></td>
+            <td>Compliance &amp; Risk</td>
+            <td style="color:var(--muted);font-size:12px">Risk Oversight, Board Reporting, Regulatory Compliance</td>
+            <td><span class="pill good">Risk Owner</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>IT Security Lead</strong></td>
+            <td>IT Department</td>
+            <td style="color:var(--muted);font-size:12px">Vulnerability Management, Incident Response, VAPT Oversight</td>
+            <td><span class="pill info">Security Lead</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Compliance Officer</strong></td>
+            <td>Compliance &amp; Risk</td>
+            <td style="color:var(--muted);font-size:12px">Policy Lifecycle, Framework Mapping, Attestation Tracking</td>
+            <td><span class="pill info">Policy Owner</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Internal Auditor</strong></td>
+            <td>Compliance &amp; Risk</td>
+            <td style="color:var(--muted);font-size:12px">Audit Scheduling, Finding Logs, Evidence Collection</td>
+            <td><span class="pill info">Audit Lead</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>IT Administrator</strong></td>
+            <td>IT Department</td>
+            <td style="color:var(--muted);font-size:12px">User Provisioning, Asset Management, Change Requests</td>
+            <td><span class="pill watch">IT Admin</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Risk Analyst</strong></td>
+            <td>Compliance &amp; Risk</td>
+            <td style="color:var(--muted);font-size:12px">Risk Identification, VAPT Coordination, Remediation Tracking</td>
+            <td><span class="pill neu">Analyst</span></td>
+            <td><button class="tbl-action" onclick="openModal('modal-edit-designation')">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Add Location -->
+<div id="modal-add-location" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-location')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Add Office Location</h2><button class="modal-close" onclick="closeModal('modal-add-location')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-add-location')">
+      <div class="form-field"><label class="form-label">Location Name</label><input class="form-input" placeholder="e.g. Regional Office — Jaffna" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Type</label>
+          <select class="form-select"><option>Head Office</option><option>Regional Office</option><option>Branch</option><option>Data Centre</option><option>Facility</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select"><option>Active</option><option>Inactive</option><option>Planned</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Address</label><input class="form-input" placeholder="Street address"></div>
+      <div class="form-field"><label class="form-label">Location Head</label><input class="form-input" placeholder="Name of location head"></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-add-location')">Cancel</button>
+        <button type="submit" class="btn primary">Add Location</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit Location -->
+<div id="modal-edit-location" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-location')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Edit Office Location</h2><button class="modal-close" onclick="closeModal('modal-edit-location')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-edit-location')">
+      <div class="form-field"><label class="form-label">Location Name</label><input class="form-input" value="Head Office — Colombo" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Type</label>
+          <select class="form-select"><option selected>Head Office</option><option>Regional Office</option><option>Branch</option><option>Data Centre</option><option>Facility</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select"><option selected>Active</option><option>Inactive</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Address</label><input class="form-input" value="123 Union Place, Colombo 02"></div>
+      <div class="form-field"><label class="form-label">Location Head</label><input class="form-input" value="Priya Ratnayake"></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-location')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Add Department -->
+<div id="modal-add-dept" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-dept')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Add Department</h2><button class="modal-close" onclick="closeModal('modal-add-dept')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-add-dept')">
+      <div class="form-field"><label class="form-label">Department Name</label><input class="form-input" placeholder="e.g. Digital Banking" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Location</label>
+          <select class="form-select" required><option value="">Select…</option><option>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select"><option>Active</option><option>Inactive</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Department Head</label><input class="form-input" placeholder="Name of department head"></div>
+      <div class="form-field"><label class="form-label">Primary Function</label><input class="form-input" placeholder="Brief description of department's function"></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-add-dept')">Cancel</button>
+        <button type="submit" class="btn primary">Add Department</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit Department -->
+<div id="modal-edit-dept" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-dept')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Edit Department</h2><button class="modal-close" onclick="closeModal('modal-edit-dept')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-edit-dept')">
+      <div class="form-field"><label class="form-label">Department Name</label><input class="form-input" value="IT Department" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Location</label>
+          <select class="form-select"><option selected>Head Office — Colombo</option><option>Regional Office — Kandy</option><option>Regional Office — Galle</option><option>Data Centre — Colombo</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select"><option selected>Active</option><option>Inactive</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Department Head</label><input class="form-input" value="Dilshan Perera"></div>
+      <div class="form-field"><label class="form-label">Primary Function</label><input class="form-input" value="IT infrastructure, security, and platform management"></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-dept')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Add Designation -->
+<div id="modal-add-designation" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-designation')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Add Designation</h2><button class="modal-close" onclick="closeModal('modal-add-designation')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-add-designation')">
+      <div class="form-field"><label class="form-label">Designation Title</label><input class="form-input" placeholder="e.g. Data Privacy Officer" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Department</label>
+          <select class="form-select" required><option value="">Select…</option><option>IT Department</option><option>Compliance &amp; Risk</option><option>Finance</option><option>Operations</option><option>HR</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">GRC Role</label>
+          <select class="form-select"><option>Risk Owner</option><option>Policy Owner</option><option>Audit Lead</option><option>Security Lead</option><option>IT Admin</option><option>Analyst</option><option>Viewer</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Key Result Areas</label><textarea class="form-textarea" placeholder="Comma-separated KRAs, e.g. Risk Assessment, Vendor Review, Policy Drafting"></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-add-designation')">Cancel</button>
+        <button type="submit" class="btn primary">Add Designation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit Designation -->
+<div id="modal-edit-designation" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-designation')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Edit Designation</h2><button class="modal-close" onclick="closeModal('modal-edit-designation')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-edit-designation')">
+      <div class="form-field"><label class="form-label">Designation Title</label><input class="form-input" value="Chief Risk Officer" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Department</label>
+          <select class="form-select"><option selected>Compliance &amp; Risk</option><option>IT Department</option><option>Finance</option><option>Operations</option><option>HR</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">GRC Role</label>
+          <select class="form-select"><option selected>Risk Owner</option><option>Policy Owner</option><option>Audit Lead</option><option>Security Lead</option><option>IT Admin</option><option>Analyst</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Key Result Areas</label><textarea class="form-textarea">Risk Oversight, Board Reporting, Regulatory Compliance</textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-designation')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function submitModal(e,id){
+  e.preventDefault();
+  var btn=e.submitter,orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='Saving…';btn.disabled=true}
+  setTimeout(function(){
+    closeModal(id);
+    if(btn){btn.textContent=orig;btn.disabled=false}
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
+    t.textContent='Saved successfully.';document.body.appendChild(t);
+    setTimeout(function(){t.remove()},2800);
+  },700);
+}
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+})();
+</script>
+</body>
+</html>

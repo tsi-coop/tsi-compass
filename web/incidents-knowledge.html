@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Knowledge Base</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
+.breadcrumb a{color:var(--teal);font-weight:600}
+.breadcrumb a:hover{text-decoration:underline}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
+.article-list{padding:0}
+.article-item{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px;border-bottom:1px solid #f0f4f8;gap:20px}
+.article-item:last-child{border-bottom:none}
+.article-item:hover{background:#fafcfd}
+.article-info{flex:1;min-width:0}
+.article-title{font-size:14px;font-weight:700;margin-bottom:3px;color:var(--teal);cursor:pointer}
+.article-title:hover{text-decoration:underline}
+.article-excerpt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.article-meta{display:flex;gap:12px;font-size:11px;color:var(--muted)}
+.article-meta span strong{color:var(--ink);font-weight:600}
+.article-actions{display:flex;gap:6px;flex-shrink:0}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin-right:4px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:120px;padding:8px 10px;resize:vertical}
+.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <a class="btn" href="index.html">Sign out</a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="incidents-register.html" class="subnav">Incident Register</a>
+      <a href="incidents-training.html" class="subnav">Security Training</a>
+      <a href="incidents-knowledge.html" class="subnav active">Knowledge Base</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="incidents.html">Incidents &amp; Awareness</a> / Knowledge Base</div>
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Incidents &amp; Awareness</div>
+        <h1>Knowledge Base</h1>
+        <p class="subtitle">Security procedures, runbooks, and lessons-learned articles for the IT and security teams.</p>
+      </div>
+      <div class="acts">
+        <button class="btn primary" onclick="openModal('modal-add-article')">Add Article</button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Articles</h2>
+        <span style="font-size:12px;color:var(--muted)">24 articles</span>
+      </div>
+      <div class="filter-bar">
+        <select><option>All Categories</option><option>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select>
+        <select><option>All Audiences</option><option>IT Security</option><option>IT Operations</option><option>All Staff</option></select>
+        <input type="search" placeholder="Search knowledge base…">
+      </div>
+      <div class="article-list">
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">Incident Response Runbook – Credential Compromise</div>
+            <div class="article-excerpt">Step-by-step response procedure for suspected credential compromise events, including containment, eradication, and recovery steps.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> Runbook</span>
+              <span><strong>Audience:</strong> IT Security</span>
+              <span><strong>Updated:</strong> 12 May 2026</span>
+              <span><strong>Author:</strong> K. Perera</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">DDoS Mitigation Procedure</div>
+            <div class="article-excerpt">Actions to take when a distributed denial-of-service attack is detected, including WAF rule escalation and ISP coordination.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> Runbook</span>
+              <span><strong>Audience:</strong> IT Security, IT Operations</span>
+              <span><strong>Updated:</strong> 02 Apr 2026</span>
+              <span><strong>Author:</strong> D. Wijesekara</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">Lessons Learned: Phishing Campaign May 2026</div>
+            <div class="article-excerpt">Post-incident analysis of the May 2026 phishing event affecting 3 staff members. Root cause, timeline, and recommended awareness improvements.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> Lessons Learned</span>
+              <span><strong>Audience:</strong> All Staff</span>
+              <span><strong>Updated:</strong> 10 May 2026</span>
+              <span><strong>Author:</strong> Security Team</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">How to Report a Suspicious Email</div>
+            <div class="article-excerpt">Simple guide for all staff on identifying and reporting phishing or suspicious emails via the IT Security mailbox and the report button in Outlook.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> FAQ</span>
+              <span><strong>Audience:</strong> All Staff</span>
+              <span><strong>Updated:</strong> 15 Jan 2026</span>
+              <span><strong>Author:</strong> IT Security</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">Backup &amp; Recovery Procedure – Core Systems</div>
+            <div class="article-excerpt">Documented recovery procedures for core banking system backups including RTO/RPO targets and verification steps post-restoration.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> Procedure</span>
+              <span><strong>Audience:</strong> IT Operations</span>
+              <span><strong>Updated:</strong> 28 Feb 2026</span>
+              <span><strong>Author:</strong> N. Fernando</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+        <div class="article-item">
+          <div class="article-info">
+            <div class="article-title" onclick="openModal('modal-edit-article')">Data Classification Policy Summary</div>
+            <div class="article-excerpt">Summary guide for employees explaining the four data classification tiers (Public, Internal, Confidential, Restricted) and handling requirements for each.</div>
+            <div class="article-meta">
+              <span><strong>Category:</strong> Policy Summary</span>
+              <span><strong>Audience:</strong> All Staff</span>
+              <span><strong>Updated:</strong> 10 Mar 2026</span>
+              <span><strong>Author:</strong> Compliance Team</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <button class="btn sm" onclick="openModal('modal-edit-article')">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Add Article -->
+<div class="modal-overlay" id="modal-add-article">
+  <div class="modal">
+    <h2>Add Article</h2>
+    <form onsubmit="submitModal(event,'modal-add-article')">
+      <div class="form-row"><label>Title</label><input type="text" placeholder="Article title" required></div>
+      <div class="form-row half">
+        <div><label>Category</label><select><option>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select></div>
+        <div><label>Audience</label><select><option>All Staff</option><option>IT Security</option><option>IT Operations</option><option>Management</option></select></div>
+      </div>
+      <div class="form-row"><label>Summary / Excerpt</label><input type="text" placeholder="One-line summary for the article list"></div>
+      <div class="form-row"><label>Content</label><textarea placeholder="Article content (Markdown supported)…" style="height:160px"></textarea></div>
+      <div class="form-row"><label>Tags</label><input type="text" placeholder="e.g. phishing, incident-response, access-control"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn" onclick="closeModal('modal-add-article')">Cancel</button>
+        <button type="submit" class="btn primary">Publish Article</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit Article -->
+<div class="modal-overlay" id="modal-edit-article">
+  <div class="modal">
+    <h2>Edit Article</h2>
+    <form onsubmit="submitModal(event,'modal-edit-article')">
+      <div class="form-row"><label>Title</label><input type="text" value="Incident Response Runbook – Credential Compromise"></div>
+      <div class="form-row half">
+        <div><label>Category</label><select><option selected>Runbook</option><option>Procedure</option><option>Lessons Learned</option><option>FAQ</option><option>Policy Summary</option></select></div>
+        <div><label>Audience</label><select><option selected>IT Security</option><option>All Staff</option><option>IT Operations</option></select></div>
+      </div>
+      <div class="form-row"><label>Content</label><textarea style="height:160px">Step-by-step response procedure for suspected credential compromise events…</textarea></div>
+      <div class="modal-foot">
+        <button type="button" class="btn" onclick="closeModal('modal-edit-article')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved successfully</div>
+<script>
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function submitModal(e,id){e.preventDefault();closeModal(id);var t=document.getElementById('toast');t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})});
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+})();
+</script>
+</body>
+</html>
