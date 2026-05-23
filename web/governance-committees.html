@@ -30,31 +30,48 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:30px;padding:0 10px;font-size:11px}
 .mb{margin-bottom:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .section-head h2{margin:0;font-size:15px;font-weight:800}
-.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
+.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer;background:none;border:none;padding:2px 0}
+.lk:hover{color:var(--ink)}
 .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
 .good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
 td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-.list{display:grid;gap:10px}
+.item-list{display:grid;gap:10px}
 .item{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #edf2f6;border-radius:8px}
 .item-body strong{display:block;font-size:13px;margin-bottom:2px}
 .item-body span{color:var(--muted);font-size:12px;line-height:1.4}
-.grid{display:grid;gap:16px}
-.col2{grid-template-columns:repeat(2,1fr)}
+.item-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.modal-close:hover{background:#f5f9f8;color:var(--ink)}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:90px;resize:vertical;font-family:inherit}
+.form-note{font-size:12px;color:var(--muted);margin-top:4px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:24px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col2{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}.form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -65,7 +82,6 @@ tr:last-child td{border-bottom:none}
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="governance-committees.html" class="subnav active">Committees</a>
       <a href="governance-policies.html" class="subnav">Policies &amp; Documents</a>
-      <a href="governance-attestations.html" class="subnav">Attestation Tracker</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
@@ -96,100 +112,60 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Manage IT committee meeting calendar, log minutes, and track open action items.</p>
       </div>
       <div class="acts">
-        <a class="btn" href="#" onclick="openModal('modal-log-minutes');return false;">Log Minutes</a>
-        <a class="btn primary" href="#" onclick="openModal('modal-schedule-meeting');return false;">Schedule Meeting</a>
+        <button class="btn" onclick="openModal('modal-log-minutes')">Log Minutes</button>
+        <button class="btn primary" onclick="openModal('modal-schedule-meeting')">Schedule Meeting</button>
       </div>
     </div>
 
     <div class="card mb">
-      <div class="section-head"><h2>Committee Meeting Calendar</h2><span class="lk" onclick="openModal('modal-schedule-meeting')">+ Schedule Meeting</span></div>
+      <div class="section-head">
+        <h2>Committee Meeting Calendar</h2>
+        <button class="lk" onclick="openModal('modal-schedule-meeting')">+ Schedule Meeting</button>
+      </div>
       <table>
-        <thead><tr><th>Date</th><th>Committee</th><th>Agenda Summary</th><th>Venue</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          <tr><td>13 May 2026</td><td><strong>IT Steering Committee</strong></td><td>Q1 Risk Review &amp; Budget Reforecast</td><td>Boardroom A</td><td><span class="pill neu">Completed</span></td><td><span class="lk" onclick="openModal('modal-log-minutes')">Log Minutes</span></td></tr>
-          <tr><td>20 May 2026</td><td><strong>Risk &amp; Compliance Board</strong></td><td>VAPT Findings &amp; Exception Approvals</td><td>Boardroom A</td><td><span class="pill neu">Completed</span></td><td><span class="lk" onclick="openModal('modal-log-minutes')">Log Minutes</span></td></tr>
-          <tr><td>27 May 2026</td><td><strong>IT Steering Committee</strong></td><td>Q2 Risk Review &amp; Budget Allocation</td><td>Zoom</td><td><span class="pill info">Scheduled</span></td><td><span class="lk">Edit</span></td></tr>
-          <tr><td>29 May 2026</td><td><strong>Risk &amp; Compliance Board</strong></td><td>Policy Approvals &amp; VAPT Remediation Update</td><td>Boardroom A</td><td><span class="pill info">Scheduled</span></td><td><span class="lk">Edit</span></td></tr>
-          <tr><td>04 Jun 2026</td><td><strong>IT Strategy Committee</strong></td><td>Cloud Migration Roadmap Review</td><td>Boardroom B</td><td><span class="pill info">Scheduled</span></td><td><span class="lk">Edit</span></td></tr>
-          <tr><td>18 Jun 2026</td><td><strong>IT Steering Committee</strong></td><td>H1 Performance Review</td><td>TBC</td><td><span class="pill neu">Tentative</span></td><td><span class="lk">Edit</span></td></tr>
+        <thead><tr><th>Date</th><th>Committee</th><th>Agenda</th><th>Venue</th><th>Status</th><th></th></tr></thead>
+        <tbody id="meetings-tbody">
+          <tr><td colspan="6" class="empty">Loading meetings…</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="card">
-      <div class="section-head"><h2>Open Action Items</h2><span class="lk" onclick="openModal('modal-add-action')">+ Add Action Item</span></div>
-      <div class="list">
-        <div class="item">
-          <div class="item-body">
-            <strong>Update Vendor Risk SOP by 31 May</strong>
-            <span>Assigned to: A. Gunawardena · From: Risk Board 20 May · Source meeting: 2026-05-20</span>
-          </div>
-          <span class="pill watch">Due Soon</span>
-        </div>
-        <div class="item">
-          <div class="item-body">
-            <strong>Share VAPT report with Steering Committee</strong>
-            <span>Assigned to: D. Perera · Due: 27 May meeting</span>
-          </div>
-          <span class="pill watch">Due Soon</span>
-        </div>
-        <div class="item">
-          <div class="item-body">
-            <strong>Circulate Q2 budget proposal for IT security</strong>
-            <span>Assigned to: P. Ratnayake · Due: 25 May</span>
-          </div>
-          <span class="pill good">In Progress</span>
-        </div>
-        <div class="item">
-          <div class="item-body">
-            <strong>Finalise cloud migration cost model</strong>
-            <span>Assigned to: Platform Team · Due: 03 Jun</span>
-          </div>
-          <span class="pill good">In Progress</span>
-        </div>
-        <div class="item">
-          <div class="item-body">
-            <strong>Distribute MoM for 20 May Risk Board</strong>
-            <span>Assigned to: Secretariat · Due: 23 May</span>
-          </div>
-          <span class="pill risk">Overdue</span>
-        </div>
+      <div class="section-head">
+        <h2>Open Action Items</h2>
+        <button class="lk" onclick="openModal('modal-add-action')">+ Add Action Item</button>
+      </div>
+      <div id="action-list" class="item-list">
+        <div class="empty">Loading action items…</div>
       </div>
     </div>
   </main>
 </div>
 
-<style>
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-head h2{margin:0;font-size:16px;font-weight:900}
-.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
-.modal-close:hover{background:#f5f9f8;color:var(--ink)}
-.form-field{margin-bottom:15px}
-.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
-.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
-</style>
-
+<!-- Modal: Schedule Meeting -->
 <div id="modal-schedule-meeting" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-schedule-meeting')">
   <div class="modal-box">
     <div class="modal-head"><h2>Schedule Committee Meeting</h2><button class="modal-close" onclick="closeModal('modal-schedule-meeting')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-schedule-meeting')">
-      <div class="form-field"><label class="form-label">Committee</label>
-        <select class="form-select" required><option value="">Select committee…</option><option>IT Strategy Committee</option><option>IT Steering Committee</option><option>Risk &amp; Compliance Board</option></select>
+    <form id="form-schedule">
+      <div class="form-field">
+        <label class="form-label">Committee</label>
+        <select class="form-select" id="sm-committee" required>
+          <option value="">Select committee…</option>
+        </select>
       </div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Date</label><input class="form-input" type="date" required></div>
-        <div class="form-field"><label class="form-label">Time</label><input class="form-input" type="time" value="10:00"></div>
+        <div class="form-field"><label class="form-label">Date</label><input class="form-input" type="date" id="sm-date" required></div>
+        <div class="form-field"><label class="form-label">Time</label><input class="form-input" type="time" id="sm-time" value="10:00"></div>
       </div>
-      <div class="form-field"><label class="form-label">Venue / Meeting Link</label><input class="form-input" placeholder="e.g. Boardroom A or https://zoom.us/…"></div>
-      <div class="form-field"><label class="form-label">Agenda Summary</label><textarea class="form-textarea" placeholder="Key agenda items…" required></textarea></div>
+      <div class="form-field"><label class="form-label">Venue / Meeting Link</label><input class="form-input" id="sm-venue" placeholder="e.g. Boardroom A or https://zoom.us/…"></div>
+      <div class="form-field"><label class="form-label">Agenda Summary</label><textarea class="form-textarea" id="sm-agenda" placeholder="Key agenda items…" required></textarea></div>
+      <div class="form-field">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="sm-status">
+          <option value="SCHEDULED">Scheduled</option>
+          <option value="TENTATIVE">Tentative</option>
+        </select>
+      </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-schedule-meeting')">Cancel</button>
         <button type="submit" class="btn primary">Schedule Meeting</button>
@@ -198,19 +174,53 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Modal: Edit Meeting -->
+<div id="modal-edit-meeting" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-meeting')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Edit Meeting</h2><button class="modal-close" onclick="closeModal('modal-edit-meeting')">&#x2715;</button></div>
+    <form id="form-edit-meeting">
+      <div class="form-field">
+        <label class="form-label">Committee</label>
+        <select class="form-select" id="em-committee" required>
+          <option value="">Select committee…</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Date</label><input class="form-input" type="date" id="em-date" required></div>
+        <div class="form-field"><label class="form-label">Time</label><input class="form-input" type="time" id="em-time"></div>
+      </div>
+      <div class="form-field"><label class="form-label">Venue / Meeting Link</label><input class="form-input" id="em-venue" placeholder="e.g. Boardroom A"></div>
+      <div class="form-field"><label class="form-label">Agenda Summary</label><textarea class="form-textarea" id="em-agenda"></textarea></div>
+      <div class="form-field">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="em-status">
+          <option value="SCHEDULED">Scheduled</option>
+          <option value="TENTATIVE">Tentative</option>
+          <option value="CONDUCTED">Conducted</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-meeting')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Log Minutes -->
 <div id="modal-log-minutes" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-log-minutes')">
   <div class="modal-box">
     <div class="modal-head"><h2>Log Meeting Minutes</h2><button class="modal-close" onclick="closeModal('modal-log-minutes')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-log-minutes')">
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Committee</label>
-          <select class="form-select"><option>IT Strategy Committee</option><option>IT Steering Committee</option><option>Risk &amp; Compliance Board</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">Meeting Date</label><input class="form-input" type="date" required></div>
+    <form id="form-log-minutes">
+      <div class="form-field">
+        <label class="form-label">Meeting</label>
+        <select class="form-select" id="lm-meeting" required>
+          <option value="">Select meeting…</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Attendees</label><input class="form-input" placeholder="Names or roles of attendees"></div>
-      <div class="form-field"><label class="form-label">Minutes / Key Decisions</label><textarea class="form-textarea" style="min-height:120px" placeholder="Summary of discussions, decisions taken, and resolutions passed…" required></textarea></div>
-      <div class="form-field"><label class="form-label">Next Meeting Date (optional)</label><input class="form-input" type="date"></div>
+      <div class="form-field"><label class="form-label">Attendees</label><input class="form-input" id="lm-attendees" placeholder="Names or roles of attendees"></div>
+      <div class="form-field"><label class="form-label">Minutes / Key Decisions</label><textarea class="form-textarea" style="min-height:120px" id="lm-text" placeholder="Summary of discussions, decisions taken, and resolutions passed…" required></textarea></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-log-minutes')">Cancel</button>
         <button type="submit" class="btn primary">Save Minutes</button>
@@ -219,19 +229,26 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Modal: Add Action Item -->
 <div id="modal-add-action" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-action')">
   <div class="modal-box">
     <div class="modal-head"><h2>Add Action Item</h2><button class="modal-close" onclick="closeModal('modal-add-action')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-add-action')">
-      <div class="form-field"><label class="form-label">Action Description</label><input class="form-input" placeholder="What needs to be done?" required></div>
+    <form id="form-add-action">
+      <div class="form-field"><label class="form-label">Action Description</label><input class="form-input" id="aa-deliverable" placeholder="What needs to be done?" required></div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Assigned To</label>
-          <select class="form-select"><option>P. Ratnayake (CRO)</option><option>D. Perera (IT Sec)</option><option>A. Gunawardena</option><option>R. Fernando</option><option>Platform Team</option><option>Secretariat</option></select>
+        <div class="form-field">
+          <label class="form-label">Assigned To</label>
+          <select class="form-select" id="aa-assignee">
+            <option value="">Unassigned</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Due Date</label><input class="form-input" type="date" required></div>
+        <div class="form-field"><label class="form-label">Due Date</label><input class="form-input" type="date" id="aa-due" required></div>
       </div>
-      <div class="form-field"><label class="form-label">Source Meeting</label>
-        <select class="form-select"><option>IT Steering Committee — 13 May 2026</option><option>Risk &amp; Compliance Board — 20 May 2026</option><option>IT Steering Committee — 27 May 2026</option></select>
+      <div class="form-field">
+        <label class="form-label">Source Meeting (optional)</label>
+        <select class="form-select" id="aa-meeting">
+          <option value="">None</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-add-action')">Cancel</button>
@@ -242,27 +259,330 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { committees: [], meetings: [], staff: [] };
+var editMeetingId = null;
+
+function api(func, body, cb) {
+  fetch('/api/v1/governance', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){
+    if(!d)return;
+    if(!d.success)cb(d.error||'Error',null);else cb(null,d);
+  }).catch(function(e){cb(e.message||'Network error',null);});
 }
+
+function showToast(msg, isErr) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;max-width:320px;line-height:1.4';
+  t.style.background = isErr ? 'var(--red)' : 'var(--teal)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();}, 3000);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function meetingStatusPill(s) {
+  var map = {
+    SCHEDULED:  ['info',  'Scheduled'],
+    TENTATIVE:  ['neu',   'Tentative'],
+    CONDUCTED:  ['neu',   'Completed'],
+    CANCELLED:  ['risk',  'Cancelled']
+  };
+  var m = map[s] || ['neu', s];
+  return '<span class="pill '+m[0]+'">'+m[1]+'</span>';
+}
+
+function actionStatusPill(s) {
+  var map = {
+    PENDING:     ['watch', 'Pending'],
+    IN_PROGRESS: ['good',  'In Progress'],
+    OVERDUE:     ['risk',  'Overdue'],
+    COMPLETED:   ['neu',   'Completed']
+  };
+  var m = map[s] || ['neu', s];
+  return '<span class="pill '+m[0]+'">'+m[1]+'</span>';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ---- Populate committee selects ----
+function populateCommitteeSelects() {
+  var ids = ['sm-committee','em-committee'];
+  ids.forEach(function(id){
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">Select committee…</option>';
+    state.committees.forEach(function(c){
+      var o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name;
+      if (c.id === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function populateMeetingSelects() {
+  var ids = ['lm-meeting', 'aa-meeting'];
+  ids.forEach(function(selId, i){
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = i === 1 ? '<option value="">None</option>' : '<option value="">Select meeting…</option>';
+    state.meetings.forEach(function(m){
+      if (i === 0 && m.status === 'CONDUCTED' && m.has_minutes) return;
+      var o = document.createElement('option');
+      o.value = m.id;
+      o.textContent = m.committee_name + ' — ' + fmtDate(m.scheduled_at);
+      sel.appendChild(o);
+    });
+  });
+}
+
+function populateStaffSelect(selId, selected) {
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Unassigned</option>';
+  state.staff.forEach(function(u){
+    var o = document.createElement('option');
+    o.value = u.id; o.textContent = u.username;
+    if (u.id === selected) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// ---- Render meetings table ----
+function renderMeetings() {
+  var tbody = document.getElementById('meetings-tbody');
+  if (!state.meetings.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No meetings found. Schedule one to get started.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.meetings.map(function(m){
+    var canLog = (m.status === 'SCHEDULED' || m.status === 'TENTATIVE') || (m.status === 'CONDUCTED' && !m.has_minutes);
+    var actionBtn = (m.status !== 'CONDUCTED' && m.status !== 'CANCELLED')
+      ? '<button class="lk" onclick="openLogMinutes(\''+esc(m.id)+'\',\''+esc(m.committee_name+' — '+fmtDate(m.scheduled_at))+'\')">Log Minutes</button>'
+      : '';
+    var editBtn = '<button class="lk" style="margin-left:10px" onclick="openEditMeeting(\''+esc(m.id)+'\')">Edit</button>';
+    return '<tr>' +
+      '<td>'+esc(fmtDate(m.scheduled_at))+'</td>' +
+      '<td><strong>'+esc(m.committee_name)+'</strong></td>' +
+      '<td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.agenda||'—')+'</td>' +
+      '<td>'+esc(m.venue||'—')+'</td>' +
+      '<td>'+meetingStatusPill(m.status)+'</td>' +
+      '<td style="white-space:nowrap">'+actionBtn+editBtn+'</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ---- Render action items ----
+function renderActionItems() {
+  var el = document.getElementById('action-list');
+  if (!state.actionItems || !state.actionItems.length) {
+    el.innerHTML = '<div class="empty">No open action items.</div>';
+    return;
+  }
+  el.innerHTML = state.actionItems.map(function(a){
+    var src = a.committee_name
+      ? esc(a.committee_name) + (a.meeting_date ? ' · ' + fmtDate(a.meeting_date) : '')
+      : 'No meeting linked';
+    var assignee = a.assignee_name ? esc(a.assignee_name) : 'Unassigned';
+    return '<div class="item">' +
+      '<div class="item-body">' +
+        '<strong>'+esc(a.deliverable)+'</strong>' +
+        '<span>Assigned to: '+assignee+' &middot; Due: '+esc(a.due_date||'—')+' &middot; From: '+src+'</span>' +
+      '</div>' +
+      '<div class="item-actions">' +
+        actionStatusPill(a.status) +
+        '<select class="form-select" style="height:28px;padding:2px 8px;font-size:11px;width:auto" onchange="changeActionStatus(\''+esc(a.id)+'\',this.value)">' +
+          '<option value="">Change…</option>' +
+          '<option value="PENDING">Pending</option>' +
+          '<option value="IN_PROGRESS">In Progress</option>' +
+          '<option value="COMPLETED">Completed</option>' +
+          '<option value="OVERDUE">Overdue</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ---- Data loaders ----
+function loadMeetings() {
+  document.getElementById('meetings-tbody').innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  api('list_meetings', {}, function(err, d){
+    if (err) { showToast('Failed to load meetings: '+err, true); return; }
+    state.meetings = d.meetings || [];
+    renderMeetings();
+    populateMeetingSelects();
+  });
+}
+
+function loadActionItems() {
+  api('list_action_items', {}, function(err, d){
+    if (err) { showToast('Failed to load action items: '+err, true); return; }
+    state.actionItems = d.action_items || [];
+    renderActionItems();
+  });
+}
+
+// ---- Modal helpers ----
+window.openLogMinutes = function(meetingId, label) {
+  document.getElementById('lm-meeting').value = meetingId;
+  document.getElementById('lm-text').value = '';
+  document.getElementById('lm-attendees').value = '';
+  openModal('modal-log-minutes');
+};
+
+window.openEditMeeting = function(id) {
+  var m = null;
+  for (var i = 0; i < state.meetings.length; i++) {
+    if (state.meetings[i].id === id) { m = state.meetings[i]; break; }
+  }
+  if (!m) return;
+  editMeetingId = id;
+  populateCommitteeSelects();
+  document.getElementById('em-committee').value = m.committee_id || '';
+  var iso = m.scheduled_at ? m.scheduled_at.split('T') : ['',''];
+  document.getElementById('em-date').value = iso[0] || '';
+  document.getElementById('em-time').value = iso[1] ? iso[1].slice(0,5) : '';
+  document.getElementById('em-venue').value = m.venue || '';
+  document.getElementById('em-agenda').value = m.agenda || '';
+  document.getElementById('em-status').value = m.status || 'SCHEDULED';
+  openModal('modal-edit-meeting');
+};
+
+window.changeActionStatus = function(id, status) {
+  if (!status) return;
+  api('update_action_item_status', {id:id, status:status}, function(err){
+    if (err) { showToast('Failed to update: '+err, true); return; }
+    showToast('Action item updated.');
+    loadActionItems();
+  });
+};
+
+// ---- Form submissions ----
+document.getElementById('form-schedule').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Scheduling…'; btn.disabled = true; }
+  var date = document.getElementById('sm-date').value;
+  var time = document.getElementById('sm-time').value || '09:00';
+  api('schedule_meeting', {
+    committee_id: document.getElementById('sm-committee').value,
+    scheduled_at: date + 'T' + time + ':00',
+    venue: document.getElementById('sm-venue').value,
+    agenda: document.getElementById('sm-agenda').value,
+    status: document.getElementById('sm-status').value
+  }, function(err){
+    if (btn) { btn.textContent = 'Schedule Meeting'; btn.disabled = false; }
+    if (err) { showToast('Failed to schedule meeting: '+err, true); return; }
+    closeModal('modal-schedule-meeting');
+    document.getElementById('form-schedule').reset();
+    showToast('Meeting scheduled.');
+    loadMeetings();
+  });
+});
+
+document.getElementById('form-edit-meeting').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  var date = document.getElementById('em-date').value;
+  var time = document.getElementById('em-time').value || '09:00';
+  api('update_meeting', {
+    id: editMeetingId,
+    committee_id: document.getElementById('em-committee').value,
+    scheduled_at: date + 'T' + time + ':00',
+    venue: document.getElementById('em-venue').value,
+    agenda: document.getElementById('em-agenda').value,
+    status: document.getElementById('em-status').value
+  }, function(err){
+    if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; }
+    if (err) { showToast('Failed to update meeting: '+err, true); return; }
+    closeModal('modal-edit-meeting');
+    showToast('Meeting updated.');
+    loadMeetings();
+  });
+});
+
+document.getElementById('form-log-minutes').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  api('log_minutes', {
+    meeting_id: document.getElementById('lm-meeting').value,
+    attendees:  document.getElementById('lm-attendees').value,
+    mom_text:   document.getElementById('lm-text').value
+  }, function(err){
+    if (btn) { btn.textContent = 'Save Minutes'; btn.disabled = false; }
+    if (err) { showToast('Failed to save minutes: '+err, true); return; }
+    closeModal('modal-log-minutes');
+    document.getElementById('form-log-minutes').reset();
+    showToast('Minutes saved. Meeting marked as Conducted.');
+    loadMeetings();
+  });
+});
+
+document.getElementById('form-add-action').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Adding…'; btn.disabled = true; }
+  api('add_action_item', {
+    deliverable: document.getElementById('aa-deliverable').value,
+    assignee_id: document.getElementById('aa-assignee').value || null,
+    due_date:    document.getElementById('aa-due').value,
+    meeting_id:  document.getElementById('aa-meeting').value || null
+  }, function(err){
+    if (btn) { btn.textContent = 'Add Action Item'; btn.disabled = false; }
+    if (err) { showToast('Failed to add action item: '+err, true); return; }
+    closeModal('modal-add-action');
+    document.getElementById('form-add-action').reset();
+    showToast('Action item added.');
+    loadActionItems();
+  });
+});
+
+// ---- Init ----
 (function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar'), nm = document.getElementById('user-name'), ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n; if (ro) ro.textContent = r;
+  if (av) { var i = n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); av.textContent = i||'U'; }
+
+  api('list_committees', {}, function(err, d){
+    if (err) return;
+    state.committees = d.committees || [];
+    populateCommitteeSelects();
+  });
+
+  api('list_staff', {}, function(err, d){
+    if (err) return;
+    state.staff = d.staff || [];
+    populateStaffSelect('aa-assignee', null);
+  });
+
+  loadMeetings();
+  loadActionItems();
 })();
 </script>
 </body>

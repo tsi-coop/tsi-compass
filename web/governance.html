@@ -39,7 +39,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .stripe-blue{border-top:4px solid var(--blue)}
 .stripe-amber{border-top:4px solid var(--amber)}
 .stripe-green{border-top:4px solid var(--green)}
-.hub-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
+.hub-grid{display:grid;gap:20px;grid-template-columns:repeat(2,1fr)}
 .hub-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column}
 .hub-icon{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;flex-shrink:0}
 .hub-card h3{margin:0 0 6px;font-size:15px;font-weight:800}
@@ -49,16 +49,13 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .hub-stat span{font-size:11px;color:var(--muted);white-space:nowrap}
 .hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
 .hub-manage:hover{color:var(--ink)}
-.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
-.watch{background:#fff4df;color:var(--amber)}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -69,7 +66,6 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="governance.html" class="active">Governance &amp; Policy</a>
       <a href="governance-committees.html" class="subnav">Committees</a>
       <a href="governance-policies.html" class="subnav">Policies &amp; Documents</a>
-      <a href="governance-attestations.html" class="subnav">Attestation Tracker</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
@@ -96,7 +92,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div>
         <div class="eyebrow">IT Governance</div>
         <h1>Governance &amp; Policy</h1>
-        <p class="subtitle">Committee calendars, policy lifecycle management, and staff attestation tracking.</p>
+        <p class="subtitle">Committee calendars, policy lifecycle management, and version-controlled document register.</p>
       </div>
       <div class="acts">
         <a class="btn" href="governance-policies.html">View Policies</a>
@@ -107,23 +103,23 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Committees</div>
-        <div class="metric-value">3</div>
-        <div class="metric-note">Strategy · Steering · Risk Board</div>
+        <div class="metric-value" id="m-committees">—</div>
+        <div class="metric-note" id="m-committees-note">Active governance bodies</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Meetings This Month</div>
-        <div class="metric-value">5</div>
-        <div class="metric-note">2 completed · 3 scheduled</div>
+        <div class="metric-value" id="m-meetings">—</div>
+        <div class="metric-note" id="m-meetings-note">Loading…</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Active Policies</div>
-        <div class="metric-value">24</div>
-        <div class="metric-note">Policies, Standards, SOPs &amp; Guidelines</div>
+        <div class="metric-value" id="m-policies">—</div>
+        <div class="metric-note" id="m-policies-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
-        <div class="metric-label">Pending Attestations</div>
-        <div class="metric-value">6</div>
-        <div class="metric-note">Staff acknowledgement due</div>
+        <div class="metric-label">Open Action Items</div>
+        <div class="metric-value" id="m-actions">—</div>
+        <div class="metric-note">Pending &amp; in-progress items</div>
       </div>
     </div>
 
@@ -131,10 +127,10 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div class="hub-card">
         <div class="hub-icon" style="background:#eaf5f3">&#128197;</div>
         <h3>Committees</h3>
-        <p>Manage IT committee meetings, schedule sessions, log minutes, and track open action items across all governance committees.</p>
+        <p>Manage IT committee meeting schedules, log minutes, and track open action items across all governance committees.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>5</strong><span>Meetings this month</span></div>
-          <div class="hub-stat"><strong>5</strong><span>Open action items</span></div>
+          <div class="hub-stat"><strong id="hs-meetings">—</strong><span>Meetings this month</span></div>
+          <div class="hub-stat"><strong id="hs-actions">—</strong><span>Open action items</span></div>
         </div>
         <a href="governance-committees.html" class="hub-manage">Manage Committees &#8250;</a>
       </div>
@@ -143,34 +139,57 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         <h3>Policies &amp; Documents</h3>
         <p>Maintain the full policy register including policies, standards, SOPs, and guidelines with version control and review scheduling.</p>
         <div class="hub-stats">
-          <div class="hub-stat"><strong>24</strong><span>Active documents</span></div>
-          <div class="hub-stat"><strong>2</strong><span>Under review</span></div>
-          <div class="hub-stat"><strong>2</strong><span>In draft</span></div>
+          <div class="hub-stat"><strong id="hs-active">—</strong><span>Active documents</span></div>
+          <div class="hub-stat"><strong id="hs-review">—</strong><span>Under review</span></div>
+          <div class="hub-stat"><strong id="hs-draft">—</strong><span>In draft</span></div>
         </div>
         <a href="governance-policies.html" class="hub-manage">Manage Policies &#8250;</a>
-      </div>
-      <div class="hub-card">
-        <div class="hub-icon" style="background:#fff4df">&#9989;</div>
-        <h3>Attestation Tracker</h3>
-        <p>Track staff acknowledgement of policies, send reminders, and monitor completion rates against compliance deadlines.</p>
-        <div class="hub-stats">
-          <div class="hub-stat"><strong>6</strong><span>Pending staff</span></div>
-          <div class="hub-stat"><strong>2</strong><span>Active campaigns</span></div>
-        </div>
-        <a href="governance-attestations.html" class="hub-manage">View Attestations &#8250;</a>
       </div>
     </div>
   </main>
 </div>
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/governance', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){
+    if(!d)return;
+    if(!d.success)cb(d.error||'Error',null);else cb(null,d);
+  }).catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  api('get_governance_metrics',{},function(err,d){
+    if(err)return;
+    set('m-committees', d.committee_count||0);
+    set('m-meetings',   d.meetings_this_month||0);
+    set('m-policies',   d.active_policies||0);
+    set('m-actions',    d.open_action_items||0);
+    set('hs-meetings',  d.meetings_this_month||0);
+    set('hs-actions',   d.open_action_items||0);
+    set('hs-active',    d.active_policies||0);
+    set('hs-review',    d.policies_under_review||0);
+    set('hs-draft',     d.policies_draft||0);
+    var mc = (d.meetings_conducted||0)+' completed · '+(d.meetings_scheduled||0)+' scheduled';
+    set('m-meetings-note', mc);
+    var pc = (d.policies_under_review||0)+' under review · '+(d.policies_draft||0)+' in draft';
+    set('m-policies-note', pc);
+  });
 })();
 </script>
 </body>

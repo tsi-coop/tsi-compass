@@ -72,8 +72,9 @@ CREATE TABLE committee_meetings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     committee_id UUID REFERENCES committees(id) ON DELETE CASCADE,
     scheduled_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    venue VARCHAR(255),
     agenda TEXT,
-    status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'CONDUCTED', 'CANCELLED'))
+    status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'CONDUCTED', 'CANCELLED', 'TENTATIVE'))
 );
 
 CREATE TABLE committee_mom (
@@ -87,6 +88,7 @@ CREATE TABLE committee_mom (
 CREATE TABLE committee_action_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     mom_id UUID REFERENCES committee_mom(id) ON DELETE CASCADE,
+    meeting_id UUID REFERENCES committee_meetings(id) ON DELETE SET NULL,
     deliverable TEXT NOT NULL,
     assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
     due_date DATE NOT NULL,
@@ -117,7 +119,9 @@ CREATE TABLE policies (
     status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED')),
     author_id UUID REFERENCES users(id) ON DELETE SET NULL,
     approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    content TEXT NOT NULL,
+    framework_tags VARCHAR(500),
+    review_date DATE,
+    content TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

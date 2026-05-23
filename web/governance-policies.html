@@ -30,28 +30,45 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.mb{margin-bottom:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .section-head h2{margin:0;font-size:15px;font-weight:800}
-.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
 .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
 .good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
 td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
 tr:last-child td{border-bottom:none}
+.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer;background:none;border:none;padding:2px 0;margin-left:10px}
+.lk:first-child{margin-left:0}
+.lk:hover{color:var(--ink)}
 .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .filter-bar select,.filter-bar input{padding:7px 10px;border:1px solid var(--line);border-radius:6px;font:inherit;font-size:12px;color:var(--ink);background:#fff;outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--teal)}
 .filter-bar input{flex:1;min-width:160px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.modal-close:hover{background:#f5f9f8;color:var(--ink)}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:24px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}.form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header class="mobilebar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-  <a class="btn" href="index.html">Sign out</a>
 </header>
 <div class="app">
   <aside class="side">
@@ -62,7 +79,6 @@ tr:last-child td{border-bottom:none}
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="governance-committees.html" class="subnav">Committees</a>
       <a href="governance-policies.html" class="subnav active">Policies &amp; Documents</a>
-      <a href="governance-attestations.html" class="subnav">Attestation Tracker</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
@@ -93,76 +109,70 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Maintain the full policy register with version control, review scheduling, and approval workflows.</p>
       </div>
       <div class="acts">
-        <a class="btn" href="#" onclick="openModal('modal-send-review');return false;">Send for Review</a>
-        <a class="btn primary" href="#" onclick="openModal('modal-new-policy');return false;">New Policy</a>
+        <button class="btn" id="btn-send-review" disabled onclick="sendSelectedForReview()">Send for Review</button>
+        <button class="btn primary" onclick="openModal('modal-new-policy')">New Policy</button>
       </div>
     </div>
 
     <div class="card">
       <div class="section-head"><h2>Policy &amp; Document Register</h2></div>
       <div class="filter-bar">
-        <select><option value="">All Types</option><option>Policy</option><option>Standard</option><option>Guideline</option><option>SOP</option></select>
-        <select><option value="">All Statuses</option><option>Published</option><option>Under Review</option><option>Draft</option></select>
-        <select><option value="">All Frameworks</option><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>CBSL</option></select>
-        <input type="text" placeholder="Search documents…">
+        <select id="f-type" onchange="loadPolicies()">
+          <option value="">All Types</option>
+          <option value="POLICY">Policy</option>
+          <option value="STANDARD">Standard</option>
+          <option value="GUIDELINE">Guideline</option>
+          <option value="SOP">SOP</option>
+        </select>
+        <select id="f-status" onchange="loadPolicies()">
+          <option value="">All Statuses</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="UNDER_REVIEW">Under Review</option>
+          <option value="DRAFT">Draft</option>
+        </select>
+        <input type="search" id="f-search" placeholder="Search by title or framework…" oninput="debounceSearch()">
       </div>
       <table>
         <thead>
           <tr><th>Document Name</th><th>Type</th><th>Version</th><th>Framework Tags</th><th>Owner</th><th>Review Date</th><th>Status</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr><td><strong>Information Security Policy</strong></td><td>Policy</td><td>v3.2</td><td>ISO 27001 · CBSL</td><td>P. Ratnayake</td><td>01 May 2027</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
-          <tr><td><strong>Access Control Standard</strong></td><td>Standard</td><td>v2.1</td><td>ISO 27001 · SOC 2</td><td>D. Perera</td><td>15 Jan 2027</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
-          <tr><td><strong>Data Classification Guideline</strong></td><td>Guideline</td><td>v1.4</td><td>GDPR · ISO 27001</td><td>A. Gunawardena</td><td>30 Nov 2026</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
-          <tr><td><strong>Vendor Risk Assessment SOP</strong></td><td>SOP</td><td>v2.0</td><td>ISO 27001 · CBSL</td><td>T. Weerasekara</td><td>30 Sep 2026</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
-          <tr><td><strong>Business Continuity Plan</strong></td><td>Policy</td><td>v1.6</td><td>ISO 22301</td><td>Operations Lead</td><td>01 Jul 2026</td><td><span class="pill watch">Under Review</span></td><td><span class="lk" onclick="openModal('modal-approve-policy')">Approve</span></td></tr>
-          <tr><td><strong>Incident Response Procedure</strong></td><td>SOP</td><td>v3.0</td><td>ISO 27001 · SOC 2</td><td>D. Perera</td><td>15 Jun 2026</td><td><span class="pill watch">Under Review</span></td><td><span class="lk" onclick="openModal('modal-approve-policy')">Approve</span></td></tr>
-          <tr><td><strong>Password Management Standard</strong></td><td>Standard</td><td>v2.3</td><td>ISO 27001 · SOC 2</td><td>R. Fernando</td><td>01 Aug 2026</td><td><span class="pill info">Draft</span></td><td><span class="lk" onclick="openModal('modal-send-review')">Send for Review</span></td></tr>
-          <tr><td><strong>Privileged Access Management SOP</strong></td><td>SOP</td><td>v1.0</td><td>ISO 27001</td><td>D. Perera</td><td>01 Sep 2026</td><td><span class="pill info">Draft</span></td><td><span class="lk" onclick="openModal('modal-send-review')">Send for Review</span></td></tr>
-          <tr><td><strong>Change Management Procedure</strong></td><td>SOP</td><td>v4.1</td><td>ITIL · ISO 27001</td><td>IT Department</td><td>15 Oct 2026</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
-          <tr><td><strong>Data Retention &amp; Disposal Policy</strong></td><td>Policy</td><td>v2.0</td><td>GDPR · CBSL</td><td>A. Gunawardena</td><td>28 Feb 2027</td><td><span class="pill good">Published</span></td><td><span class="lk" onclick="openModal('modal-edit-policy')">Edit</span></td></tr>
+        <tbody id="policies-tbody">
+          <tr><td colspan="8" class="empty">Loading policies…</td></tr>
         </tbody>
       </table>
     </div>
   </main>
 </div>
 
-<style>
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-head h2{margin:0;font-size:16px;font-weight:900}
-.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
-.form-field{margin-bottom:15px}
-.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
-.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
-</style>
-
+<!-- Modal: New Policy -->
 <div id="modal-new-policy" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-new-policy')">
   <div class="modal-box">
     <div class="modal-head"><h2>New Policy Document</h2><button class="modal-close" onclick="closeModal('modal-new-policy')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-new-policy')">
-      <div class="form-field"><label class="form-label">Document Title</label><input class="form-input" placeholder="e.g. Remote Access Policy" required></div>
+    <form id="form-new-policy">
+      <div class="form-field"><label class="form-label">Document Title</label><input class="form-input" id="np-title" placeholder="e.g. Remote Access Policy" required></div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Document Type</label>
-          <select class="form-select"><option>Policy</option><option>Standard</option><option>Guideline</option><option>SOP</option></select>
+        <div class="form-field">
+          <label class="form-label">Document Type</label>
+          <select class="form-select" id="np-type" required>
+            <option value="POLICY">Policy</option>
+            <option value="STANDARD">Standard</option>
+            <option value="GUIDELINE">Guideline</option>
+            <option value="SOP">SOP</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Version</label><input class="form-input" placeholder="v1.0"></div>
+        <div class="form-field"><label class="form-label">Version</label><input class="form-input" id="np-version" placeholder="v1.0"></div>
       </div>
-      <div class="form-field"><label class="form-label">Framework Tags</label><input class="form-input" placeholder="e.g. ISO 27001 · CBSL · SOC 2"></div>
+      <div class="form-field"><label class="form-label">Framework Tags</label><input class="form-input" id="np-tags" placeholder="e.g. ISO 27001 · CBSL · SOC 2"></div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Document Owner</label>
-          <select class="form-select"><option>P. Ratnayake (CRO)</option><option>D. Perera (IT Sec)</option><option>A. Gunawardena</option><option>R. Fernando</option><option>T. Weerasekara</option></select>
+        <div class="form-field">
+          <label class="form-label">Document Owner</label>
+          <select class="form-select" id="np-owner">
+            <option value="">Unassigned</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Review Date</label><input class="form-input" type="date"></div>
+        <div class="form-field"><label class="form-label">Next Review Date</label><input class="form-input" type="date" id="np-review"></div>
       </div>
-      <div class="form-field"><label class="form-label">Description / Scope</label><textarea class="form-textarea" placeholder="Brief description of the policy scope and objectives…"></textarea></div>
+      <div class="form-field"><label class="form-label">Description / Scope</label><textarea class="form-textarea" id="np-desc" placeholder="Brief description of the policy scope and objectives…"></textarea></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-new-policy')">Cancel</button>
         <button type="submit" class="btn primary">Create Draft</button>
@@ -171,23 +181,33 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Modal: Edit Policy -->
 <div id="modal-edit-policy" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-policy')">
   <div class="modal-box">
     <div class="modal-head"><h2>Edit Policy Document</h2><button class="modal-close" onclick="closeModal('modal-edit-policy')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-edit-policy')">
-      <div class="form-field"><label class="form-label">Document Title</label><input class="form-input" value="Information Security Policy" required></div>
+    <form id="form-edit-policy">
+      <div class="form-field"><label class="form-label">Document Title</label><input class="form-input" id="ep-title" required></div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Document Type</label>
-          <select class="form-select"><option selected>Policy</option><option>Standard</option><option>Guideline</option><option>SOP</option></select>
+        <div class="form-field">
+          <label class="form-label">Document Type</label>
+          <select class="form-select" id="ep-type">
+            <option value="POLICY">Policy</option>
+            <option value="STANDARD">Standard</option>
+            <option value="GUIDELINE">Guideline</option>
+            <option value="SOP">SOP</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Version</label><input class="form-input" value="v3.2"></div>
+        <div class="form-field"><label class="form-label">Version</label><input class="form-input" id="ep-version"></div>
       </div>
-      <div class="form-field"><label class="form-label">Framework Tags</label><input class="form-input" value="ISO 27001 · CBSL"></div>
+      <div class="form-field"><label class="form-label">Framework Tags</label><input class="form-input" id="ep-tags" placeholder="e.g. ISO 27001 · CBSL"></div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Document Owner</label>
-          <select class="form-select"><option selected>P. Ratnayake (CRO)</option><option>D. Perera (IT Sec)</option><option>A. Gunawardena</option><option>R. Fernando</option></select>
+        <div class="form-field">
+          <label class="form-label">Document Owner</label>
+          <select class="form-select" id="ep-owner">
+            <option value="">Unassigned</option>
+          </select>
         </div>
-        <div class="form-field"><label class="form-label">Review Date</label><input class="form-input" type="date" value="2027-05-01"></div>
+        <div class="form-field"><label class="form-label">Next Review Date</label><input class="form-input" type="date" id="ep-review"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-policy')">Cancel</button>
@@ -197,37 +217,21 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<div id="modal-send-review" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-send-review')">
-  <div class="modal-box">
-    <div class="modal-head"><h2>Send for Review</h2><button class="modal-close" onclick="closeModal('modal-send-review')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-send-review')">
-      <div class="form-field"><label class="form-label">Document</label>
-        <select class="form-select"><option>Password Management Standard v2.3</option><option>Privileged Access Management SOP v1.0</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Reviewer(s)</label>
-        <select class="form-select"><option>D. Perera (IT Sec)</option><option>P. Ratnayake (CRO)</option><option>A. Gunawardena</option><option>R. Fernando</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Review Deadline</label><input class="form-input" type="date" required></div>
-      <div class="form-field"><label class="form-label">Notes to Reviewer</label><textarea class="form-textarea" placeholder="Specific areas to focus on during review…"></textarea></div>
-      <div class="modal-footer">
-        <button type="button" class="cancel-btn" onclick="closeModal('modal-send-review')">Cancel</button>
-        <button type="submit" class="btn primary">Send for Review</button>
-      </div>
-    </form>
-  </div>
-</div>
-
+<!-- Modal: Approve Policy -->
 <div id="modal-approve-policy" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-approve-policy')">
   <div class="modal-box">
     <div class="modal-head"><h2>Approve Policy</h2><button class="modal-close" onclick="closeModal('modal-approve-policy')">&#x2715;</button></div>
-    <form onsubmit="submitModal(event,'modal-approve-policy')">
-      <div class="form-field"><label class="form-label">Document</label>
-        <select class="form-select"><option>Business Continuity Plan v1.6</option><option>Incident Response Procedure v3.0</option></select>
+    <form id="form-approve-policy">
+      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">
+        Approving <strong id="approve-title"></strong> will publish it immediately and make it available for staff attestation.
+      </p>
+      <div class="form-field">
+        <label class="form-label">Approval Decision</label>
+        <select class="form-select" id="ap-decision">
+          <option value="PUBLISHED">Approved — Publish Immediately</option>
+          <option value="DRAFT">Returned for Revision</option>
+        </select>
       </div>
-      <div class="form-field"><label class="form-label">Approval Decision</label>
-        <select class="form-select"><option>Approved — Publish Immediately</option><option>Approved — Schedule Publish Date</option><option>Returned for Revision</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Approver Comments</label><textarea class="form-textarea" placeholder="Any comments or conditions on approval…"></textarea></div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-approve-policy')">Cancel</button>
         <button type="submit" class="btn primary">Submit Decision</button>
@@ -237,27 +241,236 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function submitModal(e,id){
-  e.preventDefault();
-  var btn=e.submitter,orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='Saving…';btn.disabled=true}
-  setTimeout(function(){
-    closeModal(id);
-    if(btn){btn.textContent=orig;btn.disabled=false}
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
-    t.textContent='Saved successfully.';document.body.appendChild(t);
-    setTimeout(function(){t.remove()},2800);
-  },700);
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = 'index.html';
+
+var state = { policies: [], staff: [] };
+var editPolicyId = null, approvePolicyId = null;
+var searchTimer = null;
+
+function api(func, body, cb) {
+  fetch('/api/v1/governance', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='index.html';return;}
+    return r.json();
+  }).then(function(d){
+    if(!d)return;
+    if(!d.success)cb(d.error||'Error',null);else cb(null,d);
+  }).catch(function(e){cb(e.message||'Network error',null);});
 }
+
+function showToast(msg, isErr) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;max-width:320px;line-height:1.4';
+  t.style.background = isErr ? 'var(--red)' : 'var(--teal)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();}, 3000);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function statusPill(s) {
+  var map = {
+    PUBLISHED:    ['good',  'Published'],
+    UNDER_REVIEW: ['watch', 'Under Review'],
+    APPROVED:     ['good',  'Approved'],
+    DRAFT:        ['info',  'Draft']
+  };
+  var m = map[s] || ['neu', s];
+  return '<span class="pill '+m[0]+'">'+m[1]+'</span>';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function populateOwnerSelect(selId, selectedId) {
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Unassigned</option>';
+  state.staff.forEach(function(u){
+    var o = document.createElement('option');
+    o.value = u.id; o.textContent = u.username;
+    if (u.id === selectedId) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function renderPolicies() {
+  var tbody = document.getElementById('policies-tbody');
+  if (!state.policies.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No policies found. Create one to get started.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.policies.map(function(p){
+    var actions = '';
+    if (p.status === 'DRAFT') {
+      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>' +
+                '<button class="lk" onclick="quickStatus(\''+esc(p.id)+'\',\'UNDER_REVIEW\')">Send for Review</button>';
+    } else if (p.status === 'UNDER_REVIEW') {
+      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>' +
+                '<button class="lk" onclick="openApprovePolicy(\''+esc(p.id)+'\',\''+esc(p.title)+'\')">Approve</button>';
+    } else {
+      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>';
+    }
+    return '<tr>' +
+      '<td><strong>'+esc(p.title)+'</strong></td>' +
+      '<td>'+esc(p.type.charAt(0)+p.type.slice(1).toLowerCase())+'</td>' +
+      '<td>'+esc(p.version||'—')+'</td>' +
+      '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.framework_tags||'—')+'</td>' +
+      '<td>'+esc(p.owner_name||'—')+'</td>' +
+      '<td>'+esc(fmtDate(p.review_date))+'</td>' +
+      '<td>'+statusPill(p.status)+'</td>' +
+      '<td style="white-space:nowrap">'+actions+'</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function loadPolicies() {
+  document.getElementById('policies-tbody').innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+  var type   = document.getElementById('f-type').value;
+  var status = document.getElementById('f-status').value;
+  var search = document.getElementById('f-search').value.trim();
+  var body = {};
+  if (type)   body.type   = type;
+  if (status) body.status = status;
+  if (search) body.search = search;
+  api('list_policies', body, function(err, d){
+    if (err) { showToast('Failed to load policies: '+err, true); return; }
+    state.policies = d.policies || [];
+    renderPolicies();
+  });
+}
+
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadPolicies, 380);
+}
+
+window.openEditPolicy = function(id) {
+  var p = null;
+  for (var i = 0; i < state.policies.length; i++) {
+    if (state.policies[i].id === id) { p = state.policies[i]; break; }
+  }
+  if (!p) return;
+  editPolicyId = id;
+  populateOwnerSelect('ep-owner', p.owner_id || null);
+  document.getElementById('ep-title').value   = p.title || '';
+  document.getElementById('ep-type').value    = p.type  || 'POLICY';
+  document.getElementById('ep-version').value = p.version || '';
+  document.getElementById('ep-tags').value    = p.framework_tags || '';
+  document.getElementById('ep-review').value  = p.review_date ? p.review_date.split('T')[0] : '';
+  openModal('modal-edit-policy');
+};
+
+window.openApprovePolicy = function(id, title) {
+  approvePolicyId = id;
+  document.getElementById('approve-title').textContent = title;
+  openModal('modal-approve-policy');
+};
+
+window.quickStatus = function(id, status) {
+  api('set_policy_status', {id:id, status:status}, function(err){
+    if (err) { showToast('Failed: '+err, true); return; }
+    var labels = {UNDER_REVIEW:'Sent for review.', PUBLISHED:'Policy published.', DRAFT:'Policy returned to draft.'};
+    showToast(labels[status]||'Status updated.');
+    loadPolicies();
+  });
+};
+
+window.sendSelectedForReview = function() {
+  openModal('modal-send-review');
+};
+
+// ---- Form: New Policy ----
+document.getElementById('form-new-policy').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Creating…'; btn.disabled = true; }
+  api('create_policy', {
+    title:         document.getElementById('np-title').value.trim(),
+    type:          document.getElementById('np-type').value,
+    version:       document.getElementById('np-version').value.trim() || '1.0',
+    framework_tags: document.getElementById('np-tags').value.trim(),
+    author_id:     document.getElementById('np-owner').value || null,
+    review_date:   document.getElementById('np-review').value || null,
+    description:   document.getElementById('np-desc').value.trim()
+  }, function(err){
+    if (btn) { btn.textContent = 'Create Draft'; btn.disabled = false; }
+    if (err) { showToast('Failed to create policy: '+err, true); return; }
+    closeModal('modal-new-policy');
+    document.getElementById('form-new-policy').reset();
+    showToast('Policy created as draft.');
+    loadPolicies();
+  });
+});
+
+// ---- Form: Edit Policy ----
+document.getElementById('form-edit-policy').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  api('update_policy', {
+    id:            editPolicyId,
+    title:         document.getElementById('ep-title').value.trim(),
+    type:          document.getElementById('ep-type').value,
+    version:       document.getElementById('ep-version').value.trim(),
+    framework_tags: document.getElementById('ep-tags').value.trim(),
+    author_id:     document.getElementById('ep-owner').value || null,
+    review_date:   document.getElementById('ep-review').value || null
+  }, function(err){
+    if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; }
+    if (err) { showToast('Failed to update policy: '+err, true); return; }
+    closeModal('modal-edit-policy');
+    showToast('Policy updated.');
+    loadPolicies();
+  });
+});
+
+// ---- Form: Approve Policy ----
+document.getElementById('form-approve-policy').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = e.submitter;
+  if (btn) { btn.textContent = 'Submitting…'; btn.disabled = true; }
+  var decision = document.getElementById('ap-decision').value;
+  api('set_policy_status', {id:approvePolicyId, status:decision}, function(err){
+    if (btn) { btn.textContent = 'Submit Decision'; btn.disabled = false; }
+    if (err) { showToast('Failed: '+err, true); return; }
+    closeModal('modal-approve-policy');
+    showToast(decision === 'PUBLISHED' ? 'Policy published.' : 'Policy returned to draft.');
+    loadPolicies();
+  });
+});
+
+// ---- Init ----
 (function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
-  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
-  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar'), nm = document.getElementById('user-name'), ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n; if (ro) ro.textContent = r;
+  if (av) { var i = n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); av.textContent = i||'U'; }
+
+  api('list_staff', {}, function(err, d){
+    if (err) return;
+    state.staff = d.staff || [];
+    populateOwnerSelect('np-owner', null);
+    populateOwnerSelect('ep-owner', null);
+  });
+
+  loadPolicies();
 })();
 </script>
 </body>

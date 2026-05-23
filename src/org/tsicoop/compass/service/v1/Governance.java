@@ -1,0 +1,733 @@
+package org.tsicoop.compass.service.v1;
+
+import org.tsicoop.compass.framework.Action;
+import org.tsicoop.compass.framework.InputProcessor;
+import org.tsicoop.compass.framework.OutputProcessor;
+import org.tsicoop.compass.framework.PoolDB;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import java.sql.*;
+import java.util.UUID;
+
+public class Governance implements Action {
+
+    @Override
+    public void post(HttpServletRequest req, HttpServletResponse res) {
+        try {
+            JSONObject input = InputProcessor.getInput(req);
+            String func = (String) input.get("_func");
+
+            if (func == null || func.trim().isEmpty()) {
+                OutputProcessor.errorResponse(res, 400, "Bad Request", "Missing _func", req.getRequestURI());
+                return;
+            }
+
+            switch (func.toLowerCase()) {
+                case "get_governance_metrics":
+                    OutputProcessor.send(res, 200, getGovernanceMetrics());
+                    break;
+                case "list_committees":
+                    OutputProcessor.send(res, 200, listCommittees());
+                    break;
+                case "list_meetings":
+                    OutputProcessor.send(res, 200, listMeetings(input));
+                    break;
+                case "schedule_meeting":
+                    scheduleMeeting(req, res, input);
+                    break;
+                case "update_meeting":
+                    updateMeeting(req, res, input);
+                    break;
+                case "log_minutes":
+                    logMinutes(req, res, input);
+                    break;
+                case "list_action_items":
+                    OutputProcessor.send(res, 200, listActionItems());
+                    break;
+                case "add_action_item":
+                    addActionItem(req, res, input);
+                    break;
+                case "update_action_item_status":
+                    updateActionItemStatus(req, res, input);
+                    break;
+                case "list_policies":
+                    OutputProcessor.send(res, 200, listPolicies(input));
+                    break;
+                case "create_policy":
+                    createPolicy(req, res, input);
+                    break;
+                case "update_policy":
+                    updatePolicy(req, res, input);
+                    break;
+                case "set_policy_status":
+                    setPolicyStatus(req, res, input);
+                    break;
+                case "list_staff":
+                    OutputProcessor.send(res, 200, listStaff());
+                    break;
+                default:
+                    OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
+            }
+        } catch (Exception e) {
+            OutputProcessor.errorResponse(res, 500, "Internal Error", e.getMessage(), req.getRequestURI());
+        }
+    }
+
+    @Override
+    public boolean validate(String method, HttpServletRequest req, HttpServletResponse res) {
+        return "POST".equalsIgnoreCase(method);
+    }
+
+    // -------------------------------------------------------------------------
+    // Hub Metrics
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getGovernanceMetrics() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM committees");
+            rs = pstmt.executeQuery();
+            result.put("committee_count", rs.next() ? rs.getLong(1) : 0L);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement(
+                "SELECT COUNT(*), " +
+                "SUM(CASE WHEN status = 'CONDUCTED' THEN 1 ELSE 0 END), " +
+                "SUM(CASE WHEN status IN ('SCHEDULED','TENTATIVE') THEN 1 ELSE 0 END) " +
+                "FROM committee_meetings " +
+                "WHERE DATE_TRUNC('month', scheduled_at) = DATE_TRUNC('month', CURRENT_DATE)"
+            );
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                result.put("meetings_this_month", rs.getLong(1));
+                result.put("meetings_conducted",  rs.getLong(2));
+                result.put("meetings_scheduled",  rs.getLong(3));
+            }
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement(
+                "SELECT COUNT(*), " +
+                "SUM(CASE WHEN status = 'UNDER_REVIEW' THEN 1 ELSE 0 END), " +
+                "SUM(CASE WHEN status = 'DRAFT' THEN 1 ELSE 0 END) " +
+                "FROM policies WHERE status != 'ARCHIVED'"
+            );
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                result.put("active_policies",       rs.getLong(1));
+                result.put("policies_under_review", rs.getLong(2));
+                result.put("policies_draft",        rs.getLong(3));
+            }
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement(
+                "SELECT COUNT(*) FROM committee_action_items WHERE status IN ('PENDING','IN_PROGRESS','OVERDUE')"
+            );
+            rs = pstmt.executeQuery();
+            result.put("open_action_items", rs.next() ? rs.getLong(1) : 0L);
+
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Committees
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listCommittees() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray committees = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT id::text, name, description FROM committees ORDER BY name"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject c = new JSONObject();
+                c.put("id",          rs.getString(1));
+                c.put("name",        rs.getString(2));
+                c.put("description", rs.getString(3));
+                committees.add(c);
+            }
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("committees", committees);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listMeetings(JSONObject input) throws Exception {
+        String status = (String) input.get("status");
+        StringBuilder sql = new StringBuilder(
+            "SELECT cm.id::text, c.name AS committee_name, c.id::text AS committee_id, " +
+            "cm.scheduled_at::text, cm.agenda, cm.venue, cm.status, " +
+            "(SELECT COUNT(*) FROM committee_mom mom WHERE mom.meeting_id = cm.id) AS mom_count " +
+            "FROM committee_meetings cm " +
+            "JOIN committees c ON c.id = cm.committee_id " +
+            "WHERE 1=1"
+        );
+        if (!isBlank(status)) sql.append(" AND cm.status = ?");
+        sql.append(" ORDER BY cm.scheduled_at DESC LIMIT 60");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray meetings = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql.toString());
+            if (!isBlank(status)) pstmt.setString(1, status);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject m = new JSONObject();
+                m.put("id",             rs.getString(1));
+                m.put("committee_name", rs.getString(2));
+                m.put("committee_id",   rs.getString(3));
+                m.put("scheduled_at",   rs.getString(4));
+                m.put("agenda",         rs.getString(5));
+                m.put("venue",          rs.getString(6));
+                m.put("status",         rs.getString(7));
+                m.put("has_minutes",    rs.getLong(8) > 0);
+                meetings.add(m);
+            }
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("meetings", meetings);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void scheduleMeeting(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String committeeId = (String) input.get("committee_id");
+        String scheduledAt = (String) input.get("scheduled_at");
+        String venue       = (String) input.get("venue");
+        String agenda      = (String) input.get("agenda");
+        String status      = (String) input.get("status");
+
+        if (isBlank(committeeId) || isBlank(scheduledAt)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "committee_id and scheduled_at are required", req.getRequestURI());
+            return;
+        }
+
+        String st = isBlank(status) ? "SCHEDULED" : status;
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO committee_meetings (committee_id, scheduled_at, venue, agenda, status) " +
+                "VALUES (?, ?::timestamptz, ?, ?, ?) RETURNING id::text"
+            );
+            pstmt.setObject(1, UUID.fromString(committeeId));
+            pstmt.setString(2, scheduledAt);
+            pstmt.setString(3, venue);
+            pstmt.setString(4, agenda);
+            pstmt.setString(5, st);
+            rs = pstmt.executeQuery();
+            String newId = rs.next() ? rs.getString(1) : null;
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("id", newId);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateMeeting(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id          = (String) input.get("id");
+        String committeeId = (String) input.get("committee_id");
+        String scheduledAt = (String) input.get("scheduled_at");
+        String venue       = (String) input.get("venue");
+        String agenda      = (String) input.get("agenda");
+        String status      = (String) input.get("status");
+
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE committee_meetings SET");
+        boolean first = true;
+
+        if (!isBlank(committeeId)) { sql.append(first ? " " : ", ").append("committee_id = ?::uuid"); first = false; }
+        if (!isBlank(scheduledAt)) { sql.append(first ? " " : ", ").append("scheduled_at = ?::timestamptz"); first = false; }
+        if (input.containsKey("venue"))  { sql.append(first ? " " : ", ").append("venue = ?"); first = false; }
+        if (!isBlank(agenda))    { sql.append(first ? " " : ", ").append("agenda = ?"); first = false; }
+        if (!isBlank(status))    { sql.append(first ? " " : ", ").append("status = ?"); first = false; }
+
+        if (first) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
+            return;
+        }
+        sql.append(" WHERE id = ?");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql.toString());
+            int idx = 1;
+            if (!isBlank(committeeId)) pstmt.setString(idx++, committeeId);
+            if (!isBlank(scheduledAt)) pstmt.setString(idx++, scheduledAt);
+            if (input.containsKey("venue"))  pstmt.setString(idx++, venue);
+            if (!isBlank(agenda))    pstmt.setString(idx++, agenda);
+            if (!isBlank(status))    pstmt.setString(idx++, status);
+            pstmt.setObject(idx, UUID.fromString(id));
+            pstmt.executeUpdate();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void logMinutes(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String meetingId = (String) input.get("meeting_id");
+        String attendees = (String) input.get("attendees");
+        String momText   = (String) input.get("mom_text");
+
+        if (isBlank(meetingId) || isBlank(momText)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "meeting_id and mom_text are required", req.getRequestURI());
+            return;
+        }
+
+        String fullText = isBlank(attendees) ? momText : "Attendees: " + attendees + "\n\n" + momText;
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            conn.setAutoCommit(false);
+
+            pstmt = conn.prepareStatement(
+                "INSERT INTO committee_mom (meeting_id, mom_text, published_at) " +
+                "VALUES (?, ?, NOW()) RETURNING id::text"
+            );
+            pstmt.setObject(1, UUID.fromString(meetingId));
+            pstmt.setString(2, fullText);
+            rs = pstmt.executeQuery();
+            String momId = rs.next() ? rs.getString(1) : null;
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            pstmt = conn.prepareStatement(
+                "UPDATE committee_meetings SET status = 'CONDUCTED' WHERE id = ?"
+            );
+            pstmt.setObject(1, UUID.fromString(meetingId));
+            pstmt.executeUpdate();
+            conn.commit();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("mom_id", momId);
+            OutputProcessor.send(res, 200, result);
+        } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
+            throw e;
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listActionItems() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray items = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            // Support both paths: direct meeting_id (UI-created) and mom_id (minutes-created)
+            pstmt = conn.prepareStatement(
+                "SELECT cai.id::text, cai.deliverable, u.username AS assignee_name, " +
+                "cai.due_date::text, cai.status, " +
+                "c.name AS committee_name, " +
+                "COALESCE(cm.scheduled_at, mcm.scheduled_at)::text AS meeting_date " +
+                "FROM committee_action_items cai " +
+                "LEFT JOIN users u ON u.id = cai.assignee_id " +
+                "LEFT JOIN committee_meetings cm ON cm.id = cai.meeting_id " +
+                "LEFT JOIN committee_mom mom ON mom.id = cai.mom_id " +
+                "LEFT JOIN committee_meetings mcm ON mcm.id = mom.meeting_id " +
+                "LEFT JOIN committees c ON c.id = COALESCE(cm.committee_id, mcm.committee_id) " +
+                "WHERE cai.status != 'COMPLETED' " +
+                "ORDER BY cai.due_date ASC LIMIT 60"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject item = new JSONObject();
+                item.put("id",             rs.getString(1));
+                item.put("deliverable",    rs.getString(2));
+                item.put("assignee_name",  rs.getString(3));
+                item.put("due_date",       rs.getString(4));
+                item.put("status",         rs.getString(5));
+                item.put("committee_name", rs.getString(6));
+                item.put("meeting_date",   rs.getString(7));
+                items.add(item);
+            }
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("action_items", items);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addActionItem(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String deliverable = (String) input.get("deliverable");
+        String assigneeId  = (String) input.get("assignee_id");
+        String dueDate     = (String) input.get("due_date");
+        String meetingId   = (String) input.get("meeting_id");
+
+        if (isBlank(deliverable) || isBlank(dueDate)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "deliverable and due_date are required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO committee_action_items (deliverable, assignee_id, due_date, meeting_id, status) " +
+                "VALUES (?, ?, ?::date, ?, 'PENDING') RETURNING id::text"
+            );
+            pstmt.setString(1, deliverable);
+            if (isBlank(assigneeId)) pstmt.setNull(2, java.sql.Types.OTHER);
+            else pstmt.setObject(2, UUID.fromString(assigneeId));
+            pstmt.setString(3, dueDate);
+            if (isBlank(meetingId)) pstmt.setNull(4, java.sql.Types.OTHER);
+            else pstmt.setObject(4, UUID.fromString(meetingId));
+            rs = pstmt.executeQuery();
+            String newId = rs.next() ? rs.getString(1) : null;
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("id", newId);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateActionItemStatus(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id     = (String) input.get("id");
+        String status = (String) input.get("status");
+
+        if (isBlank(id) || isBlank(status)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id and status are required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("UPDATE committee_action_items SET status = ? WHERE id = ?");
+            pstmt.setString(1, status);
+            pstmt.setObject(2, UUID.fromString(id));
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Policies
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listPolicies(JSONObject input) throws Exception {
+        String type   = (String) input.get("type");
+        String status = (String) input.get("status");
+        String search = (String) input.get("search");
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.id::text, p.title, p.type, p.version, p.status, " +
+            "p.framework_tags, u.username AS owner_name, p.review_date::text, p.created_at::text " +
+            "FROM policies p " +
+            "LEFT JOIN users u ON u.id = p.author_id " +
+            "WHERE p.status != 'ARCHIVED'"
+        );
+        if (!isBlank(type))   sql.append(" AND p.type = ?");
+        if (!isBlank(status)) sql.append(" AND p.status = ?");
+        if (!isBlank(search)) sql.append(" AND (p.title ILIKE ? OR COALESCE(p.framework_tags,'') ILIKE ?)");
+        sql.append(" ORDER BY p.created_at DESC");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray policies = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql.toString());
+            int idx = 1;
+            if (!isBlank(type))   pstmt.setString(idx++, type);
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) {
+                String like = "%" + search + "%";
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+            }
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject p = new JSONObject();
+                p.put("id",             rs.getString(1));
+                p.put("title",          rs.getString(2));
+                p.put("type",           rs.getString(3));
+                p.put("version",        rs.getString(4));
+                p.put("status",         rs.getString(5));
+                p.put("framework_tags", rs.getString(6));
+                p.put("owner_name",     rs.getString(7));
+                p.put("review_date",    rs.getString(8));
+                p.put("created_at",     rs.getString(9));
+                policies.add(p);
+            }
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("policies", policies);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void createPolicy(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String title         = (String) input.get("title");
+        String type          = (String) input.get("type");
+        String version       = (String) input.get("version");
+        String frameworkTags = (String) input.get("framework_tags");
+        String authorId      = (String) input.get("author_id");
+        String reviewDate    = (String) input.get("review_date");
+        String description   = (String) input.get("description");
+
+        if (isBlank(title) || isBlank(type)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "title and type are required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "INSERT INTO policies (title, type, version, framework_tags, author_id, review_date, content, status) " +
+                "VALUES (?, ?, ?, ?, ?, ?::date, ?, 'DRAFT') RETURNING id::text"
+            );
+            pstmt.setString(1, title.trim());
+            pstmt.setString(2, type.toUpperCase());
+            pstmt.setString(3, isBlank(version) ? "1.0" : version.trim());
+            pstmt.setString(4, frameworkTags);
+            if (isBlank(authorId)) pstmt.setNull(5, java.sql.Types.OTHER);
+            else pstmt.setObject(5, UUID.fromString(authorId));
+            if (isBlank(reviewDate)) pstmt.setNull(6, java.sql.Types.DATE);
+            else pstmt.setString(6, reviewDate);
+            pstmt.setString(7, isBlank(description) ? "" : description);
+            rs = pstmt.executeQuery();
+            String newId = rs.next() ? rs.getString(1) : null;
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("id", newId);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updatePolicy(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id            = (String) input.get("id");
+        String title         = (String) input.get("title");
+        String type          = (String) input.get("type");
+        String version       = (String) input.get("version");
+        String frameworkTags = (String) input.get("framework_tags");
+        String authorId      = (String) input.get("author_id");
+        String reviewDate    = (String) input.get("review_date");
+
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE policies SET");
+        java.util.List<String[]> cols = new java.util.ArrayList<>();
+
+        if (!isBlank(title))   { sql.append(cols.isEmpty() ? " " : ", ").append("title = ?");   cols.add(new String[]{"str", title.trim()}); }
+        if (!isBlank(type))    { sql.append(cols.isEmpty() ? " " : ", ").append("type = ?");    cols.add(new String[]{"str", type.toUpperCase()}); }
+        if (!isBlank(version)) { sql.append(cols.isEmpty() ? " " : ", ").append("version = ?"); cols.add(new String[]{"str", version.trim()}); }
+        if (input.containsKey("framework_tags")) {
+            sql.append(cols.isEmpty() ? " " : ", ").append("framework_tags = ?");
+            cols.add(new String[]{"str", frameworkTags});
+        }
+        if (input.containsKey("author_id")) {
+            sql.append(cols.isEmpty() ? " " : ", ").append("author_id = ?");
+            cols.add(new String[]{"uuid", authorId});
+        }
+        if (input.containsKey("review_date")) {
+            sql.append(cols.isEmpty() ? " " : ", ").append("review_date = ?::date");
+            cols.add(new String[]{"str", reviewDate});
+        }
+
+        if (cols.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
+            return;
+        }
+        sql.append(" WHERE id = ?");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(sql.toString());
+            int idx = 1;
+            for (String[] col : cols) {
+                if ("uuid".equals(col[0])) {
+                    if (isBlank(col[1])) pstmt.setNull(idx++, java.sql.Types.OTHER);
+                    else pstmt.setObject(idx++, UUID.fromString(col[1]));
+                } else {
+                    pstmt.setString(idx++, col[1]);
+                }
+            }
+            pstmt.setObject(idx, UUID.fromString(id));
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setPolicyStatus(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id     = (String) input.get("id");
+        String status = (String) input.get("status");
+
+        if (isBlank(id) || isBlank(status)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id and status are required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("UPDATE policies SET status = ? WHERE id = ?");
+            pstmt.setString(1, status);
+            pstmt.setObject(2, UUID.fromString(id));
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Staff lookup (for dropdowns)
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listStaff() throws Exception {
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONArray staff = new JSONArray();
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT id::text, username, email FROM users WHERE status = 'ACTIVE' ORDER BY username"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject u = new JSONObject();
+                u.put("id",       rs.getString(1));
+                u.put("username", rs.getString(2));
+                u.put("email",    rs.getString(3));
+                staff.add(u);
+            }
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("staff", staff);
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+}
