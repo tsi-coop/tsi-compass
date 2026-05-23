@@ -80,7 +80,19 @@ tr:last-child td{border-bottom:none}
       <a href="reports.html">Reports &amp; Exports</a>
       <a href="password-reset.html">Access Recovery</a>
     </nav>
-    <div class="side-foot"><strong>TSI Compass</strong>Static preview — GRC Platform build.</div>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
   </aside>
   <main class="main">
     <div class="page-header">
@@ -90,9 +102,8 @@ tr:last-child td{border-bottom:none}
         <p class="subtitle">Change management workflows, asset &amp; vendor register, and the IT helpdesk ticketing hub.</p>
       </div>
       <div class="acts">
-        <a class="btn" href="index.html">Sign out</a>
-        <a class="btn" href="#">New Ticket</a>
-        <a class="btn primary" href="#">Raise Change Request</a>
+        <a class="btn" href="#" onclick="openModal('modal-new-ticket');return false;">New Ticket</a>
+        <a class="btn primary" href="#" onclick="openModal('modal-new-cr');return false;">Raise Change Request</a>
       </div>
     </div>
 
@@ -336,5 +347,134 @@ tr:last-child td{border-bottom:none}
     </div>
   </main>
 </div>
+
+<style>
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.modal-close:hover{background:#f5f9f8;color:var(--ink)}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+</style>
+
+<div id="modal-new-cr" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-new-cr')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Raise Change Request</h2><button class="modal-close" onclick="closeModal('modal-new-cr')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-new-cr')">
+      <div class="form-field"><label class="form-label">Change Description</label><textarea class="form-textarea" placeholder="Describe the change, its purpose, and business need…" required></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Change Type</label>
+          <select class="form-select"><option>Standard</option><option>Emergency</option><option>Normal</option><option>Infrastructure</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Priority</label>
+          <select class="form-select"><option>High</option><option>Medium</option><option>Low</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Requestor</label>
+          <select class="form-select"><option>D. Perera (IT Sec)</option><option>R. Fernando</option><option>Platform Team</option><option>IT Infrastructure</option><option>IT Security</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Target Date</label><input class="form-input" type="date" required></div>
+      </div>
+      <div class="form-field"><label class="form-label">Systems / Assets Affected</label><input class="form-input" placeholder="e.g. Core Banking Server, Member Portal"></div>
+      <div class="form-field"><label class="form-label">Rollback Plan</label><textarea class="form-textarea" placeholder="How will the change be rolled back if it fails?"></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-new-cr')">Cancel</button>
+        <button type="submit" class="btn primary">Submit Change Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-new-ticket" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-new-ticket')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>New Helpdesk Ticket</h2><button class="modal-close" onclick="closeModal('modal-new-ticket')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-new-ticket')">
+      <div class="form-field"><label class="form-label">Issue Summary</label><input class="form-input" placeholder="Brief description of the issue" required></div>
+      <div class="form-field"><label class="form-label">Detailed Description</label><textarea class="form-textarea" placeholder="Provide full details — steps to reproduce, error messages, affected users…"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Category</label>
+          <select class="form-select"><option>Connectivity</option><option>Access</option><option>Application</option><option>Hardware</option><option>Security</option><option>Other</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Priority</label>
+          <select class="form-select"><option>High</option><option>Medium</option><option>Low</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Reported By</label><input class="form-input" placeholder="Your name"></div>
+        <div class="form-field"><label class="form-label">Assign To</label>
+          <select class="form-select"><option>IT Support HO</option><option>IT Support Kandy</option><option>R. Fernando</option><option>D. Perera</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-new-ticket')">Cancel</button>
+        <button type="submit" class="btn primary">Open Ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-asset" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-asset')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Add Asset</h2><button class="modal-close" onclick="closeModal('modal-add-asset')">&#x2715;</button></div>
+    <form onsubmit="submitModal(event,'modal-add-asset')">
+      <div class="form-field"><label class="form-label">Asset Name</label><input class="form-input" placeholder="e.g. Customer Portal API Server" required></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Category</label>
+          <select class="form-select"><option>Critical Infrastructure</option><option>Application</option><option>Network</option><option>Storage</option><option>End-user Device</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Classification</label>
+          <select class="form-select"><option>Confidential</option><option>Restricted</option><option>Internal</option><option>Public</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Asset Owner</label>
+          <select class="form-select"><option>Platform Team</option><option>IT Security</option><option>IT Admin</option><option>IT Support</option><option>HR / IT</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Location</label>
+          <select class="form-select"><option>Data Centre — Colombo</option><option>Cloud (AWS)</option><option>Cloud (Azure)</option><option>Head Office</option><option>DR Site</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-add-asset')">Cancel</button>
+        <button type="submit" class="btn primary">Add Asset</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function submitModal(e,id){
+  e.preventDefault();
+  var btn=e.submitter,orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='Saving…';btn.disabled=true}
+  setTimeout(function(){
+    closeModal(id);
+    if(btn){btn.textContent=orig;btn.disabled=false}
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)';
+    t.textContent='Saved successfully.';document.body.appendChild(t);
+    setTimeout(function(){t.remove()},2800);
+  },700);
+}
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U'}
+})();
+</script>
 </body>
 </html>
