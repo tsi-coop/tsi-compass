@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Reports &amp; Exports</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.side-foot strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+.main{padding:32px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.grid{display:grid;gap:16px}
+.col4{grid-template-columns:repeat(4,1fr)}
+.col3{grid-template-columns:repeat(3,1fr)}
+.col2{grid-template-columns:repeat(2,1fr)}
+.span2{grid-column:span 2}
+.mb{margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
+.metric-note{color:var(--muted);font-size:12px}
+.stripe-teal{border-top:4px solid var(--teal)}
+.stripe-blue{border-top:4px solid var(--blue)}
+.stripe-amber{border-top:4px solid var(--amber)}
+.stripe-green{border-top:4px solid var(--green)}
+.stripe-red{border-top:4px solid var(--red)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.dashboard-card{border:1px solid var(--line);border-radius:10px;padding:20px;background:#fff;cursor:pointer;transition:box-shadow .15s}
+.dashboard-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.dashboard-card h3{margin:0 0 6px;font-size:15px;font-weight:800}
+.dashboard-card p{margin:0 0 14px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.mini-metric{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:6px;margin-bottom:6px;font-size:12px}
+.mini-metric strong{font-size:18px;font-weight:900;color:var(--ink);min-width:40px}
+.mini-metric span{color:var(--muted)}
+.bar{height:6px;border-radius:999px;background:#edf2f6;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--teal)}
+.dl-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:11px;cursor:pointer}
+.dl-btn:hover{background:#f0f9f7;border-color:var(--teal);color:var(--teal)}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4,.col3,.col2{grid-template-columns:1fr}.span2{grid-column:span 1}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <a class="btn" href="index.html">Sign out</a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html" class="active">Reports &amp; Exports</a>
+      <a href="password-reset.html">Access Recovery</a>
+    </nav>
+    <div class="side-foot"><strong>TSI Compass</strong>Static preview — GRC Platform build.</div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Reporting</div>
+        <h1>Reports &amp; Exports</h1>
+        <p class="subtitle">Real-time executive dashboards, standardized report exports, and automated report scheduling.</p>
+      </div>
+      <div class="acts">
+        <a class="btn" href="index.html">Sign out</a>
+        <a class="btn" href="#">Schedule Report</a>
+        <a class="btn primary" href="#">Generate Report</a>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid col4 mb">
+      <div class="card stripe-teal">
+        <div class="metric-label">Active Dashboards</div>
+        <div class="metric-value">3</div>
+        <div class="metric-note">Risk · Compliance · Performance</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Reports Generated</div>
+        <div class="metric-value">47</div>
+        <div class="metric-note">This fiscal year</div>
+      </div>
+      <div class="card stripe-green">
+        <div class="metric-label">Scheduled Reports</div>
+        <div class="metric-value">5</div>
+        <div class="metric-note">Weekly &amp; monthly automations</div>
+      </div>
+      <div class="card stripe-amber">
+        <div class="metric-label">Pending Exports</div>
+        <div class="metric-value">2</div>
+        <div class="metric-note">Generating — check Downloads</div>
+      </div>
+    </div>
+
+    <!-- Executive Dashboards -->
+    <div class="section-head" style="margin-bottom:12px"><h2 style="font-size:16px;font-weight:800;margin:0">Executive Dashboards</h2></div>
+    <div class="grid col3 mb">
+      <div class="dashboard-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3>IT Risk Dashboard</h3>
+          <span class="pill risk">3 High Risks</span>
+        </div>
+        <p>Heatmap view of enterprise risks, top unmitigated items, and VAPT remediation progress across all assets.</p>
+        <div class="mini-metric"><strong>14</strong><span>Open risks — 3 high, 6 medium, 5 low</span></div>
+        <div class="mini-metric"><strong>6</strong><span>VAPT findings — 2 overdue remediations</span></div>
+        <div class="mini-metric"><strong>82%</strong><span>Risk treatment target met this quarter</span></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <a class="lk" href="risks.html">Open Dashboard →</a>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3>IT Compliance Dashboard</h3>
+          <span class="pill good">82% Ready</span>
+        </div>
+        <p>Real-time framework readiness percentage, upcoming regulatory deadlines, and exception status across all mandates.</p>
+        <div class="mini-metric"><strong>82%</strong><span>ISO 27001:2022 compliance readiness</span></div>
+        <div class="mini-metric"><strong>1</strong><span>Filing due within 30 days — GDPR annual review</span></div>
+        <div class="mini-metric"><strong>3</strong><span>Active exceptions monitored</span></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <a class="lk" href="controls.html">Open Dashboard →</a>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3>IT Performance Dashboard</h3>
+          <span class="pill watch">7 CRs Open</span>
+        </div>
+        <p>High-level operational overview of change pipeline, helpdesk volumes, control attestation status, and training completion.</p>
+        <div class="mini-metric"><strong>7</strong><span>Open change requests — 1 pending approval</span></div>
+        <div class="mini-metric"><strong>12</strong><span>Open helpdesk tickets — 3 high priority</span></div>
+        <div class="mini-metric"><strong>8</strong><span>Controls pending attestation</span></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <a class="lk" href="operations.html">Open Dashboard →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Reports -->
+    <div class="card mb">
+      <div class="section-head"><h2>Standardized Export Reports</h2><span class="lk">Generate All</span></div>
+      <table>
+        <thead>
+          <tr><th>Report Name</th><th>Format</th><th>Coverage Period</th><th>Last Generated</th><th>Size</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>Risk &amp; Vulnerability Report</strong>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Full risk register, VAPT findings, and remediation status with heatmap</div>
+            </td>
+            <td><span class="pill neu">PDF + Excel</span></td>
+            <td>Q1 2026 (Jan–Mar)</td>
+            <td>05 Apr 2026</td>
+            <td>2.4 MB</td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <a class="dl-btn" href="#">&#8595; PDF</a>
+                <a class="dl-btn" href="#">&#8595; Excel</a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Compliance Readiness &amp; Exception Report</strong>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Framework scores, control gaps, and active exception register</div>
+            </td>
+            <td><span class="pill neu">PDF</span></td>
+            <td>May 2026</td>
+            <td>01 May 2026</td>
+            <td>1.8 MB</td>
+            <td><a class="dl-btn" href="#">&#8595; PDF</a></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Audit Executive Summary &amp; Remediation Tracker</strong>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Findings by priority, closure rates, and management response log</div>
+            </td>
+            <td><span class="pill neu">PDF</span></td>
+            <td>H1 2026</td>
+            <td>15 May 2026</td>
+            <td>3.1 MB</td>
+            <td><a class="dl-btn" href="#">&#8595; PDF</a></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Incident &amp; RCA Analysis Report</strong>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Incident log, severity breakdown, RCA summaries, and trend analysis</div>
+            </td>
+            <td><span class="pill neu">PDF</span></td>
+            <td>Q1 2026</td>
+            <td>10 Apr 2026</td>
+            <td>1.2 MB</td>
+            <td><a class="dl-btn" href="#">&#8595; PDF</a></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Change Management &amp; SLA Compliance Report</strong>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">CR pipeline, stage durations, SLA adherence, and helpdesk ticket volumes</div>
+            </td>
+            <td><span class="pill neu">Excel</span></td>
+            <td>April 2026</td>
+            <td>03 May 2026</td>
+            <td>980 KB</td>
+            <td><a class="dl-btn" href="#">&#8595; Excel</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Scheduled Reports -->
+    <div class="card">
+      <div class="section-head"><h2>Scheduled Report Runs</h2><span class="lk">Add Schedule</span></div>
+      <table>
+        <thead>
+          <tr><th>Report</th><th>Frequency</th><th>Next Run</th><th>Recipients</th><th>Format</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Monthly Risk Summary</strong></td>
+            <td>Monthly — 1st</td>
+            <td>01 Jun 2026</td>
+            <td>Board · CRO · CTO</td>
+            <td><span class="pill neu">PDF</span></td>
+            <td><span class="pill good">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Compliance Status Update</strong></td>
+            <td>Bi-monthly — 15th</td>
+            <td>15 Jun 2026</td>
+            <td>Compliance Team · CRO</td>
+            <td><span class="pill neu">PDF</span></td>
+            <td><span class="pill good">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Audit Findings Tracker</strong></td>
+            <td>Weekly — Monday</td>
+            <td>27 May 2026</td>
+            <td>Audit Team · IT Manager</td>
+            <td><span class="pill neu">Excel</span></td>
+            <td><span class="pill good">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Helpdesk SLA Report</strong></td>
+            <td>Weekly — Monday</td>
+            <td>27 May 2026</td>
+            <td>IT Manager · Operations</td>
+            <td><span class="pill neu">Excel</span></td>
+            <td><span class="pill good">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Executive Dashboard Snapshot</strong></td>
+            <td>Monthly — 1st</td>
+            <td>01 Jun 2026</td>
+            <td>CEO · CRO · CTO · Board</td>
+            <td><span class="pill neu">PDF</span></td>
+            <td><span class="pill good">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

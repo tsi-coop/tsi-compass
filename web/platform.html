@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Platform & Access</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.side-foot strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+.main{padding:32px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.grid{display:grid;gap:16px}
+.col4{grid-template-columns:repeat(4,1fr)}
+.col3{grid-template-columns:repeat(3,1fr)}
+.col2{grid-template-columns:repeat(2,1fr)}
+.span2{grid-column:span 2}
+.mb{margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
+.metric-note{color:var(--muted);font-size:12px}
+.stripe-teal{border-top:4px solid var(--teal)}
+.stripe-blue{border-top:4px solid var(--blue)}
+.stripe-amber{border-top:4px solid var(--amber)}
+.stripe-green{border-top:4px solid var(--green)}
+.stripe-red{border-top:4px solid var(--red)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.list{display:grid;gap:10px}
+.item{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #edf2f6;border-radius:8px}
+.item-body strong{display:block;font-size:13px;margin-bottom:2px}
+.item-body span{color:var(--muted);font-size:12px;line-height:1.4}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4,.col3,.col2{grid-template-columns:1fr}.span2{grid-column:span 1}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <a class="btn" href="index.html">Sign out</a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html" class="active">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+      <a href="password-reset.html">Access Recovery</a>
+    </nav>
+    <div class="side-foot"><strong>TSI Compass</strong>Static preview — GRC Platform build.</div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Core Platform</div>
+        <h1>Platform &amp; Access</h1>
+        <p class="subtitle">Manage organizational structure, user roles, permissions, and the system audit trail.</p>
+      </div>
+      <div class="acts">
+        <a class="btn" href="index.html">Sign out</a>
+        <a class="btn primary" href="#">Add User</a>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid col4 mb">
+      <div class="card stripe-teal">
+        <div class="metric-label">Office Locations</div>
+        <div class="metric-value">4</div>
+        <div class="metric-note">Head office + 3 regional</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Departments</div>
+        <div class="metric-value">12</div>
+        <div class="metric-note">Across all locations</div>
+      </div>
+      <div class="card stripe-green">
+        <div class="metric-label">Active Users</div>
+        <div class="metric-value">47</div>
+        <div class="metric-note">3 pending provisioning</div>
+      </div>
+      <div class="card stripe-amber">
+        <div class="metric-label">Access Issues</div>
+        <div class="metric-value">2</div>
+        <div class="metric-note">Require immediate review</div>
+      </div>
+    </div>
+
+    <!-- Org Structure + Roles -->
+    <div class="grid col2 mb">
+      <div class="card">
+        <div class="section-head"><h2>Organization Structure</h2><span class="lk">Edit Hierarchy</span></div>
+        <div class="list">
+          <div class="item">
+            <div class="item-body">
+              <strong>Head Office — Colombo</strong>
+              <span>IT Department · Compliance &amp; Risk · Finance · Operations · HR</span>
+            </div>
+            <span class="pill good">Primary</span>
+          </div>
+          <div class="item">
+            <div class="item-body">
+              <strong>Regional Office — Kandy</strong>
+              <span>IT Support · Branch Operations · Customer Service</span>
+            </div>
+            <span class="pill neu">Regional</span>
+          </div>
+          <div class="item">
+            <div class="item-body">
+              <strong>Regional Office — Galle</strong>
+              <span>Operations · Customer Service</span>
+            </div>
+            <span class="pill neu">Regional</span>
+          </div>
+          <div class="item">
+            <div class="item-body">
+              <strong>Data Centre — Colombo</strong>
+              <span>Infrastructure &amp; Security · Platform Engineering</span>
+            </div>
+            <span class="pill info">Facility</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-head"><h2>Roles &amp; Permissions</h2><span class="lk">Manage Roles</span></div>
+        <table>
+          <thead><tr><th>Role</th><th>Users</th><th>Access Level</th></tr></thead>
+          <tbody>
+            <tr><td>Chief Risk Officer</td><td>1</td><td><span class="pill good">Full Admin</span></td></tr>
+            <tr><td>IT Security Lead</td><td>2</td><td><span class="pill good">Full Admin</span></td></tr>
+            <tr><td>Compliance Officer</td><td>3</td><td><span class="pill info">Read + Write</span></td></tr>
+            <tr><td>Internal Auditor</td><td>4</td><td><span class="pill info">Read + Write</span></td></tr>
+            <tr><td>Risk Analyst</td><td>5</td><td><span class="pill neu">Read Only</span></td></tr>
+            <tr><td>IT Administrator</td><td>3</td><td><span class="pill watch">Scoped Admin</span></td></tr>
+            <tr><td>Department Manager</td><td>12</td><td><span class="pill neu">Read Only</span></td></tr>
+            <tr><td>IT Support Staff</td><td>17</td><td><span class="pill neu">Helpdesk</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card mb">
+      <div class="section-head"><h2>User Management</h2><span class="lk">Provision User</span></div>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Last Login</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Priya Ratnayake</strong></td><td>p.ratnayake@tsicoop.org</td><td>Chief Risk Officer</td><td>Compliance &amp; Risk</td><td>Today, 09:14</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Dilshan Perera</strong></td><td>d.perera@tsicoop.org</td><td>IT Security Lead</td><td>IT Department</td><td>Today, 08:42</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Sanduni Jayawardena</strong></td><td>s.jayawardena@tsicoop.org</td><td>Internal Auditor</td><td>Compliance &amp; Risk</td><td>Yesterday, 16:55</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Roshan Fernando</strong></td><td>r.fernando@tsicoop.org</td><td>IT Administrator</td><td>IT Department</td><td>Today, 10:05</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Amali Gunawardena</strong></td><td>a.gunawardena@tsicoop.org</td><td>Compliance Officer</td><td>Compliance &amp; Risk</td><td>2 days ago</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Thilanka Weerasekara</strong></td><td>t.weerasekara@tsicoop.org</td><td>Risk Analyst</td><td>Compliance &amp; Risk</td><td>Today, 11:22</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Kasun Bandara</strong></td><td>k.bandara@tsicoop.org</td><td>Finance Manager</td><td>Finance</td><td>Yesterday, 14:30</td><td><span class="pill good">Active</span></td></tr>
+          <tr><td><strong>Chathuri Dissanayake</strong></td><td>c.dissanayake@tsicoop.org</td><td>Operations Lead</td><td>Operations</td><td>14 days ago</td><td><span class="pill watch">Inactive</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Audit Trail -->
+    <div class="card">
+      <div class="section-head"><h2>System Audit Trail</h2><span class="lk">Export Log</span></div>
+      <table>
+        <thead>
+          <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Module</th><th>Details</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-23 11:22</td><td>T. Weerasekara</td><td><span class="pill watch">RISK_UPDATED</span></td><td>Risk Register</td><td>Risk score updated — R-014: Vendor Access Review (12→16)</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-23 10:05</td><td>R. Fernando</td><td><span class="pill info">USER_MODIFIED</span></td><td>User Management</td><td>Role changed for C. Dissanayake: Analyst → Operations Lead</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-23 09:14</td><td>P. Ratnayake</td><td><span class="pill good">POLICY_APPROVED</span></td><td>Policy Register</td><td>Information Security Policy v3.2 approved and published</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-23 08:42</td><td>D. Perera</td><td><span class="pill neu">LOGIN</span></td><td>Auth</td><td>Successful sign-in from 192.168.1.14 (Head Office)</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-22 17:31</td><td>S. Jayawardena</td><td><span class="pill info">FINDING_CREATED</span></td><td>Audit</td><td>New audit finding logged: OF-2026-012</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-22 16:10</td><td>A. Gunawardena</td><td><span class="pill good">CONTROL_ATTESTED</span></td><td>Controls</td><td>Evidence submitted for control A.9.2.1 — User Provisioning</td></tr>
+          <tr><td style="font-family:monospace;font-size:12px">2026-05-22 14:55</td><td>R. Fernando</td><td><span class="pill risk">EXCEPTION_REQUESTED</span></td><td>Controls</td><td>Exception EX-2026-003 submitted for data retention policy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>
