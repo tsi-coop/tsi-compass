@@ -76,11 +76,27 @@ public class User implements Action {
             String role = rs.getString("role");
             String token = JWTUtil.generateToken(email.toLowerCase().trim(), username, role);
 
+            // Load module permissions for this role on the same connection so the
+            // frontend can enforce RBAC without a second round-trip.
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            JSONObject permissions = new JSONObject();
+            pstmt = conn.prepareStatement(
+                "SELECT module, permission_level FROM role_permissions WHERE role = ?"
+            );
+            pstmt.setString(1, role);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                permissions.put(rs.getString("module"), rs.getString("permission_level"));
+            }
+
             JSONObject result = new JSONObject();
             result.put("success", true);
             result.put("token", token);
             result.put("username", username);
             result.put("role", role);
+            result.put("permissions", permissions);
             OutputProcessor.send(res, 200, result);
 
         } finally {

@@ -1,6 +1,7 @@
 package org.tsicoop.compass.service.v1;
 
 import org.tsicoop.compass.framework.Action;
+import org.tsicoop.compass.framework.EventLog;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PasswordHasher;
@@ -281,6 +282,13 @@ public class Platform implements Action {
             result.put("message", "User provisioned successfully");
             OutputProcessor.send(res, 200, result);
 
+            JSONObject ctx = new JSONObject();
+            ctx.put("new_user_id", newId);
+            ctx.put("email", email.toLowerCase().trim());
+            ctx.put("username", username);
+            ctx.put("role", role);
+            EventLog.log(InputProcessor.getEmail(req), "USER_PROVISIONED", ctx.toJSONString());
+
         } catch (Exception e) {
             String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
             if (msg.contains("unique") || msg.contains("duplicate")) {
@@ -374,6 +382,15 @@ public class Platform implements Action {
             result.put("message", "User updated successfully");
             OutputProcessor.send(res, 200, result);
 
+            JSONObject ctx = new JSONObject();
+            ctx.put("user_id", id);
+            if (!isBlank(username))     ctx.put("username", username);
+            if (!isBlank(email))        ctx.put("email", email.toLowerCase().trim());
+            if (!isBlank(role))         ctx.put("role", role);
+            if (!isBlank(status))       ctx.put("status", status);
+            if (!isBlank(departmentId)) ctx.put("department_id", departmentId);
+            EventLog.log(InputProcessor.getEmail(req), "USER_UPDATED", ctx.toJSONString());
+
         } catch (Exception e) {
             String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
             if (msg.contains("unique") || msg.contains("duplicate")) {
@@ -414,6 +431,11 @@ public class Platform implements Action {
             result.put("success", true);
             OutputProcessor.send(res, 200, result);
 
+            JSONObject ctx = new JSONObject();
+            ctx.put("user_id", id);
+            ctx.put("new_status", status);
+            EventLog.log(InputProcessor.getEmail(req), "USER_STATUS_CHANGED", ctx.toJSONString());
+
         } finally {
             if (pool != null) {
                 try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
@@ -452,6 +474,10 @@ public class Platform implements Action {
             JSONObject result = new JSONObject();
             result.put("success", true);
             OutputProcessor.send(res, 200, result);
+
+            JSONObject ctx = new JSONObject();
+            ctx.put("user_id", id);
+            EventLog.log(InputProcessor.getEmail(req), "USER_PASSWORD_RESET", ctx.toJSONString());
 
         } finally {
             if (pool != null) {

@@ -131,9 +131,11 @@ function handleLogin(event) {
     .then(function(r) { return r.json().then(function(data) { return { status: r.status, body: data }; }); })
     .then(function(res) {
         if (res.status === 200 && res.body.success) {
-            localStorage.setItem('token', res.body.token);
-            localStorage.setItem('username', res.body.username);
-            localStorage.setItem('role', res.body.role);
+            localStorage.setItem('token',       res.body.token);
+            localStorage.setItem('username',    res.body.username);
+            localStorage.setItem('role',        res.body.role);
+            // permissions is a {module: level} map returned directly by login
+            localStorage.setItem('permissions', JSON.stringify(res.body.permissions || {}));
             window.location.href = 'dashboard.html';
         } else {
             var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';

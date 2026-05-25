@@ -3,10 +3,14 @@ package org.tsicoop.compass.framework;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject; // For parsing input in validateRequestFunc
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class InterceptingFilter implements Filter {
@@ -47,6 +51,53 @@ public class InterceptingFilter implements Filter {
             "verify_recovery_key",
             "reset_password_via_recovery"
     ));
+
+    // Maps admin service names to their GRC module name in role_permissions
+    private static final Map<String, String> SERVICE_MODULE_MAP = new HashMap<>();
+    static {
+        SERVICE_MODULE_MAP.put("platform",    "platform");
+        SERVICE_MODULE_MAP.put("governance",  "governance");
+        SERVICE_MODULE_MAP.put("risk",        "risks");
+        SERVICE_MODULE_MAP.put("controls",    "controls");
+        SERVICE_MODULE_MAP.put("audit",       "evidence");
+        SERVICE_MODULE_MAP.put("ops",         "operations");
+        SERVICE_MODULE_MAP.put("incidents",   "incidents");
+        SERVICE_MODULE_MAP.put("reports",     "reports");
+    }
+
+    // role:module -> permission_level, with expiry timestamp (5-minute TTL)
+    private static final Map<String, String[]> PERM_CACHE = new ConcurrentHashMap<>();
+    private static final long PERM_CACHE_TTL_MS = 300_000L;
+
+    private static String getPermissionLevel(String role, String module) {
+        String key = role + ":" + module;
+        String[] cached = PERM_CACHE.get(key);
+        if (cached != null && System.currentTimeMillis() < Long.parseLong(cached[1])) {
+            return cached[0];
+        }
+        String level = "NONE";
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT permission_level FROM role_permissions WHERE role = ? AND module = ?"
+            );
+            pstmt.setString(1, role);
+            pstmt.setString(2, module);
+            rs = pstmt.executeQuery();
+            if (rs.next()) level = rs.getString("permission_level");
+            PERM_CACHE.put(key, new String[]{level, String.valueOf(System.currentTimeMillis() + PERM_CACHE_TTL_MS)});
+        } catch (Exception e) {
+            System.err.println("[RBAC] Permission lookup failed for role=" + role + " module=" + module + ": " + e.getMessage());
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        return level;
+    }
 
     // Permission Scopes
     private static final String SCOPE_READ = "READ";
@@ -283,6 +334,24 @@ public class InterceptingFilter implements Filter {
             if (!authenticated) {
                 OutputProcessor.errorResponse(res, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", errorMessage, uri);
                 return;
+            }
+
+            // --- Module-level RBAC enforcement ---
+            // For authenticated admin requests that are not pre-auth funcs, check role_permissions.
+            if (ADMIN_URI_PATH.equalsIgnoreCase(apiCategory)
+                    && !ADMIN_NOAUTH_FUNCS.contains(func != null ? func.toLowerCase() : "")) {
+                String module = SERVICE_MODULE_MAP.get(serviceName != null ? serviceName.toLowerCase() : "");
+                if (module != null) {
+                    String role = InputProcessor.getRole(req);
+                    if (role != null) {
+                        String permLevel = getPermissionLevel(role, module);
+                        if ("NONE".equals(permLevel)) {
+                            OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                                "Your role does not have access to this module.", uri);
+                            return;
+                        }
+                    }
+                }
             }
 
             // --- Instantiate and execute Servlet ---
