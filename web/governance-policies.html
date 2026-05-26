@@ -382,6 +382,9 @@ function renderPolicies() {
         actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>';
       }
     }
+    if (canApprove) {
+      actions += '<button class="lk" style="color:var(--red)" onclick="deletePolicy(\''+esc(p.id)+'\')">Delete</button>';
+    }
     var fileCell = p.document_name
       ? '<button class="lk" onclick="downloadDoc(\''+esc(p.id)+'\',\''+esc(p.document_name)+'\')">&#8595; '+esc(p.document_name)+'</button>'
       : '<span style="color:var(--muted);font-size:11px">None</span>';
@@ -559,6 +562,15 @@ document.getElementById('form-approve-policy').addEventListener('submit', functi
     loadPolicies();
   });
 });
+
+window.deletePolicy = function(id) {
+  if (!confirm('Delete this policy? All clauses, reviews, and associated data will be permanently removed. This cannot be undone.')) return;
+  api('delete_policy', {id: id}, function(err) {
+    if (err) { showToast('Delete failed: ' + err, true); return; }
+    showToast('Policy deleted.');
+    loadPolicies();
+  });
+};
 
 // ---- Init ----
 (function(){

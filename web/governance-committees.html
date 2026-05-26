@@ -281,6 +281,7 @@ if (!TOKEN) window.location.href = 'index.html';
 
 var state = { committees: [], meetings: [], staff: [] };
 var editMeetingId = null;
+var isAdmin = false;
 
 function api(func, body, cb) {
   fetch('/api/v1/governance', {
@@ -400,13 +401,14 @@ function renderMeetings() {
       ? '<button class="lk" onclick="openLogMinutes(\''+esc(m.id)+'\',\''+esc(m.committee_name+' — '+fmtDate(m.scheduled_at))+'\')">Log Minutes</button>'
       : '';
     var editBtn = '<button class="lk" style="margin-left:10px" onclick="openEditMeeting(\''+esc(m.id)+'\')">Edit</button>';
+    var delBtn = isAdmin ? '<button class="lk" style="margin-left:10px;color:var(--red)" onclick="deleteMeeting(\''+esc(m.id)+'\')">Delete</button>' : '';
     return '<tr>' +
       '<td>'+esc(fmtDate(m.scheduled_at))+'</td>' +
       '<td><strong>'+esc(m.committee_name)+'</strong></td>' +
       '<td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.agenda||'—')+'</td>' +
       '<td>'+esc(m.venue||'—')+'</td>' +
       '<td>'+meetingStatusPill(m.status)+'</td>' +
-      '<td style="white-space:nowrap">'+actionBtn+editBtn+'</td>' +
+      '<td style="white-space:nowrap">'+actionBtn+editBtn+delBtn+'</td>' +
       '</tr>';
   }).join('');
 }
@@ -437,6 +439,7 @@ function renderActionItems() {
           '<option value="COMPLETED">Completed</option>' +
           '<option value="OVERDUE">Overdue</option>' +
         '</select>' +
+        (isAdmin ? '<button class="lk" style="color:var(--red)" onclick="deleteActionItem(\''+esc(a.id)+'\')">Delete</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');
@@ -729,10 +732,29 @@ function confirmImport() {
   });
 }
 
+window.deleteMeeting = function(id) {
+  if (!confirm('Delete this meeting? Minutes and all associated data will also be removed. This cannot be undone.')) return;
+  api('delete_meeting', {id: id}, function(err) {
+    if (err) { showToast('Delete failed: ' + err, true); return; }
+    showToast('Meeting deleted.');
+    loadMeetings();
+  });
+};
+
+window.deleteActionItem = function(id) {
+  if (!confirm('Delete this action item? This cannot be undone.')) return;
+  api('delete_action_item', {id: id}, function(err) {
+    if (err) { showToast('Delete failed: ' + err, true); return; }
+    showToast('Action item deleted.');
+    loadActionItems();
+  });
+};
+
 // ---- Init ----
 (function(){
   var n = localStorage.getItem('username') || 'Demo Administrator';
   var r = localStorage.getItem('role') || 'Admin';
+  isAdmin = (r === 'ADMIN');
   var av = document.getElementById('user-avatar'), nm = document.getElementById('user-name'), ro = document.getElementById('user-role');
   if (nm) nm.textContent = n; if (ro) ro.textContent = r;
   if (av) { var i = n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); av.textContent = i||'U'; }

@@ -9,23 +9,17 @@
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px}
-.setup-wrap{width:100%;max-width:560px}
-.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;margin-bottom:36px;justify-content:center;color:var(--ink)}
+.setup-wrap{width:100%;max-width:540px}
+.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;margin-bottom:32px;justify-content:center;color:var(--ink)}
 .mark{width:40px;height:40px;border-radius:10px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:14px;flex-shrink:0}
-.progress-bar{display:flex;gap:0;margin-bottom:36px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
-.progress-step{flex:1;padding:12px 10px;text-align:center;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;background:#fff;color:var(--muted);border-right:1px solid var(--line);transition:background .2s,color .2s}
-.progress-step:last-child{border-right:none}
-.progress-step.active{background:var(--teal);color:#fff}
-.progress-step.done{background:#e6f4ed;color:var(--green)}
 .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:32px;margin-bottom:16px}
 .card h2{margin:0 0 6px;font-size:20px;font-weight:900}
 .card .sub{color:var(--muted);font-size:13px;margin:0 0 24px;line-height:1.5}
 .field{margin-bottom:18px}
 .field label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
-.field input,.field select{width:100%;height:42px;border:1px solid var(--line);border-radius:7px;padding:0 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
-.field input:focus,.field select:focus{border-color:var(--teal)}
-.field input.err,.field select.err{border-color:var(--red)}
-.field .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.field input{width:100%;height:42px;border:1px solid var(--line);border-radius:7px;padding:0 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--teal)}
+.field input.err{border-color:var(--red)}
 .field .err-msg{font-size:11px;color:var(--red);margin-top:4px;display:none}
 .field.has-err .err-msg{display:block}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -34,13 +28,6 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.primary:hover{background:#005450}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.review-table{width:100%;border-collapse:collapse;font-size:13px}
-.review-table tr td{padding:8px 0;border-bottom:1px solid var(--line)}
-.review-table tr:last-child td{border-bottom:none}
-.review-table td:first-child{color:var(--muted);font-weight:700;width:45%}
-.review-table td:last-child{font-weight:600;color:var(--ink)}
-.review-section{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin:20px 0 8px}
-.review-section:first-child{margin-top:0}
 .success-box{text-align:center;padding:12px 0 4px}
 .success-icon{font-size:52px;margin-bottom:16px}
 .success-box h2{font-size:22px;font-weight:900;margin:0 0 8px}
@@ -55,7 +42,7 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 #loading-overlay.hidden{display:none}
 #loading-overlay div{display:flex;flex-direction:column;align-items:center;gap:12px}
 .load-spin{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
-@media(max-width:580px){.row2{grid-template-columns:1fr}.setup-wrap{max-width:100%}.card{padding:22px}}
+@media(max-width:540px){.row2{grid-template-columns:1fr}.setup-wrap{max-width:100%}.card{padding:22px}}
 </style>
 </head>
 <body>
@@ -73,143 +60,66 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
     <span>TSI Compass</span>
   </div>
 
-  <!-- Progress steps -->
-  <div class="progress-bar">
-    <div class="progress-step active" id="step-ind-1">1. Organisation</div>
-    <div class="progress-step" id="step-ind-2">2. Admin Account</div>
-    <div class="progress-step" id="step-ind-3">3. Review &amp; Confirm</div>
-  </div>
-
-  <!-- Step 1: Organisation -->
-  <div id="step-1">
+  <!-- Setup Form -->
+  <div id="state-form">
     <div class="card">
-      <h2>Organisation Details</h2>
-      <p class="sub">Register your organisation. This will be the Head Office entity in TSI Compass.</p>
+      <h2>Welcome to TSI Compass</h2>
+      <p class="sub">Set up your organisation to get started. This creates your Head Office and the first administrator account.</p>
+
       <div class="field" id="f-org-name">
         <label>Organisation Name</label>
         <input type="text" id="org-name" placeholder="e.g. Acme Financial Services Ltd" autocomplete="organization">
         <div class="err-msg">Organisation name is required.</div>
       </div>
-      <div class="row2">
-        <div class="field" id="f-org-country">
-          <label>Country</label>
-          <select id="org-country">
-            <option value="">Select country…</option>
-            <option value="LK">Sri Lanka</option>
-            <option value="IN">India</option>
-            <option value="SG">Singapore</option>
-            <option value="GB">United Kingdom</option>
-            <option value="US">United States</option>
-            <option value="AU">Australia</option>
-            <option value="AE">United Arab Emirates</option>
-            <option value="OTHER">Other</option>
-          </select>
-          <div class="err-msg">Please select a country.</div>
-        </div>
-        <div class="field" id="f-org-tz">
-          <label>Timezone</label>
-          <select id="org-tz">
-            <option value="">Select timezone…</option>
-            <option value="Asia/Colombo">Asia/Colombo (IST +05:30)</option>
-            <option value="Asia/Kolkata">Asia/Kolkata (IST +05:30)</option>
-            <option value="Asia/Singapore">Asia/Singapore (SGT +08:00)</option>
-            <option value="Europe/London">Europe/London (GMT/BST)</option>
-            <option value="America/New_York">America/New_York (ET)</option>
-            <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
-            <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
-            <option value="Asia/Dubai">Asia/Dubai (GST +04:00)</option>
-          </select>
-          <div class="err-msg">Please select a timezone.</div>
-        </div>
-      </div>
-      <div class="field">
-        <label>Organisation Type</label>
-        <input type="text" value="Head Office" disabled style="background:var(--wash);color:var(--muted)">
-        <div class="hint">The first organisation registered is always the Head Office.</div>
-      </div>
-      <div class="btn-row">
-        <button class="btn primary" onclick="goStep2()">Continue →</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Step 2: Admin Account -->
-  <div id="step-2" style="display:none">
-    <div class="card">
-      <h2>Administrator Account</h2>
-      <p class="sub">Create the first administrator who will have full access to TSI Compass.</p>
       <div class="field" id="f-admin-name">
-        <label>Full Name</label>
+        <label>Admin Name</label>
         <input type="text" id="admin-name" placeholder="e.g. Priya Mendis" autocomplete="name">
-        <div class="err-msg">Full name is required.</div>
+        <div class="err-msg">Admin name is required.</div>
       </div>
+
       <div class="field" id="f-admin-email">
-        <label>Email Address</label>
+        <label>Admin Email</label>
         <input type="email" id="admin-email" placeholder="e.g. priya.mendis@example.com" autocomplete="email">
-        <div class="err-msg" id="admin-email-err">A valid email address is required.</div>
+        <div class="err-msg">A valid email address is required.</div>
       </div>
+
       <div class="row2">
         <div class="field" id="f-admin-pwd">
           <label>Password</label>
           <input type="password" id="admin-pwd" placeholder="Min. 10 characters" autocomplete="new-password">
-          <div class="err-msg" id="admin-pwd-err">Password must be at least 10 characters.</div>
+          <div class="err-msg">Password must be at least 10 characters.</div>
         </div>
         <div class="field" id="f-admin-pwd2">
           <label>Confirm Password</label>
           <input type="password" id="admin-pwd2" placeholder="Re-enter password" autocomplete="new-password">
-          <div class="err-msg" id="admin-pwd2-err">Passwords do not match.</div>
+          <div class="err-msg">Passwords do not match.</div>
         </div>
       </div>
-      <div class="btn-row">
-        <button class="btn" onclick="goStep1()">← Back</button>
-        <button class="btn primary" onclick="goStep3()">Review →</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Step 3: Review -->
-  <div id="step-3" style="display:none">
-    <div class="card">
-      <h2>Review &amp; Confirm</h2>
-      <p class="sub">Check the details below before completing setup. You can go back to make changes.</p>
-      <div class="review-section">Organisation</div>
-      <table class="review-table">
-        <tr><td>Name</td><td id="rv-org-name">—</td></tr>
-        <tr><td>Country</td><td id="rv-org-country">—</td></tr>
-        <tr><td>Timezone</td><td id="rv-org-tz">—</td></tr>
-        <tr><td>Type</td><td>Head Office</td></tr>
-      </table>
-      <div class="review-section">Administrator</div>
-      <table class="review-table">
-        <tr><td>Full Name</td><td id="rv-admin-name">—</td></tr>
-        <tr><td>Email</td><td id="rv-admin-email">—</td></tr>
-        <tr><td>Password</td><td>••••••••••</td></tr>
-        <tr><td>Role</td><td>Admin</td></tr>
-      </table>
-      <div class="btn-row" style="margin-top:24px">
-        <button class="btn" onclick="goStep2()">← Back</button>
-        <button class="btn primary" id="submit-btn" onclick="submitSetup()">Complete Setup</button>
+      <div class="btn-row">
+        <button class="btn primary" id="submit-btn" onclick="submitSetup()">Complete Setup →</button>
       </div>
     </div>
   </div>
 
   <!-- Success -->
-  <div id="step-success" style="display:none">
+  <div id="state-success" style="display:none">
     <div class="card">
       <div class="success-box">
-        <div class="success-icon">&#10003;</div>
+        <div class="success-icon">✓</div>
         <h2>Setup Complete</h2>
-        <p>TSI Compass has been configured successfully.<br>Redirecting you to the sign-in page…</p>
+        <p>TSI Compass has been configured successfully.<br>Sign in with your administrator credentials to get started.</p>
         <button class="btn primary" onclick="window.location.href='index.html'">Go to Sign In →</button>
       </div>
     </div>
   </div>
 
   <!-- Already set up -->
-  <div id="step-blocked" style="display:none">
+  <div id="state-blocked" style="display:none">
     <div class="card">
       <div class="blocked-box">
-        <div class="blocked-icon">&#128274;</div>
+        <div class="blocked-icon">🔒</div>
         <h2>Setup Already Complete</h2>
         <p>TSI Compass has already been configured for your organisation.<br>Please sign in with your administrator credentials.</p>
         <button class="btn primary" onclick="window.location.href='index.html'">Go to Sign In →</button>
@@ -221,7 +131,6 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 <script>
 (function(){
   var API = '/api/v1/bootstrap/setup';
-  var data = {};
 
   function post(body, cb) {
     fetch(API, {
@@ -233,114 +142,75 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
     });
   }
 
-  function showStep(n) {
-    ['step-1','step-2','step-3','step-success','step-blocked'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.style.display = 'none';
+  function showState(id) {
+    ['state-form','state-success','state-blocked'].forEach(function(s){
+      var el = document.getElementById(s);
+      if (el) el.style.display = 'none';
     });
-    for(var i=1;i<=3;i++){
-      var ind = document.getElementById('step-ind-'+i);
-      if(!ind) continue;
-      ind.classList.remove('active','done');
-      if(i < n) ind.classList.add('done');
-      else if(i === n) ind.classList.add('active');
-    }
-    var target = typeof n === 'number' ? 'step-'+n : n;
-    var el2 = document.getElementById(target);
-    if(el2) el2.style.display = '';
+    var target = document.getElementById(id);
+    if (target) target.style.display = '';
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  function fieldErr(id, show) {
-    var wrap = document.getElementById('f-'+id);
-    if(!wrap) return;
-    var inp = wrap.querySelector('input,select');
-    if(inp) inp.classList.toggle('err', show);
+  function fieldErr(fieldId, show) {
+    var wrap = document.getElementById('f-' + fieldId);
+    if (!wrap) return;
+    var inp = wrap.querySelector('input');
+    if (inp) inp.classList.toggle('err', show);
     wrap.classList.toggle('has-err', show);
   }
 
-  window.goStep1 = function() { showStep(1); };
-
-  window.goStep2 = function() {
-    var name = document.getElementById('org-name').value.trim();
-    var country = document.getElementById('org-country').value;
-    var tz = document.getElementById('org-tz').value;
-    var ok = true;
-    fieldErr('org-name', !name); if(!name) ok=false;
-    fieldErr('org-country', !country); if(!country) ok=false;
-    fieldErr('org-tz', !tz); if(!tz) ok=false;
-    if(!ok) return;
-    data.org_name = name;
-    data.org_country = country;
-    data.org_tz = tz;
-    showStep(2);
-  };
-
-  window.goStep3 = function() {
-    var aname = document.getElementById('admin-name').value.trim();
-    var email = document.getElementById('admin-email').value.trim();
-    var pwd = document.getElementById('admin-pwd').value;
-    var pwd2 = document.getElementById('admin-pwd2').value;
-    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    var ok = true;
-    fieldErr('admin-name', !aname); if(!aname) ok=false;
-    var emailBad = !email || !emailRe.test(email);
-    fieldErr('admin-email', emailBad); if(emailBad) ok=false;
-    var pwdBad = pwd.length < 10;
-    document.getElementById('admin-pwd').classList.toggle('err', pwdBad);
-    document.getElementById('f-admin-pwd').classList.toggle('has-err', pwdBad);
-    if(pwdBad) ok=false;
-    var pwd2Bad = pwd !== pwd2;
-    document.getElementById('admin-pwd2').classList.toggle('err', pwd2Bad);
-    document.getElementById('f-admin-pwd2').classList.toggle('has-err', pwd2Bad);
-    if(pwd2Bad) ok=false;
-    if(!ok) return;
-    data.admin_name = aname;
-    data.admin_email = email;
-    data.admin_password = pwd;
-    var countryMap = {LK:'Sri Lanka',IN:'India',SG:'Singapore',GB:'United Kingdom',US:'United States',AU:'Australia',AE:'United Arab Emirates',OTHER:'Other'};
-    document.getElementById('rv-org-name').textContent = data.org_name;
-    document.getElementById('rv-org-country').textContent = countryMap[data.org_country] || data.org_country;
-    document.getElementById('rv-org-tz').textContent = data.org_tz;
-    document.getElementById('rv-admin-name').textContent = data.admin_name;
-    document.getElementById('rv-admin-email').textContent = data.admin_email;
-    showStep(3);
-  };
-
   window.submitSetup = function() {
+    var orgName  = document.getElementById('org-name').value.trim();
+    var aName    = document.getElementById('admin-name').value.trim();
+    var email    = document.getElementById('admin-email').value.trim();
+    var pwd      = document.getElementById('admin-pwd').value;
+    var pwd2     = document.getElementById('admin-pwd2').value;
+    var emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    var ok = true;
+    fieldErr('org-name',    !orgName);   if (!orgName)   ok = false;
+    fieldErr('admin-name',  !aName);     if (!aName)     ok = false;
+    var emailBad = !email || !emailRe.test(email);
+    fieldErr('admin-email', emailBad);   if (emailBad)   ok = false;
+    var pwdBad = pwd.length < 10;
+    fieldErr('admin-pwd',   pwdBad);     if (pwdBad)     ok = false;
+    var pwd2Bad = pwd !== pwd2;
+    fieldErr('admin-pwd2',  pwd2Bad);    if (pwd2Bad)    ok = false;
+    if (!ok) return;
+
     var btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Setting up…';
+
     post({
       _func: 'complete_setup',
-      org_name: data.org_name,
-      org_country: data.org_country,
-      org_tz: data.org_tz,
-      admin_name: data.admin_name,
-      admin_email: data.admin_email,
-      admin_password: data.admin_password
+      org_name:       orgName,
+      admin_name:     aName,
+      admin_email:    email,
+      admin_password: pwd
     }, function(res) {
-      if(res && res.success) {
-        window.location.href = 'index.html';
+      btn.disabled = false;
+      btn.innerHTML = 'Complete Setup →';
+      if (res && res.success) {
+        showState('state-success');
       } else {
-        btn.disabled = false;
-        btn.innerHTML = 'Complete Setup';
         alert('Setup failed: ' + (res && res.message ? res.message : 'Unknown error. Please try again.'));
       }
     });
   };
 
-  // On load: check if setup is already done — redirect immediately if so
+  // On load: check if already configured
   var overlay = document.getElementById('loading-overlay');
-  var wrap = document.getElementById('setup-wrap');
+  var wrap    = document.getElementById('setup-wrap');
   post({_func: 'check_setup'}, function(res) {
-    if(res && res.setup_done) {
-      window.location.replace('index.html');
-      return;
-    }
     overlay.classList.add('hidden');
     wrap.style.display = '';
-    showStep(1);
+    if (res && res.setup_done) {
+      showState('state-blocked');
+    } else {
+      showState('state-form');
+    }
   });
 })();
 </script>

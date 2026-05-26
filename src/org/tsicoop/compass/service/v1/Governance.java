@@ -82,6 +82,15 @@ public class Governance implements Action {
                 case "get_policy_document":
                     getPolicyDocument(req, res, input);
                     break;
+                case "delete_meeting":
+                    deleteMeeting(req, res, input);
+                    break;
+                case "delete_action_item":
+                    deleteActionItem(req, res, input);
+                    break;
+                case "delete_policy":
+                    deletePolicy(req, res, input);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -947,6 +956,66 @@ public class Governance implements Action {
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete — Meeting
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void deleteMeeting(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("DELETE FROM committee_meetings WHERE id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception i) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete — Action Item
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void deleteActionItem(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("DELETE FROM committee_action_items WHERE id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception i) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete — Policy
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void deletePolicy(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("DELETE FROM policies WHERE id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception i) {}
         }
     }
 

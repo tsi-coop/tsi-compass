@@ -354,6 +354,7 @@ if (!TOKEN) window.location.href = 'index.html';
 
 var state = { vulns: [], engagements: [], staff: [] };
 var filterDebounce;
+var isAdmin = false;
 
 function api(func, body, cb) {
   fetch('/api/v1/risk', {
@@ -429,6 +430,9 @@ function renderVulns(list) {
     var actions = '<div class="row-actions"><button class="btn sm" onclick="openEditFinding(\''+v.id+'\')">Edit</button>';
     if (v.status !== 'RESOLVED' && v.status !== 'FALSE_POSITIVE') {
       actions += '<button class="btn sm primary" onclick="openResolveFinding(\''+v.id+'\')">Resolve</button>';
+    }
+    if (isAdmin) {
+      actions += '<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVulnerability(\''+v.id+'\')">Delete</button>';
     }
     actions += '</div>';
     html += '<td>' + actions + '</td>';
@@ -781,6 +785,15 @@ function confirmVaptImport() {
   });
 }
 
+function deleteVulnerability(id) {
+  if (!confirm('Delete this finding? This cannot be undone.')) return;
+  api('delete_vulnerability', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    toast('Finding deleted.');
+    loadAll();
+  });
+}
+
 function loadAll() {
   api('get_risk_metrics', {}, function(err, d) {
     if (err) return;
@@ -809,6 +822,7 @@ function loadAll() {
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}

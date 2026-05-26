@@ -236,6 +236,7 @@ if (!TOKEN) window.location.href = 'index.html';
 
 var state = {controls: [], frameworks: [], staff: [], filtered: []};
 var filterTimer = null;
+var isAdmin = false;
 
 function api(func, body, cb) {
   fetch('/api/v1/controls', {
@@ -276,6 +277,7 @@ function renderControls(list) {
       '<td>'+pill+'</td>'+
       '<td><div class="row-actions">'+
         '<button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+
+        (isAdmin ? '<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteControl(\''+c.id+'\')">Delete</button>' : '')+
       '</div></td>'+
     '</tr>';
   }).join('');
@@ -470,6 +472,15 @@ function updateImportBtn() {
   btn.textContent = checked > 0 ? 'Import Selected (' + checked + ')' : 'Import Selected (0)';
 }
 
+function deleteControl(id) {
+  if (!confirm('Delete this control? This will also remove all framework mappings. This cannot be undone.')) return;
+  api('delete_control', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    showToast('Control deleted');
+    loadControls();
+  });
+}
+
 function confirmFrameworkImport() {
   var fwId = document.getElementById('fw-select').value;
   var checked = Array.from(document.querySelectorAll('#req-checklist input[type=checkbox]:checked'));
@@ -490,6 +501,7 @@ function confirmFrameworkImport() {
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}

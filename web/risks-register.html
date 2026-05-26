@@ -304,6 +304,7 @@ var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = 'index.html';
 
 var state = { risks: [], staff: [] };
+var isAdmin = false;
 
 function api(func, body, cb) {
   fetch('/api/v1/risk', {
@@ -357,7 +358,9 @@ function renderRisks() {
     html += '<td style="text-align:center"><span class="pill ' + sc.cls + '">' + r.inherent_risk_score + '</span></td>';
     html += '<td>' + treatLabel + '</td>';
     html += '<td><span class="pill ' + statusCls + '">' + statusLabel + '</span></td>';
-    html += '<td><span class="lk" onclick="openEditRisk(\'' + r.id + '\')">Edit</span></td>';
+    html += '<td style="white-space:nowrap"><span class="lk" onclick="openEditRisk(\'' + r.id + '\')">Edit</span>' +
+      (isAdmin ? ' &nbsp;<span class="lk" style="color:var(--red)" onclick="deleteRisk(\'' + r.id + '\')">Delete</span>' : '') +
+      '</td>';
     html += '</tr>';
   });
   tbody.innerHTML = html;
@@ -610,6 +613,15 @@ function showRiskImportPreview(rows) {
   openModal('modal-risk-import');
 }
 
+function deleteRisk(id) {
+  if (!confirm('Delete this risk? This cannot be undone.')) return;
+  api('delete_risk', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    toast('Risk deleted.');
+    loadRisks();
+  });
+}
+
 function confirmRiskImport() {
   if (!pendingRiskRows.length) return;
   var btn = document.getElementById('btn-confirm-risk-import');
@@ -627,6 +639,7 @@ function confirmRiskImport() {
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}

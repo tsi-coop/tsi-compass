@@ -62,6 +62,12 @@ public class Risk implements Action {
                 case "bulk_add_vulnerabilities":
                     bulkAddVulnerabilities(req, res, input);
                     break;
+                case "delete_risk":
+                    deleteRisk(req, res, input);
+                    break;
+                case "delete_vulnerability":
+                    deleteVulnerability(req, res, input);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -720,6 +726,62 @@ public class Risk implements Action {
             JSONObject result = new JSONObject();
             result.put("success", true);
             result.put("inserted", inserted);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete — Risk
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void deleteRisk(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("DELETE FROM risks WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete — Vulnerability
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void deleteVulnerability(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("DELETE FROM vulnerabilities WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}

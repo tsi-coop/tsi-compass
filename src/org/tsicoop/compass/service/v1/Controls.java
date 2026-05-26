@@ -36,6 +36,8 @@ public class Controls implements Action {
                 case "list_policies":                  OutputProcessor.send(res, 200, listPolicies());                    break;
                 case "list_framework_requirements":    OutputProcessor.send(res, 200, listFrameworkRequirements(input));  break;
                 case "import_framework_controls":      importFrameworkControls(req, res, input);                          break;
+                case "delete_control":                 deleteControl(req, res, input);                                    break;
+                case "delete_exception":               deleteException(req, res, input);                                  break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -468,6 +470,45 @@ public class Controls implements Action {
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) try { pool.cleanup(rs, p, conn); } catch (Exception i) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteException(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("DELETE FROM exceptions WHERE id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception i) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteControl(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("DELETE FROM control_requirement_mappings WHERE control_id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            try { p.close(); } catch (Exception i) {} p = null;
+            p = conn.prepareStatement("DELETE FROM controls WHERE id = ?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception i) {}
         }
     }
 

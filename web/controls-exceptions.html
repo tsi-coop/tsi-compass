@@ -186,6 +186,7 @@ var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = 'index.html';
 
 var state = {exceptions: [], policies: [], controls: [], staff: []};
+var isAdmin = false;
 
 function api(func, body, cb) {
   fetch('/api/v1/controls', {
@@ -224,6 +225,7 @@ function renderExceptions(list) {
       '<td>'+(STATUS_PILL[e.status]||esc(e.status))+'</td>'+
       '<td><div class="row-actions">'+
         (canReview?'<button class="btn sm primary" onclick="openReview(\''+e.id+'\')">Review</button>':'')+
+        (isAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteException(\''+e.id+'\')">Delete</button>':'')+
       '</div></td>'+
     '</tr>';
   }).join('');
@@ -318,6 +320,15 @@ function submitReview() {
   });
 }
 
+function deleteException(id) {
+  if (!confirm('Delete this exception? This cannot be undone.')) return;
+  api('delete_exception', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    showToast('Exception deleted');
+    loadAll();
+  });
+}
+
 document.querySelectorAll('.modal-overlay').forEach(function(o){
   o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
 });
@@ -325,6 +336,7 @@ document.querySelectorAll('.modal-overlay').forEach(function(o){
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';
   var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}

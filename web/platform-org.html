@@ -412,7 +412,7 @@ function renderOrgs() {
       '<td><span class="pill neu">' + esc(typeLabel) + '</span></td>' +
       '<td>' + parent + '</td>' +
       '<td>' + deptCount + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditOrgModal(' + esc(org.id) + ')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditOrgModal(\'' + esc(org.id) + '\')">Edit</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -430,7 +430,7 @@ function renderDepts() {
       '<td><strong>' + esc(dept.name) + '</strong></td>' +
       '<td>' + esc(dept.org_name || '') + '</td>' +
       '<td>' + staff + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditDeptModal(' + esc(dept.id) + ')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditDeptModal(\'' + esc(dept.id) + '\')">Edit</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -449,7 +449,7 @@ function renderDesigs() {
     return '<tr>' +
       '<td><strong>' + esc(desig.title) + '</strong></td>' +
       '<td>' + kras + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditDesigModal(' + esc(desig.id) + ')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditDesigModal(\'' + esc(desig.id) + '\')">Edit</button></td>' +
       '</tr>';
   }).join('');
 }
