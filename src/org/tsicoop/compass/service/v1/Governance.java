@@ -55,6 +55,9 @@ public class Governance implements Action {
                 case "add_action_item":
                     addActionItem(req, res, input);
                     break;
+                case "bulk_add_action_items":
+                    bulkAddActionItems(req, res, input);
+                    break;
                 case "update_action_item_status":
                     updateActionItemStatus(req, res, input);
                     break;
@@ -467,6 +470,51 @@ public class Governance implements Action {
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void bulkAddActionItems(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        Object itemsObj = input.get("items");
+        if (!(itemsObj instanceof JSONArray)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "items array is required", req.getRequestURI());
+            return;
+        }
+        JSONArray items = (JSONArray) itemsObj;
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        long imported = 0;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            for (Object obj : items) {
+                if (!(obj instanceof JSONObject)) continue;
+                JSONObject item = (JSONObject) obj;
+                String deliverable = (String) item.get("deliverable");
+                String assigneeId  = (String) item.get("assignee_id");
+                String dueDate     = (String) item.get("due_date");
+                if (isBlank(deliverable) || isBlank(dueDate)) continue;
+                pstmt = conn.prepareStatement(
+                    "INSERT INTO committee_action_items (deliverable, assignee_id, due_date, status) " +
+                    "VALUES (?, ?, ?::date, 'PENDING')"
+                );
+                pstmt.setString(1, deliverable.trim());
+                if (isBlank(assigneeId)) pstmt.setNull(2, java.sql.Types.OTHER);
+                else pstmt.setObject(2, UUID.fromString(assigneeId));
+                pstmt.setString(3, dueDate);
+                pstmt.executeUpdate();
+                try { pstmt.close(); } catch (Exception ignored) {}
+                pstmt = null;
+                imported++;
+            }
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("imported", imported);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
         }
     }
 

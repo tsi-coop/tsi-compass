@@ -129,7 +129,12 @@ tr:last-child td{border-bottom:none}
     <div class="card">
       <div class="section-head">
         <h2>Open Action Items</h2>
-        <button class="lk" onclick="openModal('modal-add-action')">+ Add Action Item</button>
+        <div style="display:flex;gap:14px;align-items:center">
+          <button class="lk" onclick="downloadActionTemplate()">&#8595; Excel Template</button>
+          <button class="lk" onclick="document.getElementById('excel-upload').click()">&#8593; Upload Excel</button>
+          <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)">
+          <button class="lk" onclick="openModal('modal-add-action')">+ Add Action Item</button>
+        </div>
       </div>
       <div id="action-list" class="item-list">
         <div class="empty">Loading action items…</div>
@@ -254,6 +259,21 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Modal: Import Action Items Preview -->
+<div id="modal-import-preview" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-import-preview')">
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-head"><h2>Import Action Items</h2><button class="modal-close" onclick="closeModal('modal-import-preview')">&#x2715;</button></div>
+    <p id="import-summary" style="margin:0 0 14px;font-size:13px;color:var(--muted)"></p>
+    <div id="import-preview-table" style="overflow-x:auto;max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:7px"></div>
+    <div id="import-errors" style="display:none;margin-top:12px;background:#fef2f2;border:1px solid #fde8e8;border-radius:7px;padding:10px 12px;font-size:12px;color:var(--red);line-height:1.6"></div>
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" onclick="closeModal('modal-import-preview')">Cancel</button>
+      <button type="button" class="btn primary" id="btn-confirm-import" onclick="confirmImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script>
 var TOKEN = localStorage.getItem('token');
@@ -557,6 +577,157 @@ document.getElementById('form-add-action').addEventListener('submit', function(e
     loadActionItems();
   });
 });
+
+// ---- Excel template download ----
+function downloadActionTemplate() {
+  var wb = XLSX.utils.book_new();
+  var staffNames = state.staff.map(function(u) { return u.username; }).join(', ');
+  var wsData = [
+    ['Deliverable', 'Assigned To (Username)', 'Due Date (YYYY-MM-DD)'],
+    ['Review access control matrix', state.staff[0] ? state.staff[0].username : 'username', '2026-07-31'],
+    ['Update firewall documentation', state.staff[1] ? state.staff[1].username : 'username', '2026-08-15']
+  ];
+  var ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{wch:45}, {wch:28}, {wch:22}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Action Items');
+  XLSX.writeFile(wb, 'action_items_template.xlsx');
+}
+
+// ---- Excel upload ----
+var importRows = [];
+
+function handleExcelUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, {type: 'array', cellDates: true});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ''});
+      var dataRows = rows.slice(1).filter(function(r) { return String(r[0]||'').trim(); });
+      if (!dataRows.length) { showToast('No data rows found in the file.', true); input.value = ''; return; }
+      importRows = dataRows.map(function(r) {
+        return {
+          deliverable:   String(r[0]||'').trim(),
+          assignee_name: String(r[1]||'').trim(),
+          due_date:      parseExcelDate(r[2])
+        };
+      });
+      showImportPreview();
+    } catch(ex) {
+      showToast('Could not read file: ' + ex.message, true);
+    }
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseExcelDate(val) {
+  if (!val && val !== 0) return '';
+  if (val instanceof Date) return val.toISOString().split('T')[0];
+  if (typeof val === 'number') {
+    var d = new Date(Math.round((val - 25569) * 86400000));
+    return d.toISOString().split('T')[0];
+  }
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if (m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  return s;
+}
+
+function findStaffByName(name) {
+  if (!name) return null;
+  var n = name.toLowerCase();
+  for (var i = 0; i < state.staff.length; i++) {
+    if (state.staff[i].username.toLowerCase() === n) return state.staff[i].id;
+  }
+  return null;
+}
+
+function showImportPreview() {
+  var errors = [];
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr>' +
+    '<th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);background:var(--wash);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em">Deliverable</th>' +
+    '<th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);background:var(--wash);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em">Assigned To</th>' +
+    '<th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);background:var(--wash);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em">Due Date</th>' +
+    '<th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);background:var(--wash);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em">Status</th>' +
+    '</tr></thead><tbody>';
+
+  importRows.forEach(function(r, i) {
+    var rowErr = !r.deliverable ? 'Missing deliverable'
+               : !r.due_date   ? 'Missing due date'
+               : !/^\d{4}-\d{2}-\d{2}$/.test(r.due_date) ? 'Invalid date'
+               : '';
+    if (rowErr) errors.push('Row ' + (i + 2) + ': ' + rowErr);
+
+    var assigneeId   = findStaffByName(r.assignee_name);
+    var assigneeCell = r.assignee_name
+      ? (assigneeId
+          ? '<span style="color:var(--green);font-weight:700">'+esc(r.assignee_name)+'</span>'
+          : esc(r.assignee_name) + ' <span style="color:var(--amber);font-size:10px">(not found — will be unassigned)</span>')
+      : '<span style="color:var(--muted)">Unassigned</span>';
+
+    var statusCell = rowErr
+      ? '<span style="color:var(--red);font-weight:700">&#x26A0; '+esc(rowErr)+'</span>'
+      : '<span style="color:var(--green);font-weight:700">&#10003; Ready</span>';
+
+    var bg = rowErr ? 'background:#fef9f9' : '';
+    html += '<tr style="'+bg+'">' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.deliverable||'—')+'</td>' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+assigneeCell+'</td>' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.due_date||'—')+'</td>' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+statusCell+'</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table>';
+
+  var validCount = importRows.filter(function(r) {
+    return r.deliverable && r.due_date && /^\d{4}-\d{2}-\d{2}$/.test(r.due_date);
+  }).length;
+
+  document.getElementById('import-summary').textContent =
+    importRows.length + ' row' + (importRows.length !== 1 ? 's' : '') + ' found — ' +
+    validCount + ' ready to import' + (importRows.length - validCount ? ', ' + (importRows.length - validCount) + ' will be skipped.' : '.');
+  document.getElementById('import-preview-table').innerHTML = html;
+
+  var errEl = document.getElementById('import-errors');
+  if (errors.length) {
+    errEl.style.display = 'block';
+    errEl.innerHTML = '<strong>Rows with issues (will be skipped):</strong> ' + errors.join(' &nbsp;|&nbsp; ');
+  } else {
+    errEl.style.display = 'none';
+  }
+
+  var btn = document.getElementById('btn-confirm-import');
+  btn.textContent = 'Import ' + validCount + ' Item' + (validCount !== 1 ? 's' : '');
+  btn.disabled = validCount === 0;
+  openModal('modal-import-preview');
+}
+
+function confirmImport() {
+  var validItems = importRows
+    .filter(function(r) { return r.deliverable && r.due_date && /^\d{4}-\d{2}-\d{2}$/.test(r.due_date); })
+    .map(function(r) {
+      return {
+        deliverable:  r.deliverable,
+        assignee_id:  findStaffByName(r.assignee_name) || null,
+        due_date:     r.due_date
+      };
+    });
+  if (!validItems.length) return;
+  var btn = document.getElementById('btn-confirm-import');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('bulk_add_action_items', {items: validItems}, function(err, data) {
+    btn.textContent = 'Import'; btn.disabled = false;
+    if (err) { showToast('Import failed: ' + err, true); return; }
+    closeModal('modal-import-preview');
+    showToast((data.imported || validItems.length) + ' action items imported successfully.');
+    loadActionItems();
+  });
+}
 
 // ---- Init ----
 (function(){
