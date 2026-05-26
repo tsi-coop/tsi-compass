@@ -109,15 +109,16 @@ tr:hover td{background:#fafcfd}
         <h1>Controls Register</h1>
         <p class="subtitle">Master register of all controls mapped to frameworks, with implementation status and linked evidence.</p>
       </div>
-      <div class="acts">
-        <button class="btn primary" onclick="openAdd()">+ Add Control</button>
-      </div>
     </div>
 
     <div class="section-card">
       <div class="section-head">
         <h2>Controls Register</h2>
-        <span id="ctl-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="ctl-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn sm" onclick="openAddFromFramework()">Add from Framework</button>
+          <button class="btn sm primary" onclick="openAdd()">+ Add Control</button>
+        </div>
       </div>
       <div class="filter-bar">
         <select id="f-fw" onchange="applyFilters()"><option value="">All Frameworks</option></select>
@@ -201,6 +202,32 @@ tr:hover td{background:#fafcfd}
   </div>
 </div>
 
+<!-- Add from Framework Modal -->
+<div class="modal-overlay" id="modal-add-from-fw" onclick="if(event.target===this)closeModal('modal-add-from-fw')">
+  <div class="modal" style="width:580px">
+    <h2>Add Controls from Framework</h2>
+    <div class="form-row">
+      <label>Framework</label>
+      <select id="fw-select" onchange="loadFrameworkRequirements(this.value)">
+        <option value="">— Select a framework —</option>
+      </select>
+    </div>
+    <div id="req-checklist-wrap" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Requirements</span>
+        <span style="font-size:11px;color:var(--teal);cursor:pointer;font-weight:700" onclick="toggleAllRequirements()"><span id="toggle-all-lbl">Select All</span></span>
+      </div>
+      <div id="req-checklist" style="max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;padding:4px 0"></div>
+      <p id="req-empty" style="font-size:13px;color:var(--muted);margin:8px 0 0;display:none">No requirements found for this framework.</p>
+    </div>
+    <div id="req-loading" style="font-size:13px;color:var(--muted);margin:12px 0;display:none">Loading requirements…</div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add-from-fw')">Cancel</button>
+      <button class="btn primary" id="btn-import-fw" onclick="confirmFrameworkImport()" disabled>Import Selected (0)</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">Saved successfully</div>
 <script src="rbac.js"></script>
 <script>
@@ -238,7 +265,7 @@ function renderControls(list) {
   if(!list.length){body.innerHTML='<tr><td colspan="8" class="empty">No controls found.</td></tr>';return;}
   body.innerHTML = list.map(function(c){
     var pill = ATTEST_PILL[c.attestation_status]||'<span class="pill neu">Not attested</span>';
-    var fws  = (c.framework_names||'').split(',').filter(Boolean).map(function(f){return '<span class="tag">'+esc(f.trim())+'</span>';}).join('');
+    var fws  = (c.frameworks||'').split(',').filter(Boolean).map(function(f){return '<span class="tag">'+esc(f.trim())+'</span>';}).join('');
     return '<tr>'+
       '<td><strong>'+esc(c.code)+'</strong></td>'+
       '<td>'+esc(c.title)+'</td>'+
@@ -260,7 +287,7 @@ function applyFilters() {
   var stVal   = document.getElementById('f-status').value;
   var srVal   = document.getElementById('f-search').value.toLowerCase();
   var list = state.controls.filter(function(c){
-    if(fwVal   && !(c.framework_names||'').toLowerCase().includes(fwVal)) return false;
+    if(fwVal   && !(c.frameworks||'').toLowerCase().includes(fwVal)) return false;
     if(typeVal && c.type !== typeVal) return false;
     if(stVal   && c.attestation_status !== stVal) return false;
     if(srVal   && !((c.code||'')+(c.title||'')).toLowerCase().includes(srVal)) return false;
@@ -382,6 +409,83 @@ function submitEdit() {
 document.querySelectorAll('.modal-overlay').forEach(function(o){
   o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
 });
+
+// ---- Add from Framework ----
+
+function openAddFromFramework() {
+  var sel = document.getElementById('fw-select');
+  sel.innerHTML = '<option value="">— Select a framework —</option>';
+  state.frameworks.forEach(function(f) {
+    var o = document.createElement('option');
+    o.value = f.id; o.textContent = f.name; sel.appendChild(o);
+  });
+  document.getElementById('req-checklist-wrap').style.display = 'none';
+  document.getElementById('req-loading').style.display = 'none';
+  document.getElementById('req-checklist').innerHTML = '';
+  document.getElementById('req-empty').style.display = 'none';
+  updateImportBtn();
+  document.getElementById('modal-add-from-fw').classList.add('open');
+}
+
+function loadFrameworkRequirements(fwId) {
+  var wrap = document.getElementById('req-checklist-wrap');
+  var load = document.getElementById('req-loading');
+  var list = document.getElementById('req-checklist');
+  wrap.style.display = 'none'; list.innerHTML = '';
+  if (!fwId) { updateImportBtn(); return; }
+  load.style.display = 'block';
+  api('list_framework_requirements', {framework_id: fwId}, function(err, d) {
+    load.style.display = 'none';
+    wrap.style.display = 'block';
+    var empty = document.getElementById('req-empty');
+    if (err || !d.requirements || !d.requirements.length) {
+      empty.style.display = 'block'; list.innerHTML = '';
+      updateImportBtn(); return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = d.requirements.map(function(r) {
+      var disabled = r.has_control ? ' disabled' : '';
+      var muted    = r.has_control ? ' style="color:var(--muted)"' : '';
+      var badge    = r.has_control ? ' <span style="font-size:10px;color:var(--muted);font-weight:700;background:#f1f5f9;border-radius:4px;padding:1px 5px">Already in register</span>' : '';
+      return '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;cursor:'+(r.has_control?'default':'pointer')+';border-bottom:1px solid #f0f4f8">' +
+        '<input type="checkbox" data-req-id="'+r.id+'"'+disabled+' onchange="updateImportBtn()" style="margin-top:2px;flex-shrink:0">' +
+        '<span'+muted+'><strong>'+esc(r.section_code)+'</strong> — '+esc(r.title)+badge+'</span></label>';
+    }).join('');
+    updateImportBtn();
+  });
+}
+
+function toggleAllRequirements() {
+  var boxes = document.querySelectorAll('#req-checklist input[type=checkbox]:not(:disabled)');
+  var allChecked = Array.from(boxes).every(function(b){return b.checked;});
+  boxes.forEach(function(b){b.checked = !allChecked;});
+  document.getElementById('toggle-all-lbl').textContent = allChecked ? 'Select All' : 'Deselect All';
+  updateImportBtn();
+}
+
+function updateImportBtn() {
+  var checked = document.querySelectorAll('#req-checklist input[type=checkbox]:checked').length;
+  var btn = document.getElementById('btn-import-fw');
+  btn.disabled = checked === 0;
+  btn.textContent = checked > 0 ? 'Import Selected (' + checked + ')' : 'Import Selected (0)';
+}
+
+function confirmFrameworkImport() {
+  var fwId = document.getElementById('fw-select').value;
+  var checked = Array.from(document.querySelectorAll('#req-checklist input[type=checkbox]:checked'));
+  var reqIds  = checked.map(function(b){return b.getAttribute('data-req-id');});
+  if (!fwId || !reqIds.length) return;
+  var btn = document.getElementById('btn-import-fw');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('import_framework_controls', {framework_id: fwId, requirement_ids: reqIds}, function(err, d) {
+    btn.disabled = false;
+    if (err) { alert('Import failed: ' + err); updateImportBtn(); return; }
+    var fwName = (state.frameworks.find(function(f){return f.id===fwId;})||{}).name || 'framework';
+    closeModal('modal-add-from-fw');
+    showToast('Imported ' + (d.imported||0) + ' control' + (d.imported===1?'':'s') + ' from ' + fwName);
+    loadControls();
+  });
+}
 
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';

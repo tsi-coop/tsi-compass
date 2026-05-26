@@ -635,15 +635,48 @@ INSERT INTO committees (id, name, description) VALUES
 
 -- Seed compliance frameworks
 INSERT INTO frameworks (id, name, version, description) VALUES
-('f1000000-0000-0000-0000-000000000001', 'ISO 27001', '2022', 'Information Security Management System (ISMS) framework.'),
-('f1000000-0000-0000-0000-000000000002', 'GDPR', '2016', 'General Data Protection Regulation for EU data subject protection.'),
-('f1000000-0000-0000-0000-000000000003', 'SOC 2', 'Trust Services Criteria', 'System and Organization Controls for security, availability, and confidentiality.');
+('f1000000-0000-0000-0000-000000000001', 'ISO 27001', '2022', 'Information Security Management System (ISMS) framework for managing information security risks.'),
+('f1000000-0000-0000-0000-000000000002', 'DPDP', '2023', 'Digital Personal Data Protection Act 2023 — India''s framework governing Data Fiduciaries and personal data rights.'),
+('f1000000-0000-0000-0000-000000000003', 'SOC 2', 'Trust Services Criteria', 'System and Organization Controls for security, availability, processing integrity, confidentiality, and privacy.');
 
--- Seed base requirements
+-- ISO 27001:2022 requirements
 INSERT INTO framework_requirements (id, framework_id, section_code, title, description) VALUES
-('f1100000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'A.5.1', 'Policies for information security', 'Information security policy and topic-specific policies shall be defined, approved, and regularly reviewed.'),
-('f1100000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'A.8.20', 'Network security', 'Networks and network devices shall be secured, managed, and controlled.'),
-('f1100000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000002', 'Article 32', 'Security of processing', 'Technical and organizational measures to ensure a level of security appropriate to data risk.');
+('f1100000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'A.5.1',  'Policies for information security',                    'Information security policy and topic-specific policies shall be defined, approved by management, published, communicated, and reviewed at planned intervals.'),
+('f1100000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'A.8.20', 'Network security',                                     'Networks and network devices shall be secured, managed, and controlled to protect information in systems and applications.'),
+('f1100000-0000-0000-0000-000000000004', 'f1000000-0000-0000-0000-000000000001', 'A.5.2',  'Information security roles and responsibilities',       'Information security roles and responsibilities shall be defined and allocated according to the organisation''s needs.'),
+('f1100000-0000-0000-0000-000000000005', 'f1000000-0000-0000-0000-000000000001', 'A.5.15', 'Access control',                                       'Rules to control physical and logical access to information and other associated assets shall be established and implemented based on business and information security requirements.'),
+('f1100000-0000-0000-0000-000000000006', 'f1000000-0000-0000-0000-000000000001', 'A.5.23', 'Information security for use of cloud services',       'Processes for acquisition, use, management, and exit from cloud services shall be established in accordance with the organisation''s information security requirements.'),
+('f1100000-0000-0000-0000-000000000007', 'f1000000-0000-0000-0000-000000000001', 'A.6.3',  'Information security awareness, education and training','Personnel and relevant interested parties shall receive appropriate information security awareness, education and training.'),
+('f1100000-0000-0000-0000-000000000008', 'f1000000-0000-0000-0000-000000000001', 'A.7.1',  'Physical security perimeters',                         'Security perimeters shall be defined and used to protect areas that contain information and other associated assets.'),
+('f1100000-0000-0000-0000-000000000009', 'f1000000-0000-0000-0000-000000000001', 'A.8.2',  'Privileged access rights',                             'The allocation and use of privileged access rights shall be restricted and managed.'),
+('f1100000-0000-0000-0000-000000000010', 'f1000000-0000-0000-0000-000000000001', 'A.8.5',  'Secure authentication',                                'Secure authentication technologies and procedures shall be implemented based on information access restrictions and the access control policy.'),
+('f1100000-0000-0000-0000-000000000011', 'f1000000-0000-0000-0000-000000000001', 'A.8.7',  'Protection against malware',                           'Protection against malware shall be implemented and supported by appropriate user awareness.'),
+('f1100000-0000-0000-0000-000000000012', 'f1000000-0000-0000-0000-000000000001', 'A.8.8',  'Management of technical vulnerabilities',              'Information about technical vulnerabilities shall be obtained, the organisation''s exposure evaluated, and appropriate measures taken.'),
+('f1100000-0000-0000-0000-000000000013', 'f1000000-0000-0000-0000-000000000001', 'A.8.15', 'Logging',                                              'Logs that record activities, exceptions, faults, and other relevant events shall be produced, stored, protected, and analysed.');
+
+-- DPDP 2023 requirements
+INSERT INTO framework_requirements (id, framework_id, section_code, title, description) VALUES
+('f2000000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000002', 'Sec 4',  'Grounds for processing personal data',            'Personal data may be processed only for a lawful purpose for which a Data Principal has given consent or for certain legitimate uses specified under the Act.'),
+('f2000000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000002', 'Sec 5',  'Notice to Data Principals',                        'The Data Fiduciary must provide a notice with details of personal data collected, purpose of processing, and the rights of the Data Principal before or at the time of collecting personal data.'),
+('f2000000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000002', 'Sec 6',  'Consent management',                              'Consent shall be free, specific, informed, unconditional, and unambiguous with a clear affirmative action, and limited to personal data necessary for the specified purpose.'),
+('f2000000-0000-0000-0000-000000000004', 'f1000000-0000-0000-0000-000000000002', 'Sec 8',  'General obligations of Data Fiduciary',           'Data Fiduciary shall ensure accuracy and completeness of personal data, implement appropriate technical and organisational measures, and retain data only for the period necessary.'),
+('f2000000-0000-0000-0000-000000000005', 'f1000000-0000-0000-0000-000000000002', 'Sec 9',  'Processing of personal data of children',         'Data Fiduciary shall not process personal data of a child in a manner detrimental to the child and shall obtain verifiable consent from a parent or legal guardian before processing.'),
+('f2000000-0000-0000-0000-000000000006', 'f1000000-0000-0000-0000-000000000002', 'Sec 11', 'Right to access information about personal data', 'Data Principal shall have the right to obtain a summary of personal data being processed and the processing activities undertaken by the Data Fiduciary.'),
+('f2000000-0000-0000-0000-000000000007', 'f1000000-0000-0000-0000-000000000002', 'Sec 12', 'Right to correction and erasure',                 'Data Principal shall have the right to correction, completion, updating, and erasure of personal data, and the Data Fiduciary shall effect such correction or erasure.'),
+('f2000000-0000-0000-0000-000000000008', 'f1000000-0000-0000-0000-000000000002', 'Sec 13', 'Right to grievance redressal',                    'Data Principal shall have the right to readily available means of grievance redressal provided by the Data Fiduciary, with responses within prescribed timelines.');
+
+-- SOC 2 Trust Services Criteria requirements
+INSERT INTO framework_requirements (id, framework_id, section_code, title, description) VALUES
+('f3000000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000003', 'CC1.1', 'Control environment — integrity and ethical values', 'The entity demonstrates a commitment to integrity and ethical values through the actions of those in governance and management.'),
+('f3000000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000003', 'CC2.1', 'Information and communication',                      'The entity obtains or generates and uses relevant, quality information to support the functioning of internal control.'),
+('f3000000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000003', 'CC3.1', 'Risk assessment — specification of objectives',      'The entity specifies objectives with sufficient clarity to enable the identification and assessment of risks relating to objectives.'),
+('f3000000-0000-0000-0000-000000000004', 'f1000000-0000-0000-0000-000000000003', 'CC5.1', 'Control activities — design and selection',          'The entity selects and develops control activities that contribute to the mitigation of risks to the achievement of objectives to acceptable levels.'),
+('f3000000-0000-0000-0000-000000000005', 'f1000000-0000-0000-0000-000000000003', 'CC6.1', 'Logical and physical access controls',               'The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events.'),
+('f3000000-0000-0000-0000-000000000006', 'f1000000-0000-0000-0000-000000000003', 'CC6.3', 'Role-based access management',                      'The entity authorises, modifies, or removes access based on roles and responsibilities, ensuring access is appropriate and current.'),
+('f3000000-0000-0000-0000-000000000007', 'f1000000-0000-0000-0000-000000000003', 'CC6.6', 'Restriction of access to protected information',    'The entity implements logical access security measures to protect against threats from sources outside its system boundaries.'),
+('f3000000-0000-0000-0000-000000000008', 'f1000000-0000-0000-0000-000000000003', 'CC7.1', 'System monitoring',                                 'The entity uses detection and monitoring procedures to identify changes to configurations or the environment and new vulnerabilities, and to detect security events.'),
+('f3000000-0000-0000-0000-000000000009', 'f1000000-0000-0000-0000-000000000003', 'CC8.1', 'Change management',                                 'The entity authorises, designs, develops, configures, documents, tests, and approves changes to infrastructure, data, software, and procedures.'),
+('f3000000-0000-0000-0000-000000000010', 'f1000000-0000-0000-0000-000000000003', 'A1.1',  'Availability — capacity and performance',            'The entity maintains, monitors, and evaluates current processing capacity and use of system components to manage capacity demand and enable implementation of additional capacity.');
 
 -- Seed regulators
 INSERT INTO compliance_regulators (id, name, description) VALUES

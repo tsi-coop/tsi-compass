@@ -32,8 +32,10 @@ public class Controls implements Action {
                 case "list_exceptions":        OutputProcessor.send(res, 200, listExceptions());          break;
                 case "add_exception":          addException(req, res, input);                             break;
                 case "update_exception_status": updateExceptionStatus(req, res, input);                   break;
-                case "list_staff":             OutputProcessor.send(res, 200, listStaff());               break;
-                case "list_policies":          OutputProcessor.send(res, 200, listPolicies());            break;
+                case "list_staff":                     OutputProcessor.send(res, 200, listStaff());                       break;
+                case "list_policies":                  OutputProcessor.send(res, 200, listPolicies());                    break;
+                case "list_framework_requirements":    OutputProcessor.send(res, 200, listFrameworkRequirements(input));  break;
+                case "import_framework_controls":      importFrameworkControls(req, res, input);                          break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -358,6 +360,115 @@ public class Controls implements Action {
             while (rs.next()) { JSONObject pol=new JSONObject(); pol.put("id",rs.getString(1)); pol.put("title",rs.getString(2)); policies.add(pol); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
         JSONObject result = new JSONObject(); result.put("success", true); result.put("policies", policies); return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // List requirements for a framework, flagging which already have a control
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listFrameworkRequirements(JSONObject input) throws Exception {
+        String frameworkId = (String) input.get("framework_id");
+        if (isBlank(frameworkId)) throw new Exception("framework_id is required");
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray requirements = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT fr.id::text, fr.section_code, fr.title, fr.description, " +
+                "EXISTS (SELECT 1 FROM control_requirement_mappings crm WHERE crm.requirement_id = fr.id) AS has_control " +
+                "FROM framework_requirements fr " +
+                "WHERE fr.framework_id = ?::uuid " +
+                "ORDER BY fr.section_code"
+            );
+            p.setString(1, frameworkId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject req = new JSONObject();
+                req.put("id",           rs.getString("id"));
+                req.put("section_code", rs.getString("section_code"));
+                req.put("title",        rs.getString("title"));
+                req.put("description",  rs.getString("description"));
+                req.put("has_control",  rs.getBoolean("has_control"));
+                requirements.add(req);
+            }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch (Exception i) {} }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("requirements", requirements);
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Import selected framework requirements as controls
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void importFrameworkControls(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String frameworkId = (String) input.get("framework_id");
+        JSONArray reqIds   = (JSONArray) input.get("requirement_ids");
+        if (isBlank(frameworkId) || reqIds == null || reqIds.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "framework_id and requirement_ids are required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            int imported = 0;
+            for (Object obj : reqIds) {
+                String reqId = (String) obj;
+
+                // Fetch requirement details
+                p = conn.prepareStatement("SELECT section_code, title, description FROM framework_requirements WHERE id = ?::uuid");
+                p.setString(1, reqId);
+                rs = p.executeQuery();
+                if (!rs.next()) { try { rs.close(); p.close(); } catch (Exception i) {} rs = null; p = null; continue; }
+                String code  = rs.getString("section_code");
+                String title = rs.getString("title");
+                String desc  = rs.getString("description");
+                try { rs.close(); p.close(); } catch (Exception i) {} rs = null; p = null;
+
+                // Find existing control by code, or create a new one
+                p = conn.prepareStatement("SELECT id::text FROM controls WHERE code = ?");
+                p.setString(1, code);
+                rs = p.executeQuery();
+                String controlId;
+                if (rs.next()) {
+                    controlId = rs.getString(1);
+                    try { rs.close(); p.close(); } catch (Exception i) {} rs = null; p = null;
+                } else {
+                    try { rs.close(); p.close(); } catch (Exception i) {} rs = null; p = null;
+                    p = conn.prepareStatement(
+                        "INSERT INTO controls (code, title, description, type, frequency) " +
+                        "VALUES (?, ?, ?, 'ADMINISTRATIVE', 'ANNUALLY') RETURNING id::text"
+                    );
+                    p.setString(1, code);
+                    p.setString(2, title);
+                    p.setString(3, desc);
+                    rs = p.executeQuery();
+                    rs.next();
+                    controlId = rs.getString(1);
+                    try { rs.close(); p.close(); } catch (Exception i) {} rs = null; p = null;
+                    imported++;
+                }
+
+                // Link to requirement (idempotent)
+                p = conn.prepareStatement(
+                    "INSERT INTO control_requirement_mappings (control_id, requirement_id) " +
+                    "VALUES (?::uuid, ?::uuid) ON CONFLICT DO NOTHING"
+                );
+                p.setString(1, controlId);
+                p.setString(2, reqId);
+                p.executeUpdate();
+                try { p.close(); } catch (Exception i) {} p = null;
+            }
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("imported", imported);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(rs, p, conn); } catch (Exception i) {}
+        }
     }
 
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
