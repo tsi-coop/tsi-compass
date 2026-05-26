@@ -30,6 +30,7 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
 .mb{margin-bottom:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
@@ -105,13 +106,19 @@ tr:last-child td{border-bottom:none}
         <h1>Risk Register</h1>
         <p class="subtitle">Enterprise risk register with impact/likelihood scoring, treatment strategies, and heatmap view.</p>
       </div>
-      <div class="acts">
-        <button class="btn" onclick="openModal('modal-add-risk')">Add Risk</button>
-      </div>
     </div>
 
     <div class="card mb">
-      <div class="section-head"><h2>Enterprise Risk Register</h2><span id="risk-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="section-head">
+        <h2>Enterprise Risk Register</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="risk-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn sm" onclick="downloadRiskTemplate()">&#8595; Excel Template</button>
+          <input type="file" id="risk-excel-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleRiskExcelUpload(this)">
+          <button class="btn sm" onclick="document.getElementById('risk-excel-upload').click()">&#8593; Upload Excel</button>
+          <button class="btn sm primary" onclick="openModal('modal-add-risk')">+ Add Risk</button>
+        </div>
+      </div>
       <table>
         <thead>
           <tr>
@@ -271,6 +278,26 @@ tr:last-child td{border-bottom:none}
 
 <div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none"></div>
 
+<!-- Risk Register Import Preview Modal -->
+<div id="modal-risk-import" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-risk-import')">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-head"><h2>Import Risk Register</h2><button class="modal-close" onclick="closeModal('modal-risk-import')">&#x2715;</button></div>
+    <p id="risk-import-summary" style="font-size:13px;color:var(--muted);margin:0 0 12px"></p>
+    <div id="risk-import-error" class="error-msg"></div>
+    <div style="overflow-x:auto;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr id="risk-import-head" style="background:var(--wash)"></tr></thead>
+        <tbody id="risk-import-body"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" onclick="closeModal('modal-risk-import')">Cancel</button>
+      <button type="button" class="btn primary" id="btn-confirm-risk-import" onclick="confirmRiskImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script>
 var TOKEN = localStorage.getItem('token');
@@ -467,6 +494,135 @@ function loadRisks() {
 }
 
 function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+
+// ---- Excel Template Download ----
+var RISK_CATEGORIES = ['Third-Party','Operational','IT Operations','Compliance','Access Control','IT Infrastructure','Continuity','Human Factor','Financial','Regulatory'];
+var RISK_TREATMENTS = ['MITIGATE','ACCEPT','TRANSFER','AVOID'];
+
+function downloadRiskTemplate() {
+  var sampleOwner = state.staff.length ? state.staff[0].username : 'john.smith';
+  var rows = [
+    ['Title','Description','Category','Impact (1-5)','Likelihood (1-5)','Treatment','Owner Username'],
+    ['Unauthorised access to core banking','Risk of insider threat exploiting weak access controls','Access Control',4,3,'MITIGATE',sampleOwner],
+    ['Third-party vendor breach','Vendor with access to customer data suffers a breach','Third-Party',5,2,'TRANSFER','']
+  ];
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:40},{wch:50},{wch:20},{wch:14},{wch:16},{wch:12},{wch:20}];
+  var note = 'Category must be one of: ' + RISK_CATEGORIES.join(', ') + '. Treatment must be one of: ' + RISK_TREATMENTS.join(', ') + ' (or leave blank).';
+  XLSX.utils.sheet_add_aoa(ws, [[note]], {origin: rows.length + 1});
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Risk Register');
+  XLSX.writeFile(wb, 'risk-register-template.xlsx');
+}
+
+// ---- Excel Upload & Parse ----
+var pendingRiskRows = [];
+
+function handleRiskExcelUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    input.value = '';
+    if (rows.length < 2) {
+      alert('The file appears to be empty or has no data rows.');
+      return;
+    }
+    showRiskImportPreview(rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function findStaffByName(name) {
+  if (!name) return null;
+  var n = String(name).trim().toLowerCase();
+  var found = state.staff.find(function(s){ return s.username.toLowerCase() === n; });
+  return found ? found.id : null;
+}
+
+function showRiskImportPreview(rows) {
+  var header = rows[0];
+  var dataRows = rows.slice(1).filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+
+  var valid = 0, errors = 0;
+  pendingRiskRows = [];
+
+  var headHtml = '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">Status</th>';
+  header.forEach(function(h){ headHtml += '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">' + esc(h) + '</th>'; });
+  document.getElementById('risk-import-head').innerHTML = headHtml;
+
+  var bodyHtml = '';
+  dataRows.forEach(function(row) {
+    var title    = String(row[0] || '').trim();
+    var desc     = String(row[1] || '').trim();
+    var category = String(row[2] || '').trim();
+    var impact   = parseInt(row[3]);
+    var likelihood = parseInt(row[4]);
+    var treatment  = String(row[5] || '').trim().toUpperCase();
+    var ownerName  = String(row[6] || '').trim();
+
+    var rowErrors = [];
+    if (!title)    rowErrors.push('Title required');
+    if (!category || RISK_CATEGORIES.indexOf(category) === -1) rowErrors.push('Invalid category');
+    if (isNaN(impact) || impact < 1 || impact > 5)     rowErrors.push('Impact must be 1-5');
+    if (isNaN(likelihood) || likelihood < 1 || likelihood > 5) rowErrors.push('Likelihood must be 1-5');
+    if (treatment && RISK_TREATMENTS.indexOf(treatment) === -1) rowErrors.push('Invalid treatment');
+
+    var ownerId = ownerName ? findStaffByName(ownerName) : null;
+    var ownerWarn = ownerName && !ownerId;
+
+    var statusCell, rowStyle;
+    if (rowErrors.length) {
+      statusCell = '<td style="padding:6px 10px;color:var(--red);font-weight:800;white-space:nowrap">&#10007; ' + rowErrors.join('; ') + '</td>';
+      rowStyle = 'background:#fef2f2';
+      errors++;
+    } else if (ownerWarn) {
+      statusCell = '<td style="padding:6px 10px;color:var(--amber);font-weight:700;white-space:nowrap">&#9888; Owner not found</td>';
+      rowStyle = 'background:#fffbeb';
+      valid++;
+      pendingRiskRows.push({title:title,description:desc||null,category:category,inherent_impact:impact,inherent_likelihood:likelihood,treatment_strategy:treatment||null,owner_id:null});
+    } else {
+      statusCell = '<td style="padding:6px 10px;color:var(--green);font-weight:700">&#10003; OK</td>';
+      rowStyle = '';
+      valid++;
+      pendingRiskRows.push({title:title,description:desc||null,category:category,inherent_impact:impact,inherent_likelihood:likelihood,treatment_strategy:treatment||null,owner_id:ownerId||null});
+    }
+
+    bodyHtml += '<tr style="' + rowStyle + '">' + statusCell;
+    row.forEach(function(c){ bodyHtml += '<td style="padding:6px 10px;border-bottom:1px solid #f0f4f8">' + esc(String(c)) + '</td>'; });
+    bodyHtml += '</tr>';
+  });
+
+  document.getElementById('risk-import-body').innerHTML = bodyHtml;
+  document.getElementById('risk-import-summary').textContent = dataRows.length + ' rows parsed — ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
+  var errEl = document.getElementById('risk-import-error');
+  if (valid === 0) {
+    errEl.textContent = 'No valid rows to import. Please fix the errors and re-upload.';
+    errEl.style.display = 'block';
+    document.getElementById('btn-confirm-risk-import').disabled = true;
+  } else {
+    errEl.style.display = 'none';
+    document.getElementById('btn-confirm-risk-import').disabled = false;
+  }
+  openModal('modal-risk-import');
+}
+
+function confirmRiskImport() {
+  if (!pendingRiskRows.length) return;
+  var btn = document.getElementById('btn-confirm-risk-import');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('bulk_add_risks', {items: pendingRiskRows}, function(err, data) {
+    btn.textContent = 'Import'; btn.disabled = false;
+    if (err) { document.getElementById('risk-import-error').textContent = err; document.getElementById('risk-import-error').style.display='block'; return; }
+    closeModal('modal-risk-import');
+    pendingRiskRows = [];
+    toast('Imported ' + (data.inserted || 0) + ' risk' + (data.inserted===1?'':'s') + ' into the register.');
+    loadRisks();
+  });
+}
 
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';

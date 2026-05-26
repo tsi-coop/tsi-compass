@@ -56,6 +56,12 @@ public class Risk implements Action {
                 case "list_staff":
                     OutputProcessor.send(res, 200, listStaff());
                     break;
+                case "bulk_add_risks":
+                    bulkAddRisks(req, res, input);
+                    break;
+                case "bulk_add_vulnerabilities":
+                    bulkAddVulnerabilities(req, res, input);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -608,6 +614,116 @@ public class Risk implements Action {
         result.put("success", true);
         result.put("staff", staff);
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Bulk Import — Risk Register
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void bulkAddRisks(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray items = (JSONArray) input.get("items");
+        if (items == null || items.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "items array is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            int inserted = 0;
+            for (Object obj : items) {
+                JSONObject row = (JSONObject) obj;
+                String title    = (String) row.get("title");
+                String category = (String) row.get("category");
+                Object impactObj     = row.get("inherent_impact");
+                Object likelihoodObj = row.get("inherent_likelihood");
+                if (isBlank(title) || isBlank(category) || impactObj == null || likelihoodObj == null) continue;
+                int impact     = ((Number) impactObj).intValue();
+                int likelihood = ((Number) likelihoodObj).intValue();
+                String description = (String) row.get("description");
+                String treatment   = (String) row.get("treatment_strategy");
+                String ownerId     = (String) row.get("owner_id");
+                pstmt = conn.prepareStatement(
+                    "INSERT INTO risks (title, description, category, inherent_impact, inherent_likelihood, treatment_strategy, owner_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+                pstmt.setString(1, title);
+                pstmt.setString(2, isBlank(description) ? null : description);
+                pstmt.setString(3, category);
+                pstmt.setInt(4, impact);
+                pstmt.setInt(5, likelihood);
+                pstmt.setString(6, isBlank(treatment) ? null : treatment);
+                if (isBlank(ownerId)) pstmt.setNull(7, Types.OTHER);
+                else pstmt.setObject(7, UUID.fromString(ownerId));
+                pstmt.executeUpdate();
+                try { pstmt.close(); } catch (Exception ignored) {}
+                pstmt = null;
+                inserted++;
+            }
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("inserted", inserted);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Bulk Import — VAPT Findings
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private void bulkAddVulnerabilities(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray items = (JSONArray) input.get("items");
+        if (items == null || items.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "items array is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            int inserted = 0;
+            for (Object obj : items) {
+                JSONObject row = (JSONObject) obj;
+                String title       = (String) row.get("title");
+                String severity    = (String) row.get("severity");
+                String slaDeadline = (String) row.get("sla_deadline");
+                if (isBlank(title) || isBlank(severity) || isBlank(slaDeadline)) continue;
+                String description  = (String) row.get("description");
+                String source       = (String) row.get("source");
+                String affectedAsset = (String) row.get("affected_asset");
+                String assigneeId   = (String) row.get("assignee_id");
+                pstmt = conn.prepareStatement(
+                    "INSERT INTO vulnerabilities (title, description, source, severity, affected_asset, sla_deadline, assignee_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?::date, ?)"
+                );
+                pstmt.setString(1, title);
+                pstmt.setString(2, isBlank(description) ? null : description);
+                pstmt.setString(3, isBlank(source) ? "Excel Import" : source);
+                pstmt.setString(4, severity.toUpperCase());
+                pstmt.setString(5, isBlank(affectedAsset) ? null : affectedAsset);
+                pstmt.setString(6, slaDeadline);
+                if (isBlank(assigneeId)) pstmt.setNull(7, Types.OTHER);
+                else pstmt.setObject(7, UUID.fromString(assigneeId));
+                pstmt.executeUpdate();
+                try { pstmt.close(); } catch (Exception ignored) {}
+                pstmt = null;
+                inserted++;
+            }
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("inserted", inserted);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
     }
 
     // -------------------------------------------------------------------------

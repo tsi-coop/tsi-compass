@@ -123,9 +123,6 @@ tr:hover td{background:#fafcfd}
         <h1>VAPT &amp; Vulnerabilities</h1>
         <p class="subtitle">Penetration test findings and vulnerability scan results with remediation tracking.</p>
       </div>
-      <div class="acts">
-        <button class="btn" onclick="openModal('modal-log-vuln')">Log Vulnerability</button>
-      </div>
     </div>
 
     <div class="grid col4 mb">
@@ -154,7 +151,13 @@ tr:hover td{background:#fafcfd}
     <div class="section-card">
       <div class="section-head">
         <h2>VAPT Findings</h2>
-        <span id="findings-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="findings-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn sm" onclick="downloadVaptTemplate()">&#8595; Excel Template</button>
+          <input type="file" id="vapt-excel-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleVaptExcelUpload(this)">
+          <button class="btn sm" onclick="document.getElementById('vapt-excel-upload').click()">&#8593; Upload Excel</button>
+          <button class="btn sm primary" onclick="openModal('modal-log-vuln')">+ Log Vulnerability</button>
+        </div>
       </div>
       <div class="filter-bar">
         <select id="f-engagement" onchange="applyFilters()"><option value="">All Engagements</option></select>
@@ -320,6 +323,30 @@ tr:hover td{background:#fafcfd}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- VAPT Import Preview Modal -->
+<div class="modal-overlay" id="modal-vapt-import" onclick="if(event.target===this)closeModal('modal-vapt-import')">
+  <div class="modal" style="width:680px;max-width:calc(100vw - 32px)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="margin:0">Import VAPT Findings</h2>
+      <button class="modal-close" onclick="closeModal('modal-vapt-import')">&#x2715;</button>
+    </div>
+    <p id="vapt-import-summary" style="font-size:13px;color:var(--muted);margin:0 0 12px"></p>
+    <div id="vapt-import-error" class="error-msg"></div>
+    <div style="overflow-x:auto;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr id="vapt-import-head" style="background:var(--wash)"></tr></thead>
+        <tbody id="vapt-import-body"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" onclick="closeModal('modal-vapt-import')">Cancel</button>
+      <button type="button" class="btn primary" id="btn-confirm-vapt-import" onclick="confirmVaptImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script>
 var TOKEN = localStorage.getItem('token');
@@ -611,6 +638,148 @@ function submitNewEngagement() {
 document.querySelectorAll('.modal-overlay').forEach(function(o){
   o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
 });
+
+// ---- Excel Template Download ----
+var VAPT_SEVERITIES = ['CRITICAL','HIGH','MEDIUM','LOW'];
+
+function downloadVaptTemplate() {
+  var sampleAssignee = state.staff.length ? state.staff[0].username : 'john.smith';
+  var today = new Date();
+  var due30 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30).toISOString().slice(0,10);
+  var due60 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 60).toISOString().slice(0,10);
+  var rows = [
+    ['Title','Severity','Affected Asset','Source / Scan Tool','Remediation Due (YYYY-MM-DD)','Assigned To (Username)','Description'],
+    ['SQL Injection in login form','HIGH','app.tsicooperative.org/login','Manual Pentest',due30,sampleAssignee,'Parameter is not sanitised — allows authentication bypass.'],
+    ['Outdated TLS 1.0 enabled on web server','MEDIUM','web01.internal','Nessus',due60,'','Disable TLS 1.0 and 1.1 in server configuration.']
+  ];
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:40},{wch:12},{wch:30},{wch:20},{wch:28},{wch:22},{wch:50}];
+  var note = 'Severity must be one of: CRITICAL, HIGH, MEDIUM, LOW. Remediation Due must be YYYY-MM-DD.';
+  XLSX.utils.sheet_add_aoa(ws, [[note]], {origin: rows.length + 1});
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'VAPT Findings');
+  XLSX.writeFile(wb, 'vapt-findings-template.xlsx');
+}
+
+// ---- Excel Upload & Parse ----
+var pendingVaptRows = [];
+
+function handleVaptExcelUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    input.value = '';
+    if (rows.length < 2) { alert('The file appears empty or has no data rows.'); return; }
+    showVaptImportPreview(rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseExcelDate(val) {
+  if (!val && val !== 0) return null;
+  if (typeof val === 'number') {
+    var d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0,10);
+  }
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var parts = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (parts) return parts[3] + '-' + parts[2].padStart(2,'0') + '-' + parts[1].padStart(2,'0');
+  var d2 = new Date(s);
+  if (!isNaN(d2)) return d2.toISOString().slice(0,10);
+  return null;
+}
+
+function findStaffVapt(name) {
+  if (!name) return null;
+  var n = String(name).trim().toLowerCase();
+  var found = state.staff.find(function(s){ return s.username.toLowerCase() === n; });
+  return found ? found.id : null;
+}
+
+function showVaptImportPreview(rows) {
+  var header = rows[0];
+  var dataRows = rows.slice(1).filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+
+  var valid = 0, errors = 0;
+  pendingVaptRows = [];
+
+  var headHtml = '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">Status</th>';
+  header.forEach(function(h){ headHtml += '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">' + esc(h) + '</th>'; });
+  document.getElementById('vapt-import-head').innerHTML = headHtml;
+
+  var bodyHtml = '';
+  dataRows.forEach(function(row) {
+    var title       = String(row[0] || '').trim();
+    var severity    = String(row[1] || '').trim().toUpperCase();
+    var asset       = String(row[2] || '').trim();
+    var source      = String(row[3] || '').trim();
+    var dueRaw      = row[4];
+    var assigneeName = String(row[5] || '').trim();
+    var desc        = String(row[6] || '').trim();
+
+    var due = parseExcelDate(dueRaw);
+    var rowErrors = [];
+    if (!title) rowErrors.push('Title required');
+    if (!severity || VAPT_SEVERITIES.indexOf(severity) === -1) rowErrors.push('Invalid severity');
+    if (!due) rowErrors.push('Invalid due date');
+
+    var assigneeId = assigneeName ? findStaffVapt(assigneeName) : null;
+    var assigneeWarn = assigneeName && !assigneeId;
+
+    var statusCell, rowStyle;
+    if (rowErrors.length) {
+      statusCell = '<td style="padding:6px 10px;color:var(--red);font-weight:800;white-space:nowrap">&#10007; ' + rowErrors.join('; ') + '</td>';
+      rowStyle = 'background:#fef2f2';
+      errors++;
+    } else if (assigneeWarn) {
+      statusCell = '<td style="padding:6px 10px;color:var(--amber);font-weight:700;white-space:nowrap">&#9888; Assignee not found</td>';
+      rowStyle = 'background:#fffbeb';
+      valid++;
+      pendingVaptRows.push({title:title,severity:severity,affected_asset:asset||null,source:source||null,sla_deadline:due,assignee_id:null,description:desc||null});
+    } else {
+      statusCell = '<td style="padding:6px 10px;color:var(--green);font-weight:700">&#10003; OK</td>';
+      rowStyle = '';
+      valid++;
+      pendingVaptRows.push({title:title,severity:severity,affected_asset:asset||null,source:source||null,sla_deadline:due,assignee_id:assigneeId||null,description:desc||null});
+    }
+
+    bodyHtml += '<tr style="' + rowStyle + '">' + statusCell;
+    row.forEach(function(c){ bodyHtml += '<td style="padding:6px 10px;border-bottom:1px solid #f0f4f8">' + esc(String(c)) + '</td>'; });
+    bodyHtml += '</tr>';
+  });
+
+  document.getElementById('vapt-import-body').innerHTML = bodyHtml;
+  document.getElementById('vapt-import-summary').textContent = dataRows.length + ' rows parsed — ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
+  var errEl = document.getElementById('vapt-import-error');
+  if (valid === 0) {
+    errEl.textContent = 'No valid rows to import. Please fix the errors and re-upload.';
+    errEl.style.display = 'block';
+    document.getElementById('btn-confirm-vapt-import').disabled = true;
+  } else {
+    errEl.style.display = 'none';
+    document.getElementById('btn-confirm-vapt-import').disabled = false;
+  }
+  openModal('modal-vapt-import');
+}
+
+function confirmVaptImport() {
+  if (!pendingVaptRows.length) return;
+  var btn = document.getElementById('btn-confirm-vapt-import');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('bulk_add_vulnerabilities', {items: pendingVaptRows}, function(err, data) {
+    btn.textContent = 'Import'; btn.disabled = false;
+    if (err) { document.getElementById('vapt-import-error').textContent = err; document.getElementById('vapt-import-error').style.display='block'; return; }
+    closeModal('modal-vapt-import');
+    pendingVaptRows = [];
+    toast('Imported ' + (data.inserted || 0) + ' finding' + (data.inserted===1?'':'s') + '.');
+    loadAll();
+  });
+}
 
 function loadAll() {
   api('get_risk_metrics', {}, function(err, d) {
