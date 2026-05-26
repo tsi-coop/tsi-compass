@@ -3,13 +3,18 @@ package org.tsicoop.compass.service.v1;
 import org.tsicoop.compass.framework.Action;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
+import org.tsicoop.compass.framework.JWTUtil;
 import org.tsicoop.compass.framework.PoolDB;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.sql.*;
+import java.util.Base64;
 import java.util.UUID;
 
 public class Governance implements Action {
@@ -67,6 +72,12 @@ public class Governance implements Action {
                     break;
                 case "list_staff":
                     OutputProcessor.send(res, 200, listStaff());
+                    break;
+                case "upload_policy_document":
+                    uploadPolicyDocument(req, res, input);
+                    break;
+                case "get_policy_document":
+                    getPolicyDocument(req, res, input);
                     break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
@@ -499,9 +510,12 @@ public class Governance implements Action {
 
         StringBuilder sql = new StringBuilder(
             "SELECT p.id::text, p.title, p.type, p.version, p.status, " +
-            "p.framework_tags, u.username AS owner_name, p.review_date::text, p.created_at::text " +
+            "p.framework_tags, u.username AS owner_name, p.author_id::text AS owner_id, " +
+            "p.review_date::text, p.created_at::text, p.document_name, " +
+            "ap.username AS approved_by_name " +
             "FROM policies p " +
-            "LEFT JOIN users u ON u.id = p.author_id " +
+            "LEFT JOIN users u  ON u.id  = p.author_id " +
+            "LEFT JOIN users ap ON ap.id = p.approved_by " +
             "WHERE p.status != 'ARCHIVED'"
         );
         if (!isBlank(type))   sql.append(" AND p.type = ?");
@@ -529,15 +543,18 @@ public class Governance implements Action {
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject p = new JSONObject();
-                p.put("id",             rs.getString(1));
-                p.put("title",          rs.getString(2));
-                p.put("type",           rs.getString(3));
-                p.put("version",        rs.getString(4));
-                p.put("status",         rs.getString(5));
-                p.put("framework_tags", rs.getString(6));
-                p.put("owner_name",     rs.getString(7));
-                p.put("review_date",    rs.getString(8));
-                p.put("created_at",     rs.getString(9));
+                p.put("id",               rs.getString(1));
+                p.put("title",            rs.getString(2));
+                p.put("type",             rs.getString(3));
+                p.put("version",          rs.getString(4));
+                p.put("status",           rs.getString(5));
+                p.put("framework_tags",   rs.getString(6));
+                p.put("owner_name",       rs.getString(7));
+                p.put("owner_id",         rs.getString(8));
+                p.put("review_date",      rs.getString(9));
+                p.put("created_at",       rs.getString(10));
+                p.put("document_name",    rs.getString(11));
+                p.put("approved_by_name", rs.getString(12));
                 policies.add(p);
             }
         } finally {
@@ -677,15 +694,52 @@ public class Governance implements Action {
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement("UPDATE policies SET status = ? WHERE id = ?");
-            pstmt.setString(1, status);
-            pstmt.setObject(2, UUID.fromString(id));
+
+            String approverId = null;
+            if ("PUBLISHED".equals(status)) {
+                String authHeader = req.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String email = JWTUtil.getEmailFromToken(authHeader.substring(7));
+                    approverId = lookupUserIdByEmail(conn, email);
+                }
+            }
+
+            if (approverId != null) {
+                pstmt = conn.prepareStatement(
+                    "UPDATE policies SET status = ?, approved_by = ?::uuid WHERE id = ?::uuid");
+                pstmt.setString(1, status);
+                pstmt.setString(2, approverId);
+                pstmt.setObject(3, UUID.fromString(id));
+            } else {
+                pstmt = conn.prepareStatement(
+                    "UPDATE policies SET status = ? WHERE id = ?::uuid");
+                pstmt.setString(1, status);
+                pstmt.setObject(2, UUID.fromString(id));
+            }
             pstmt.executeUpdate();
+
             JSONObject result = new JSONObject();
             result.put("success", true);
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+    }
+
+    private String lookupUserIdByEmail(Connection conn, String email) {
+        if (isBlank(email)) return null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = conn.prepareStatement("SELECT id::text FROM users WHERE email = ?");
+            pstmt.setString(1, email);
+            rs = pstmt.executeQuery();
+            return rs.next() ? rs.getString(1) : null;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
         }
     }
 
@@ -721,6 +775,131 @@ public class Governance implements Action {
         result.put("success", true);
         result.put("staff", staff);
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Policy document upload / download
+    // -------------------------------------------------------------------------
+
+    private static final java.util.Set<String> ALLOWED_EXTENSIONS = new java.util.HashSet<>(
+        java.util.Arrays.asList(".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx")
+    );
+
+    @SuppressWarnings("unchecked")
+    private void uploadPolicyDocument(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String policyId  = (String) input.get("policy_id");
+        String fileName  = (String) input.get("file_name");
+        String fileData  = (String) input.get("file_data"); // base64, may include data-URI prefix
+
+        if (isBlank(policyId) || isBlank(fileName) || isBlank(fileData)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "policy_id, file_name and file_data are required", req.getRequestURI());
+            return;
+        }
+
+        String safeName = new File(fileName).getName();
+        int dotIdx = safeName.lastIndexOf('.');
+        String ext = dotIdx >= 0 ? safeName.substring(dotIdx).toLowerCase() : "";
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "Allowed types: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX", req.getRequestURI());
+            return;
+        }
+
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes;
+        try {
+            bytes = Base64.getDecoder().decode(raw.trim());
+        } catch (Exception e) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "Invalid base64 content", req.getRequestURI());
+            return;
+        }
+
+        String uploadDir = System.getenv("TSI_EXPORT_PATH");
+        if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+        File dir = new File(uploadDir + "/policies");
+        if (!dir.exists() && !dir.mkdirs()) {
+            OutputProcessor.errorResponse(res, 500, "Internal Error", "Cannot create upload directory", req.getRequestURI());
+            return;
+        }
+
+        String storedFile = UUID.randomUUID().toString() + ext;
+        File dest = new File(dir, storedFile);
+        try (FileOutputStream fos = new FileOutputStream(dest)) {
+            fos.write(bytes);
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "UPDATE policies SET document_name = ?, document_path = ? WHERE id = ?::uuid"
+            );
+            pstmt.setString(1, safeName);
+            pstmt.setString(2, dest.getAbsolutePath());
+            pstmt.setString(3, policyId);
+            pstmt.executeUpdate();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("document_name", safeName);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) pool.cleanup(null, pstmt, conn);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getPolicyDocument(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String policyId = (String) input.get("policy_id");
+        if (isBlank(policyId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "policy_id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT document_name, document_path FROM policies WHERE id = ?::uuid"
+            );
+            pstmt.setString(1, policyId);
+            rs = pstmt.executeQuery();
+            if (!rs.next() || isBlank(rs.getString("document_path"))) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "No document attached to this policy", req.getRequestURI());
+                return;
+            }
+            String docName = rs.getString("document_name");
+            String docPath = rs.getString("document_path");
+
+            File file = new File(docPath);
+            if (!file.exists() || !file.isFile()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Document file not found on server", req.getRequestURI());
+                return;
+            }
+
+            byte[] bytes = new byte[(int) file.length()];
+            try (FileInputStream fis = new FileInputStream(file)) {
+                int read = 0;
+                while (read < bytes.length) {
+                    int n = fis.read(bytes, read, bytes.length - read);
+                    if (n < 0) break;
+                    read += n;
+                }
+            }
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("document_name", docName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
     }
 
     // -------------------------------------------------------------------------

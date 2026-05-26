@@ -238,8 +238,8 @@ public class Platform implements Action {
         String role         = (String) input.get("role");
         String departmentId = (String) input.get("department_id");
 
-        if (isBlank(username) || isBlank(email) || isBlank(password) || isBlank(role)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "username, email, password and role are required", req.getRequestURI());
+        if (isBlank(username) || isBlank(email) || isBlank(password) || isBlank(role) || isBlank(departmentId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "username, email, password, role and department are required", req.getRequestURI());
             return;
         }
         if (password.length() < 10) {

@@ -64,6 +64,12 @@ tr:last-child td{border-bottom:none}
 .empty{text-align:center;color:var(--muted);font-size:13px;padding:24px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}.form-row{grid-template-columns:1fr}}
+.workflow-bar{display:flex;align-items:center;gap:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.wf-step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:130px;text-align:center}
+.wf-step-label{font-size:11px;color:var(--muted);font-weight:600;line-height:1.4}
+.wf-arrow{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:11px;font-weight:700;padding:0 10px;white-space:nowrap}
+.wf-arrow-line{font-size:16px;color:var(--line)}
+.muted-action{font-size:11px;color:var(--muted);font-weight:600;font-style:italic}
 </style>
 </head>
 <body>
@@ -114,6 +120,30 @@ tr:last-child td{border-bottom:none}
       </div>
     </div>
 
+    <!-- Workflow legend -->
+    <div class="workflow-bar">
+      <div class="wf-step">
+        <span class="pill info">Draft</span>
+        <span class="wf-step-label">Author &amp; Admin can<br>create and edit</span>
+      </div>
+      <div class="wf-arrow">
+        <span class="wf-arrow-line">&#8594;</span>
+        <span>Send for Review</span>
+      </div>
+      <div class="wf-step">
+        <span class="pill watch">Under Review</span>
+        <span class="wf-step-label">Awaiting approval by<br>Admin or Compliance Officer</span>
+      </div>
+      <div class="wf-arrow">
+        <span class="wf-arrow-line">&#8594;</span>
+        <span>Approve</span>
+      </div>
+      <div class="wf-step">
+        <span class="pill good">Published</span>
+        <span class="wf-step-label">Live &amp; available for<br>staff attestation</span>
+      </div>
+    </div>
+
     <div class="card">
       <div class="section-head"><h2>Policy &amp; Document Register</h2></div>
       <div class="filter-bar">
@@ -134,10 +164,10 @@ tr:last-child td{border-bottom:none}
       </div>
       <table>
         <thead>
-          <tr><th>Document Name</th><th>Type</th><th>Version</th><th>Framework Tags</th><th>Owner</th><th>Review Date</th><th>Status</th><th></th></tr>
+          <tr><th>Document Name</th><th>Type</th><th>Version</th><th>Framework Tags</th><th>Owner</th><th>Review Date</th><th>Status</th><th>File</th><th></th></tr>
         </thead>
         <tbody id="policies-tbody">
-          <tr><td colspan="8" class="empty">Loading policies…</td></tr>
+          <tr><td colspan="9" class="empty">Loading policies…</td></tr>
         </tbody>
       </table>
     </div>
@@ -173,6 +203,10 @@ tr:last-child td{border-bottom:none}
         <div class="form-field"><label class="form-label">Next Review Date</label><input class="form-input" type="date" id="np-review"></div>
       </div>
       <div class="form-field"><label class="form-label">Description / Scope</label><textarea class="form-textarea" id="np-desc" placeholder="Brief description of the policy scope and objectives…"></textarea></div>
+      <div class="form-field">
+        <label class="form-label">Attach Document <span style="font-weight:500;text-transform:none;letter-spacing:0">(PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX)</span></label>
+        <input class="form-input" type="file" id="np-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="padding:6px 12px">
+      </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-new-policy')">Cancel</button>
         <button type="submit" class="btn primary">Create Draft</button>
@@ -209,6 +243,11 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="form-field"><label class="form-label">Next Review Date</label><input class="form-input" type="date" id="ep-review"></div>
       </div>
+      <div class="form-field">
+        <label class="form-label">Replace Document <span style="font-weight:500;text-transform:none;letter-spacing:0">(leave blank to keep existing)</span></label>
+        <div id="ep-current-doc" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
+        <input class="form-input" type="file" id="ep-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="padding:6px 12px">
+      </div>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-policy')">Cancel</button>
         <button type="submit" class="btn primary">Save Changes</button>
@@ -222,9 +261,10 @@ tr:last-child td{border-bottom:none}
   <div class="modal-box">
     <div class="modal-head"><h2>Approve Policy</h2><button class="modal-close" onclick="closeModal('modal-approve-policy')">&#x2715;</button></div>
     <form id="form-approve-policy">
-      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">
+      <p style="margin:0 0 8px;font-size:13px;color:var(--muted);line-height:1.6">
         Approving <strong id="approve-title"></strong> will publish it immediately and make it available for staff attestation.
       </p>
+      <p id="approver-identity" style="margin:0 0 16px;font-size:12px;color:var(--teal);font-weight:700;line-height:1.5"></p>
       <div class="form-field">
         <label class="form-label">Approval Decision</label>
         <select class="form-select" id="ap-decision">
@@ -313,19 +353,42 @@ function populateOwnerSelect(selId, selectedId) {
 function renderPolicies() {
   var tbody = document.getElementById('policies-tbody');
   if (!state.policies.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">No policies found. Create one to get started.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No policies found. Create one to get started.</td></tr>';
     return;
   }
+  var perms = {};
+  try { perms = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  var govLevel  = perms['governance'] || 'NONE';
+  var canWrite  = govLevel === 'WRITE' || govLevel === 'ADMIN';
+  var canApprove = govLevel === 'ADMIN';
+
   tbody.innerHTML = state.policies.map(function(p){
     var actions = '';
     if (p.status === 'DRAFT') {
-      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>' +
-                '<button class="lk" onclick="quickStatus(\''+esc(p.id)+'\',\'UNDER_REVIEW\')">Send for Review</button>';
+      if (canWrite) {
+        actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>' +
+                  '<button class="lk" onclick="quickStatus(\''+esc(p.id)+'\',\'UNDER_REVIEW\')">Send for Review</button>';
+      }
     } else if (p.status === 'UNDER_REVIEW') {
-      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>' +
-                '<button class="lk" onclick="openApprovePolicy(\''+esc(p.id)+'\',\''+esc(p.title)+'\')">Approve</button>';
+      if (canWrite) {
+        actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>';
+      }
+      if (canApprove) {
+        actions += '<button class="lk" onclick="openApprovePolicy(\''+esc(p.id)+'\',\''+esc(p.title)+'\')">Approve</button>';
+      } else {
+        actions += '<span class="muted-action">Pending approval</span>';
+      }
     } else {
-      actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>';
+      if (canWrite) {
+        actions = '<button class="lk" onclick="openEditPolicy(\''+esc(p.id)+'\')">Edit</button>';
+      }
+    }
+    var fileCell = p.document_name
+      ? '<button class="lk" onclick="downloadDoc(\''+esc(p.id)+'\',\''+esc(p.document_name)+'\')">&#8595; '+esc(p.document_name)+'</button>'
+      : '<span style="color:var(--muted);font-size:11px">None</span>';
+    var statusCell = statusPill(p.status);
+    if (p.status === 'PUBLISHED' && p.approved_by_name) {
+      statusCell += '<div style="font-size:11px;color:var(--muted);margin-top:3px">by '+esc(p.approved_by_name)+'</div>';
     }
     return '<tr>' +
       '<td><strong>'+esc(p.title)+'</strong></td>' +
@@ -334,14 +397,15 @@ function renderPolicies() {
       '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.framework_tags||'—')+'</td>' +
       '<td>'+esc(p.owner_name||'—')+'</td>' +
       '<td>'+esc(fmtDate(p.review_date))+'</td>' +
-      '<td>'+statusPill(p.status)+'</td>' +
+      '<td>'+statusCell+'</td>' +
+      '<td style="white-space:nowrap">'+fileCell+'</td>' +
       '<td style="white-space:nowrap">'+actions+'</td>' +
     '</tr>';
   }).join('');
 }
 
 function loadPolicies() {
-  document.getElementById('policies-tbody').innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+  document.getElementById('policies-tbody').innerHTML = '<tr><td colspan="9" class="empty">Loading…</td></tr>';
   var type   = document.getElementById('f-type').value;
   var status = document.getElementById('f-status').value;
   var search = document.getElementById('f-search').value.trim();
@@ -368,18 +432,25 @@ window.openEditPolicy = function(id) {
   }
   if (!p) return;
   editPolicyId = id;
-  populateOwnerSelect('ep-owner', p.owner_id || null);
+  populateOwnerSelect('ep-owner', p.owner_id ? String(p.owner_id) : null);
   document.getElementById('ep-title').value   = p.title || '';
   document.getElementById('ep-type').value    = p.type  || 'POLICY';
   document.getElementById('ep-version').value = p.version || '';
   document.getElementById('ep-tags').value    = p.framework_tags || '';
   document.getElementById('ep-review').value  = p.review_date ? p.review_date.split('T')[0] : '';
+  document.getElementById('ep-file').value    = '';
+  var cur = document.getElementById('ep-current-doc');
+  cur.textContent = p.document_name ? 'Current: ' + p.document_name : 'No document attached.';
   openModal('modal-edit-policy');
 };
 
 window.openApprovePolicy = function(id, title) {
   approvePolicyId = id;
   document.getElementById('approve-title').textContent = title;
+  var userName = localStorage.getItem('username') || 'You';
+  var userRole = localStorage.getItem('role') || '';
+  document.getElementById('approver-identity').textContent =
+    'Approving as: ' + userName + (userRole ? ' (' + userRole + ')' : '');
   openModal('modal-approve-policy');
 };
 
@@ -396,6 +467,41 @@ window.sendSelectedForReview = function() {
   openModal('modal-send-review');
 };
 
+// ---- File upload helper ----
+function uploadFile(policyId, fileInput, cb) {
+  var file = fileInput.files[0];
+  if (!file) { cb(null); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    api('upload_policy_document', {
+      policy_id: policyId,
+      file_name: file.name,
+      file_data: e.target.result  // includes data-URI prefix; backend strips it
+    }, function(err) {
+      if (err) showToast('Document upload failed: ' + err, true);
+      cb(err);
+    });
+  };
+  reader.onerror = function() { showToast('Could not read file.', true); cb('read error'); };
+  reader.readAsDataURL(file);
+}
+
+// ---- Download helper ----
+window.downloadDoc = function(policyId, fileName) {
+  api('get_policy_document', { policy_id: policyId }, function(err, data) {
+    if (err) { showToast('Download failed: ' + err, true); return; }
+    var bytes = atob(data.file_data);
+    var buf = new Uint8Array(bytes.length);
+    for (var i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i);
+    var blob = new Blob([buf]);
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = data.document_name || fileName;
+    document.body.appendChild(a); a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  });
+};
+
 // ---- Form: New Policy ----
 document.getElementById('form-new-policy').addEventListener('submit', function(e){
   e.preventDefault();
@@ -409,13 +515,14 @@ document.getElementById('form-new-policy').addEventListener('submit', function(e
     author_id:     document.getElementById('np-owner').value || null,
     review_date:   document.getElementById('np-review').value || null,
     description:   document.getElementById('np-desc').value.trim()
-  }, function(err){
+  }, function(err, data){
     if (btn) { btn.textContent = 'Create Draft'; btn.disabled = false; }
     if (err) { showToast('Failed to create policy: '+err, true); return; }
+    var newId = data.id;
     closeModal('modal-new-policy');
     document.getElementById('form-new-policy').reset();
     showToast('Policy created as draft.');
-    loadPolicies();
+    uploadFile(newId, document.getElementById('np-file'), function() { loadPolicies(); });
   });
 });
 
@@ -437,7 +544,7 @@ document.getElementById('form-edit-policy').addEventListener('submit', function(
     if (err) { showToast('Failed to update policy: '+err, true); return; }
     closeModal('modal-edit-policy');
     showToast('Policy updated.');
-    loadPolicies();
+    uploadFile(editPolicyId, document.getElementById('ep-file'), function() { loadPolicies(); });
   });
 });
 

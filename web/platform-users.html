@@ -31,7 +31,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.sm{height:30px;padding:0 10px;font-size:11px}
 .grid{display:grid;gap:16px}
-.col4{grid-template-columns:repeat(4,1fr)}
+.col4{grid-template-columns:repeat(4,1fr)}.col3{grid-template-columns:repeat(3,1fr)}
 .mb{margin-bottom:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
@@ -57,9 +57,6 @@ tr:last-child td{border-bottom:none}
 .tbl-action.red{color:var(--red)}
 .avatar-cell{display:flex;align-items:center;gap:9px}
 .avatar{width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:900;flex-shrink:0}
-.pending-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #edf2f6;border-radius:8px}
-.pending-info strong{display:block;font-size:13px;margin-bottom:2px}
-.pending-info span{color:var(--muted);font-size:12px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 /* Modals */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
@@ -123,33 +120,24 @@ tr:last-child td{border-bottom:none}
         <h1>User Management</h1>
         <p class="subtitle">Provision, edit, and manage system users. Control access status and authentication settings.</p>
       </div>
-      <div class="acts">
-        <button class="btn" onclick="openModal('modal-reset-password')">Reset Password</button>
-        <button class="btn primary" onclick="openProvisionModal()">Provision User</button>
-      </div>
     </div>
 
     <!-- Metrics -->
-    <div class="grid col4 mb">
+    <div class="grid col3 mb">
       <div class="card stripe-teal">
-        <div class="metric-label">Active Users</div>
+        <div class="metric-label">Total Users</div>
+        <div class="metric-value" id="mu-total">—</div>
+        <div class="metric-note">All provisioned accounts</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Active</div>
         <div class="metric-value" id="mu-active">—</div>
         <div class="metric-note">Currently enabled accounts</div>
       </div>
-      <div class="card stripe-amber">
-        <div class="metric-label">Pending</div>
-        <div class="metric-value" id="mu-pending">—</div>
-        <div class="metric-note">Awaiting provisioning</div>
-      </div>
-      <div class="card stripe-blue">
+      <div class="card stripe-red">
         <div class="metric-label">Inactive</div>
         <div class="metric-value" id="mu-inactive">—</div>
         <div class="metric-note">Deactivated accounts</div>
-      </div>
-      <div class="card stripe-red">
-        <div class="metric-label">Access Issues</div>
-        <div class="metric-value" id="mu-issues">—</div>
-        <div class="metric-note">Require review</div>
       </div>
     </div>
 
@@ -176,7 +164,6 @@ tr:last-child td{border-bottom:none}
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Inactive</option>
-          <option value="PENDING">Pending</option>
         </select>
         <input id="f-search" type="search" placeholder="Search by name or email…" style="flex:1;min-width:200px">
       </div>
@@ -190,13 +177,6 @@ tr:last-child td{border-bottom:none}
       </table>
     </div>
 
-    <!-- Pending Provisioning -->
-    <div class="card">
-      <div class="section-head"><h2>Pending Provisioning</h2></div>
-      <div id="pending-list" style="display:grid;gap:10px">
-        <div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Loading…</div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -472,27 +452,22 @@ function loadUsers() {
 }
 
 function renderUsers(users) {
-  var active = 0, pending = 0, suspended = 0;
+  var active = 0, suspended = 0;
   users.forEach(function(u) {
     if (u.status === 'ACTIVE') active++;
-    else if (u.status === 'PENDING') pending++;
     else if (u.status === 'SUSPENDED') suspended++;
   });
 
+  document.getElementById('mu-total').textContent = users.length;
   document.getElementById('mu-active').textContent = active;
-  document.getElementById('mu-pending').textContent = pending;
   document.getElementById('mu-inactive').textContent = suspended;
-  document.getElementById('mu-issues').textContent = suspended;
 
-  var mainUsers = users.filter(function(u) { return u.status !== 'PENDING'; });
-  var pendingUsers = users.filter(function(u) { return u.status === 'PENDING'; });
-
-  // Render main table
+  // Render main table (all users)
   var tbody = document.getElementById('users-tbody');
-  if (mainUsers.length === 0) {
+  if (users.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
   } else {
-    tbody.innerHTML = mainUsers.map(function(u) {
+    tbody.innerHTML = users.map(function(u) {
       var name = esc(u.username || u.email);
       var ini = initials(u.username || u.email);
       var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
@@ -517,27 +492,6 @@ function renderUsers(users) {
     }).join('');
   }
 
-  // Render pending list
-  var pendingList = document.getElementById('pending-list');
-  if (pendingUsers.length === 0) {
-    pendingList.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">No pending users.</div>';
-  } else {
-    pendingList.innerHTML = pendingUsers.map(function(u) {
-      var name = esc(u.username || u.email);
-      var roleLabel = esc(ROLES[u.role] || u.role || '—');
-      var deptLabel = esc(u.department_name || '—');
-      return '<div class="pending-item">' +
-        '<div class="pending-info">' +
-        '<strong>' + name + '</strong>' +
-        '<span>' + esc(u.email) + ' &middot; ' + roleLabel + ' &middot; ' + deptLabel + '</span>' +
-        '</div>' +
-        '<div style="display:flex;gap:8px">' +
-        '<button class="btn sm" onclick="openEditModal(' + u.id + ')">Review</button>' +
-        '<button class="btn sm primary" onclick="approveUser(' + u.id + ')">Approve</button>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-  }
 }
 
 function populateResetUserSelect() {
@@ -588,13 +542,6 @@ window.activateUser = function(id) {
   });
 };
 
-window.approveUser = function(id) {
-  api('set_user_status', { id: id, status: 'ACTIVE' }, function(err) {
-    if (err) { showToast('Failed to approve user: ' + err, true); return; }
-    showToast('User approved and activated.');
-    loadUsers();
-  });
-};
 
 window.openProvisionModal = function() {
   populateDeptSelect('pu-dept', null);
