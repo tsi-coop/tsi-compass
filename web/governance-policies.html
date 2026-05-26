@@ -114,10 +114,6 @@ tr:last-child td{border-bottom:none}
         <h1>Policies &amp; Documents</h1>
         <p class="subtitle">Maintain the full policy register with version control, review scheduling, and approval workflows.</p>
       </div>
-      <div class="acts">
-        <button class="btn" id="btn-send-review" disabled onclick="sendSelectedForReview()">Send for Review</button>
-        <button class="btn primary" onclick="openModal('modal-new-policy')">New Policy</button>
-      </div>
     </div>
 
     <!-- Workflow legend -->
@@ -145,7 +141,10 @@ tr:last-child td{border-bottom:none}
     </div>
 
     <div class="card">
-      <div class="section-head"><h2>Policy &amp; Document Register</h2></div>
+      <div class="section-head">
+        <h2>Policy &amp; Document Register</h2>
+        <button class="btn sm primary" onclick="openModal('modal-new-policy')">+ New Policy</button>
+      </div>
       <div class="filter-bar">
         <select id="f-type" onchange="loadPolicies()">
           <option value="">All Types</option>
@@ -463,10 +462,6 @@ window.quickStatus = function(id, status) {
   });
 };
 
-window.sendSelectedForReview = function() {
-  openModal('modal-send-review');
-};
-
 // ---- File upload helper ----
 function uploadFile(policyId, fileInput, cb) {
   var file = fileInput.files[0];
@@ -520,9 +515,11 @@ document.getElementById('form-new-policy').addEventListener('submit', function(e
     if (err) { showToast('Failed to create policy: '+err, true); return; }
     var newId = data.id;
     closeModal('modal-new-policy');
-    document.getElementById('form-new-policy').reset();
     showToast('Policy created as draft.');
-    uploadFile(newId, document.getElementById('np-file'), function() { loadPolicies(); });
+    uploadFile(newId, document.getElementById('np-file'), function() {
+      document.getElementById('form-new-policy').reset();
+      loadPolicies();
+    });
   });
 });
 
