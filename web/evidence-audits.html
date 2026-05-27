@@ -77,10 +77,15 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="evidence.html">Audit &amp; Evidence</a> / Audit Schedule</div>
     <div class="page-header">
       <div><div class="eyebrow">Audit &amp; Evidence</div><h1>Audit Schedule</h1><p class="subtitle">Plan and track internal audit engagements from scheduled through to final report.</p></div>
-      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Schedule Audit</button></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Audits</h2><span id="aud-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="section-head">
+        <h2>Audits</h2>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="aud-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn primary" onclick="openAdd()">+ Schedule Audit</button>
+        </div>
+      </div>
       <div class="filter-bar">
         <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>SCHEDULED</option><option>IN_PROGRESS</option><option>DRAFT_REPORT</option><option>FINAL_REPORT</option><option>CLOSED</option></select>
         <input id="f-search" type="search" placeholder="Search audits…" oninput="applyFilters()">
@@ -142,6 +147,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script src="rbac.js"></script>
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
 var state={audits:[],staff:[],frameworks:[],departments:[]};
 
 function api(func,body,cb){
@@ -167,7 +173,7 @@ function renderAudits(list){
       '<td>'+esc(a.scheduled_start||'—')+' → '+esc(a.scheduled_end||'—')+'</td>'+
       '<td><a href="evidence-findings.html" style="color:var(--teal);font-size:12px">'+esc(a.observation_count||0)+' findings</a></td>'+
       '<td>'+(STATUS_PILL[a.status]||esc(a.status))+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Update</button></div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteAudit(\''+a.id+'\',\''+esc(a.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -233,6 +239,12 @@ function submitAdd(){
     lead_auditor_id:document.getElementById('add-auditor').value||null,
     scheduled_start:start,scheduled_end:end},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Audit scheduled');loadAll();
+  });
+}
+function deleteAudit(id,title){
+  if(!confirm('Permanently delete audit "'+title+'"? This action is logged and cannot be undone.'))return;
+  api('delete_audit',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Audit deleted');loadAll();
   });
 }
 function submitEdit(){

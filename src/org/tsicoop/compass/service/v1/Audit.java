@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.tsicoop.compass.framework.Action;
+import org.tsicoop.compass.framework.EventLog;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PoolDB;
@@ -55,6 +56,15 @@ public class Audit implements Action {
                     break;
                 case "add_evidence":
                     OutputProcessor.send(res, 200, addEvidence(input));
+                    break;
+                case "delete_audit":
+                    OutputProcessor.send(res, 200, deleteAudit(input, req));
+                    break;
+                case "delete_observation":
+                    OutputProcessor.send(res, 200, deleteObservation(input, req));
+                    break;
+                case "delete_evidence":
+                    OutputProcessor.send(res, 200, deleteEvidence(input, req));
                     break;
                 case "list_staff":
                     OutputProcessor.send(res, 200, listStaff());
@@ -678,6 +688,119 @@ public class Audit implements Action {
                 try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
             }
         }
+        result.put("success", true);
+        return result;
+    }
+
+    // ── Delete (ADMIN only) ──────────────────────────────────────────────────
+
+    @SuppressWarnings("unchecked")
+    private JSONObject deleteAudit(JSONObject input, HttpServletRequest req) throws Exception {
+        String role = InputProcessor.getRole(req);
+        if (!"ADMIN".equals(role))
+            throw new SecurityException("Only ADMIN may delete audit records");
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        String title = id;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT title FROM audits WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) title = rs.getString("title");
+            pool.cleanup(rs, pstmt, null);
+            rs = null; pstmt = null;
+            pstmt = conn.prepareStatement("DELETE FROM audits WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        JSONObject ctx = new JSONObject();
+        ctx.put("audit_id", id);
+        ctx.put("audit_title", title);
+        EventLog.log(InputProcessor.getEmail(req), "AUDIT_SCHEDULE_DELETED", ctx.toJSONString());
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject deleteObservation(JSONObject input, HttpServletRequest req) throws Exception {
+        String role = InputProcessor.getRole(req);
+        if (!"ADMIN".equals(role))
+            throw new SecurityException("Only ADMIN may delete observation records");
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        String title = id;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT title FROM audit_observations WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) title = rs.getString("title");
+            pool.cleanup(rs, pstmt, null);
+            rs = null; pstmt = null;
+            pstmt = conn.prepareStatement("DELETE FROM audit_observations WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        JSONObject ctx = new JSONObject();
+        ctx.put("observation_id", id);
+        ctx.put("observation_title", title);
+        EventLog.log(InputProcessor.getEmail(req), "OBSERVATION_DELETED", ctx.toJSONString());
+        result.put("success", true);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject deleteEvidence(JSONObject input, HttpServletRequest req) throws Exception {
+        String role = InputProcessor.getRole(req);
+        if (!"ADMIN".equals(role))
+            throw new SecurityException("Only ADMIN may delete evidence records");
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        JSONObject result = new JSONObject();
+        String fileName = id;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT file_name FROM evidence_locker WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) fileName = rs.getString("file_name");
+            pool.cleanup(rs, pstmt, null);
+            rs = null; pstmt = null;
+            pstmt = conn.prepareStatement("DELETE FROM evidence_locker WHERE id = ?::uuid");
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) pool.cleanup(rs, pstmt, conn);
+        }
+        JSONObject ctx = new JSONObject();
+        ctx.put("evidence_id", id);
+        ctx.put("file_name", fileName);
+        EventLog.log(InputProcessor.getEmail(req), "EVIDENCE_DELETED", ctx.toJSONString());
         result.put("success", true);
         return result;
     }

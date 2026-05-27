@@ -110,15 +110,15 @@ tr:hover td{background:#fafcfd}
         <h1>Exception Register</h1>
         <p class="subtitle">Policy and control exceptions with business justifications, compensating controls, and approval workflow.</p>
       </div>
-      <div class="acts">
-        <button class="btn primary" onclick="openAdd()">+ Request Exception</button>
-      </div>
     </div>
 
     <div class="section-card">
       <div class="section-head">
         <h2>Exception Register</h2>
-        <span id="exc-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="exc-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn primary" onclick="openAdd()">+ Request Exception</button>
+        </div>
       </div>
       <div class="filter-bar">
         <select id="f-status" onchange="applyFilters()">

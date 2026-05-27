@@ -76,10 +76,15 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="evidence.html">Audit &amp; Evidence</a> / Findings &amp; Observations</div>
     <div class="page-header">
       <div><div class="eyebrow">Audit &amp; Evidence</div><h1>Findings &amp; Observations</h1><p class="subtitle">Audit observations with risk linkage, control failure mapping, and remediation tracking.</p></div>
-      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Log Observation</button></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Observations</h2><span id="obs-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="section-head">
+        <h2>Observations</h2>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="obs-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn primary" onclick="openAdd()">+ Log Observation</button>
+        </div>
+      </div>
       <div class="filter-bar">
         <select id="f-audit" onchange="loadObservations()"><option value="">All Audits</option></select>
         <select id="f-priority" onchange="applyFilters()"><option value="">All Priorities</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
@@ -135,6 +140,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script src="rbac.js"></script>
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
 var state={observations:[],audits:[],risks:[],controls:[]};
 
 function api(func,body,cb){
@@ -161,7 +167,7 @@ function renderObs(list){
       '<td>'+esc(o.failed_control_code||'—')+'</td>'+
       '<td>'+esc(o.remediation_status||'No plan')+'</td>'+
       '<td>'+(STATUS_PILL[o.status]||esc(o.status))+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+o.id+'\')">Update</button></div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+o.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteObservation(\''+o.id+'\',\''+esc(o.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -232,6 +238,12 @@ function submitAdd(){
   api('add_observation',{audit_id:auditId,title:title,description:document.getElementById('add-desc').value,priority:priority,
     linked_risk_id:document.getElementById('add-risk').value||null,failed_control_id:document.getElementById('add-control').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Observation logged');loadObservations();
+  });
+}
+function deleteObservation(id,title){
+  if(!confirm('Permanently delete observation "'+title+'"? This action is logged and cannot be undone.'))return;
+  api('delete_observation',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Observation deleted');loadObservations();
   });
 }
 function submitEdit(){
