@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Risk Register</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:16px}
+.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.mb{margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.lk{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.grid{display:grid;gap:16px}
+.col2{grid-template-columns:repeat(2,1fr)}
+.empty-row td{text-align:center;color:var(--muted);padding:28px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col2{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-head h2{margin:0;font-size:16px;font-weight:900}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;color:var(--muted);display:grid;place-items:center}
+.form-field{margin-bottom:15px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:13px;color:var(--ink);background:#f9fafb;outline:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,106,103,.08);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
+.error-msg{background:#fef2f2;border:1px solid #fde8e8;color:var(--red);border-radius:6px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="risks-register.html" class="subnav active">Risk Register</a>
+      <a href="risks-vapt.html" class="subnav">VAPT &amp; Vulnerabilities</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="risks.html">Risk &amp; Vulnerability</a> / Risk Register</div>
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Risk Management</div>
+        <h1>Risk Register</h1>
+        <p class="subtitle">Enterprise risk register with impact/likelihood scoring, treatment strategies, and heatmap view.</p>
+      </div>
+    </div>
+
+    <div class="card mb">
+      <div class="section-head">
+        <h2>Enterprise Risk Register</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="risk-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn sm" onclick="downloadRiskTemplate()">&#8595; Excel Template</button>
+          <input type="file" id="risk-excel-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleRiskExcelUpload(this)">
+          <button class="btn sm" onclick="document.getElementById('risk-excel-upload').click()">&#8593; Upload Excel</button>
+          <button class="btn sm primary" onclick="openModal('modal-add-risk')">+ Add Risk</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Risk ID</th>
+            <th>Risk Description</th>
+            <th>Category</th>
+            <th>Owner</th>
+            <th style="text-align:center">Impact</th>
+            <th style="text-align:center">Likelihood</th>
+            <th style="text-align:center">Score</th>
+            <th>Treatment</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="risk-tbody">
+          <tr class="empty-row"><td colspan="10">Loading risks…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="section-head"><h2>Risk Heatmap (Impact × Likelihood)</h2></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Likelihood →</div>
+      <div id="heatmap-wrap"></div>
+      <div style="display:flex;gap:12px;margin-top:12px;font-size:11px;font-weight:700">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;display:inline-block"></span>Low (1–5)</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fde68a;display:inline-block"></span>Medium (6–12)</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#fca5a5;display:inline-block"></span>High (13–25)</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Risk Modal -->
+<div id="modal-add-risk" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-risk')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Add Risk to Register</h2><button class="modal-close" onclick="closeModal('modal-add-risk')">&#x2715;</button></div>
+    <div class="error-msg" id="add-err"></div>
+    <form onsubmit="submitAddRisk(event)">
+      <div class="form-field"><label class="form-label">Risk Title</label><input class="form-input" id="ar-title" placeholder="Short descriptive title" required></div>
+      <div class="form-field"><label class="form-label">Risk Description</label><textarea class="form-textarea" id="ar-desc" placeholder="Describe the risk scenario and potential impact…"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Category</label>
+          <select class="form-select" id="ar-cat" required>
+            <option value="">Select…</option>
+            <option>Third-Party</option><option>Operational</option><option>IT Operations</option>
+            <option>Compliance</option><option>Access Control</option><option>IT Infrastructure</option>
+            <option>Continuity</option><option>Human Factor</option><option>Financial</option><option>Regulatory</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Risk Owner</label>
+          <select class="form-select" id="ar-owner"><option value="">Unassigned</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Impact (1–5)</label>
+          <select class="form-select" id="ar-impact" required>
+            <option value="1">1 – Negligible</option><option value="2">2 – Minor</option>
+            <option value="3">3 – Moderate</option><option value="4" selected>4 – Major</option><option value="5">5 – Critical</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Likelihood (1–5)</label>
+          <select class="form-select" id="ar-likelihood" required>
+            <option value="1">1 – Rare</option><option value="2">2 – Unlikely</option>
+            <option value="3" selected>3 – Possible</option><option value="4">4 – Likely</option><option value="5">5 – Almost Certain</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Treatment Strategy</label>
+        <select class="form-select" id="ar-treatment">
+          <option value="">Select…</option>
+          <option value="MITIGATE">Mitigate</option><option value="ACCEPT">Accept</option>
+          <option value="TRANSFER">Transfer</option><option value="AVOID">Avoid</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-add-risk')">Cancel</button>
+        <button type="submit" class="btn primary" id="ar-btn">Add to Register</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Risk Modal -->
+<div id="modal-edit-risk" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-risk')">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Edit Risk</h2><button class="modal-close" onclick="closeModal('modal-edit-risk')">&#x2715;</button></div>
+    <div class="error-msg" id="edit-err"></div>
+    <form onsubmit="submitEditRisk(event)">
+      <input type="hidden" id="er-id">
+      <div class="form-field"><label class="form-label">Risk Title</label><input class="form-input" id="er-title" required></div>
+      <div class="form-field"><label class="form-label">Description</label><textarea class="form-textarea" id="er-desc"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Category</label>
+          <select class="form-select" id="er-cat">
+            <option>Third-Party</option><option>Operational</option><option>IT Operations</option>
+            <option>Compliance</option><option>Access Control</option><option>IT Infrastructure</option>
+            <option>Continuity</option><option>Human Factor</option><option>Financial</option><option>Regulatory</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Owner</label>
+          <select class="form-select" id="er-owner"><option value="">Unassigned</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Impact (1–5)</label>
+          <select class="form-select" id="er-impact">
+            <option value="1">1 – Negligible</option><option value="2">2 – Minor</option>
+            <option value="3">3 – Moderate</option><option value="4">4 – Major</option><option value="5">5 – Critical</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Likelihood (1–5)</label>
+          <select class="form-select" id="er-likelihood">
+            <option value="1">1 – Rare</option><option value="2">2 – Unlikely</option>
+            <option value="3">3 – Possible</option><option value="4">4 – Likely</option><option value="5">5 – Almost Certain</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Treatment Strategy</label>
+          <select class="form-select" id="er-treatment">
+            <option value="">None</option>
+            <option value="MITIGATE">Mitigate</option><option value="ACCEPT">Accept</option>
+            <option value="TRANSFER">Transfer</option><option value="AVOID">Avoid</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select" id="er-status">
+            <option value="IDENTIFIED">Identified</option><option value="ASSESSED">Assessed</option>
+            <option value="TREATED">Treated</option><option value="MONITORED">Monitored</option><option value="RETIRED">Retired</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Mitigating Controls</label><textarea class="form-textarea" id="er-controls" placeholder="Describe controls in place…"></textarea></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Residual Impact (1–5)</label>
+          <select class="form-select" id="er-res-impact">
+            <option value="">N/A</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Residual Likelihood (1–5)</label>
+          <select class="form-select" id="er-res-likelihood">
+            <option value="">N/A</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-edit-risk')">Cancel</button>
+        <button type="submit" class="btn primary" id="er-btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none"></div>
+
+<!-- Risk Register Import Preview Modal -->
+<div id="modal-risk-import" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-risk-import')">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-head"><h2>Import Risk Register</h2><button class="modal-close" onclick="closeModal('modal-risk-import')">&#x2715;</button></div>
+    <p id="risk-import-summary" style="font-size:13px;color:var(--muted);margin:0 0 12px"></p>
+    <div id="risk-import-error" class="error-msg"></div>
+    <div style="overflow-x:auto;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr id="risk-import-head" style="background:var(--wash)"></tr></thead>
+        <tbody id="risk-import-body"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" onclick="closeModal('modal-risk-import')">Cancel</button>
+      <button type="button" class="btn primary" id="btn-confirm-risk-import" onclick="confirmRiskImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="rbac.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+var state = { risks: [], staff: [] };
+var isAdmin = false;
+
+function api(func, body, cb) {
+  fetch('/api/v1/risk', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none'},2800);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+function hideErr(id){var el=document.getElementById(id);if(el)el.style.display='none';}
+
+var TREAT_LABEL = {MITIGATE:'Mitigate',ACCEPT:'Accept',TRANSFER:'Transfer',AVOID:'Avoid'};
+var STATUS_LABEL = {IDENTIFIED:'Identified',ASSESSED:'Assessed',TREATED:'Treated',MONITORED:'Monitored',RETIRED:'Retired'};
+
+function scoreColor(s){
+  if(s<=5)return{bg:'#d1fae5',cls:'good'};
+  if(s<=12)return{bg:'#fde68a',cls:'watch'};
+  return{bg:'#fca5a5',cls:'risk'};
+}
+
+function renderRisks() {
+  var tbody = document.getElementById('risk-tbody');
+  if (!state.risks.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No risks in register. Click Add Risk to get started.</td></tr>';
+    document.getElementById('risk-count').textContent = '0 risks';
+    buildHeatmap([]);
+    return;
+  }
+  document.getElementById('risk-count').textContent = state.risks.length + ' risk' + (state.risks.length===1?'':'s');
+  var html = '';
+  state.risks.forEach(function(r) {
+    var sc = scoreColor(r.inherent_risk_score);
+    var statusCls = r.inherent_risk_score >= 13 ? 'risk' : (r.inherent_risk_score >= 6 ? 'watch' : 'good');
+    var statusLabel = STATUS_LABEL[r.status] || r.status;
+    var treatLabel = TREAT_LABEL[r.treatment_strategy] || (r.treatment_strategy || '—');
+    html += '<tr>';
+    html += '<td><strong>' + esc(r.risk_code) + '</strong></td>';
+    html += '<td>' + esc(r.title) + '</td>';
+    html += '<td>' + esc(r.category) + '</td>';
+    html += '<td>' + esc(r.owner_name || '—') + '</td>';
+    html += '<td style="text-align:center;font-weight:800">' + r.inherent_impact + '</td>';
+    html += '<td style="text-align:center;font-weight:800">' + r.inherent_likelihood + '</td>';
+    html += '<td style="text-align:center"><span class="pill ' + sc.cls + '">' + r.inherent_risk_score + '</span></td>';
+    html += '<td>' + treatLabel + '</td>';
+    html += '<td><span class="pill ' + statusCls + '">' + statusLabel + '</span></td>';
+    html += '<td style="white-space:nowrap"><span class="lk" onclick="openEditRisk(\'' + r.id + '\')">Edit</span>' +
+      (isAdmin ? ' &nbsp;<span class="lk" style="color:var(--red)" onclick="deleteRisk(\'' + r.id + '\')">Delete</span>' : '') +
+      '</td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  buildHeatmap(state.risks);
+}
+
+function buildHeatmap(risks) {
+  var cells = {};
+  for (var i = 1; i <= 5; i++) {
+    for (var l = 1; l <= 5; l++) { cells[i+'_'+l] = []; }
+  }
+  risks.forEach(function(r) {
+    var k = r.inherent_impact + '_' + r.inherent_likelihood;
+    if (cells[k]) cells[k].push(r.risk_code);
+  });
+
+  var likeLabels = ['1 – Rare','2 – Unlikely','3 – Possible','4 – Likely','5 – Almost Certain'];
+  var impLabels = {5:'5 – Critical',4:'4 – Major',3:'3 – Moderate',2:'2 – Minor',1:'1 – Negligible'};
+  var html = '<table style="border-collapse:separate;border-spacing:3px"><thead><tr>';
+  html += '<th style="width:70px;font-size:10px">Impact ↓</th>';
+  likeLabels.forEach(function(l){html+='<th style="text-align:center;font-size:10px">'+l+'</th>';});
+  html += '</tr></thead><tbody>';
+  for (var imp = 5; imp >= 1; imp--) {
+    html += '<tr><td style="font-size:10px;font-weight:800;color:var(--muted);padding:6px 4px">' + impLabels[imp] + '</td>';
+    for (var lik = 1; lik <= 5; lik++) {
+      var score = imp * lik;
+      var bg, tc;
+      if (score <= 5) { bg = '#d1fae5'; tc = '#374151'; }
+      else if (score <= 12) { bg = '#fde68a'; tc = '#374151'; }
+      else { bg = '#fca5a5'; tc = '#7f1d1d'; }
+      var codes = cells[imp+'_'+lik];
+      var content = score + (codes.length ? ' · ' + codes.join(' · ') : '');
+      html += '<td style="background:'+bg+';border-radius:4px;text-align:center;padding:8px;font-size:11px;font-weight:800;color:'+tc+'">'+content+'</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('heatmap-wrap').innerHTML = html;
+}
+
+function populateStaffSelects() {
+  var opts = '<option value="">Unassigned</option>';
+  state.staff.forEach(function(s){opts += '<option value="'+s.id+'">'+esc(s.username)+'</option>';});
+  ['ar-owner','er-owner'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function openEditRisk(id) {
+  var r = state.risks.find(function(x){return x.id===id;});
+  if (!r) return;
+  hideErr('edit-err');
+  document.getElementById('er-id').value = r.id;
+  document.getElementById('er-title').value = r.title || '';
+  document.getElementById('er-desc').value = r.description || '';
+  setSelect('er-cat', r.category);
+  setSelect('er-impact', String(r.inherent_impact));
+  setSelect('er-likelihood', String(r.inherent_likelihood));
+  setSelect('er-treatment', r.treatment_strategy || '');
+  setSelect('er-status', r.status || 'IDENTIFIED');
+  document.getElementById('er-controls').value = r.mitigating_controls || '';
+  setSelect('er-res-impact', r.residual_impact ? String(r.residual_impact) : '');
+  setSelect('er-res-likelihood', r.residual_likelihood ? String(r.residual_likelihood) : '');
+  setSelect('er-owner', r.owner_id || '');
+  openModal('modal-edit-risk');
+}
+
+function setSelect(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  for (var i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; return; }
+  }
+}
+
+function submitAddRisk(e) {
+  e.preventDefault();
+  hideErr('add-err');
+  var btn = document.getElementById('ar-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  api('add_risk', {
+    title: document.getElementById('ar-title').value.trim(),
+    description: document.getElementById('ar-desc').value.trim(),
+    category: document.getElementById('ar-cat').value,
+    inherent_impact: parseInt(document.getElementById('ar-impact').value),
+    inherent_likelihood: parseInt(document.getElementById('ar-likelihood').value),
+    treatment_strategy: document.getElementById('ar-treatment').value || null,
+    owner_id: document.getElementById('ar-owner').value || null
+  }, function(err) {
+    btn.textContent = 'Add to Register'; btn.disabled = false;
+    if (err) { showErr('add-err', err); return; }
+    closeModal('modal-add-risk');
+    toast('Risk added to register.');
+    loadRisks();
+  });
+}
+
+function submitEditRisk(e) {
+  e.preventDefault();
+  hideErr('edit-err');
+  var btn = document.getElementById('er-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  var resI = document.getElementById('er-res-impact').value;
+  var resL = document.getElementById('er-res-likelihood').value;
+  api('update_risk', {
+    id: document.getElementById('er-id').value,
+    title: document.getElementById('er-title').value.trim(),
+    description: document.getElementById('er-desc').value.trim(),
+    category: document.getElementById('er-cat').value,
+    inherent_impact: parseInt(document.getElementById('er-impact').value),
+    inherent_likelihood: parseInt(document.getElementById('er-likelihood').value),
+    treatment_strategy: document.getElementById('er-treatment').value || null,
+    status: document.getElementById('er-status').value,
+    mitigating_controls: document.getElementById('er-controls').value.trim() || null,
+    residual_impact: resI ? parseInt(resI) : null,
+    residual_likelihood: resL ? parseInt(resL) : null,
+    owner_id: document.getElementById('er-owner').value || null
+  }, function(err) {
+    btn.textContent = 'Save Changes'; btn.disabled = false;
+    if (err) { showErr('edit-err', err); return; }
+    closeModal('modal-edit-risk');
+    toast('Risk updated.');
+    loadRisks();
+  });
+}
+
+function loadRisks() {
+  api('list_risks', {}, function(err, d) {
+    if (err) return;
+    state.risks = d.risks || [];
+    renderRisks();
+  });
+}
+
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+
+// ---- Excel Template Download ----
+var RISK_CATEGORIES = ['Third-Party','Operational','IT Operations','Compliance','Access Control','IT Infrastructure','Continuity','Human Factor','Financial','Regulatory'];
+var RISK_TREATMENTS = ['MITIGATE','ACCEPT','TRANSFER','AVOID'];
+
+function downloadRiskTemplate() {
+  var sampleOwner = state.staff.length ? state.staff[0].username : 'john.smith';
+  var rows = [
+    ['Title','Description','Category','Impact (1-5)','Likelihood (1-5)','Treatment','Owner Username'],
+    ['Unauthorised access to core banking','Risk of insider threat exploiting weak access controls','Access Control',4,3,'MITIGATE',sampleOwner],
+    ['Third-party vendor breach','Vendor with access to customer data suffers a breach','Third-Party',5,2,'TRANSFER','']
+  ];
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:40},{wch:50},{wch:20},{wch:14},{wch:16},{wch:12},{wch:20}];
+  var note = 'Category must be one of: ' + RISK_CATEGORIES.join(', ') + '. Treatment must be one of: ' + RISK_TREATMENTS.join(', ') + ' (or leave blank).';
+  XLSX.utils.sheet_add_aoa(ws, [[note]], {origin: rows.length + 1});
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Risk Register');
+  XLSX.writeFile(wb, 'risk-register-template.xlsx');
+}
+
+// ---- Excel Upload & Parse ----
+var pendingRiskRows = [];
+
+function handleRiskExcelUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    input.value = '';
+    if (rows.length < 2) {
+      alert('The file appears to be empty or has no data rows.');
+      return;
+    }
+    showRiskImportPreview(rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function findStaffByName(name) {
+  if (!name) return null;
+  var n = String(name).trim().toLowerCase();
+  var found = state.staff.find(function(s){ return s.username.toLowerCase() === n; });
+  return found ? found.id : null;
+}
+
+function showRiskImportPreview(rows) {
+  var header = rows[0];
+  var dataRows = rows.slice(1).filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+
+  var valid = 0, errors = 0;
+  pendingRiskRows = [];
+
+  var headHtml = '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">Status</th>';
+  header.forEach(function(h){ headHtml += '<th style="padding:6px 10px;border-bottom:1px solid var(--line)">' + esc(h) + '</th>'; });
+  document.getElementById('risk-import-head').innerHTML = headHtml;
+
+  var bodyHtml = '';
+  dataRows.forEach(function(row) {
+    var title    = String(row[0] || '').trim();
+    var desc     = String(row[1] || '').trim();
+    var category = String(row[2] || '').trim();
+    var impact   = parseInt(row[3]);
+    var likelihood = parseInt(row[4]);
+    var treatment  = String(row[5] || '').trim().toUpperCase();
+    var ownerName  = String(row[6] || '').trim();
+
+    var rowErrors = [];
+    if (!title)    rowErrors.push('Title required');
+    if (!category || RISK_CATEGORIES.indexOf(category) === -1) rowErrors.push('Invalid category');
+    if (isNaN(impact) || impact < 1 || impact > 5)     rowErrors.push('Impact must be 1-5');
+    if (isNaN(likelihood) || likelihood < 1 || likelihood > 5) rowErrors.push('Likelihood must be 1-5');
+    if (treatment && RISK_TREATMENTS.indexOf(treatment) === -1) rowErrors.push('Invalid treatment');
+
+    var ownerId = ownerName ? findStaffByName(ownerName) : null;
+    var ownerWarn = ownerName && !ownerId;
+
+    var statusCell, rowStyle;
+    if (rowErrors.length) {
+      statusCell = '<td style="padding:6px 10px;color:var(--red);font-weight:800;white-space:nowrap">&#10007; ' + rowErrors.join('; ') + '</td>';
+      rowStyle = 'background:#fef2f2';
+      errors++;
+    } else if (ownerWarn) {
+      statusCell = '<td style="padding:6px 10px;color:var(--amber);font-weight:700;white-space:nowrap">&#9888; Owner not found</td>';
+      rowStyle = 'background:#fffbeb';
+      valid++;
+      pendingRiskRows.push({title:title,description:desc||null,category:category,inherent_impact:impact,inherent_likelihood:likelihood,treatment_strategy:treatment||null,owner_id:null});
+    } else {
+      statusCell = '<td style="padding:6px 10px;color:var(--green);font-weight:700">&#10003; OK</td>';
+      rowStyle = '';
+      valid++;
+      pendingRiskRows.push({title:title,description:desc||null,category:category,inherent_impact:impact,inherent_likelihood:likelihood,treatment_strategy:treatment||null,owner_id:ownerId||null});
+    }
+
+    bodyHtml += '<tr style="' + rowStyle + '">' + statusCell;
+    row.forEach(function(c){ bodyHtml += '<td style="padding:6px 10px;border-bottom:1px solid #f0f4f8">' + esc(String(c)) + '</td>'; });
+    bodyHtml += '</tr>';
+  });
+
+  document.getElementById('risk-import-body').innerHTML = bodyHtml;
+  document.getElementById('risk-import-summary').textContent = dataRows.length + ' rows parsed — ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
+  var errEl = document.getElementById('risk-import-error');
+  if (valid === 0) {
+    errEl.textContent = 'No valid rows to import. Please fix the errors and re-upload.';
+    errEl.style.display = 'block';
+    document.getElementById('btn-confirm-risk-import').disabled = true;
+  } else {
+    errEl.style.display = 'none';
+    document.getElementById('btn-confirm-risk-import').disabled = false;
+  }
+  openModal('modal-risk-import');
+}
+
+function deleteRisk(id) {
+  if (!confirm('Delete this risk? This cannot be undone.')) return;
+  api('delete_risk', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    toast('Risk deleted.');
+    loadRisks();
+  });
+}
+
+function confirmRiskImport() {
+  if (!pendingRiskRows.length) return;
+  var btn = document.getElementById('btn-confirm-risk-import');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('bulk_add_risks', {items: pendingRiskRows}, function(err, data) {
+    btn.textContent = 'Import'; btn.disabled = false;
+    if (err) { document.getElementById('risk-import-error').textContent = err; document.getElementById('risk-import-error').style.display='block'; return; }
+    closeModal('modal-risk-import');
+    pendingRiskRows = [];
+    toast('Imported ' + (data.inserted || 0) + ' risk' + (data.inserted===1?'':'s') + ' into the register.');
+    loadRisks();
+  });
+}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('list_staff', {}, function(err, d) {
+    if (!err) { state.staff = d.staff || []; populateStaffSelects(); }
+    loadRisks();
+  });
+})();
+</script>
+</body>
+</html>

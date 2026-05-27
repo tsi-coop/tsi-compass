@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Framework Readiness</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
+.breadcrumb a{color:var(--teal);font-weight:600}
+.breadcrumb a:hover{text-decoration:underline}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.fw-grid{display:grid;gap:16px;grid-template-columns:repeat(3,1fr);padding:20px}
+.fw-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:20px}
+.fw-name{font-size:15px;font-weight:800;margin-bottom:4px}
+.fw-ver{font-size:11px;color:var(--muted);margin-bottom:14px}
+.fw-bar-wrap{height:8px;background:#e8f0fe;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.fw-bar{height:100%;border-radius:4px;background:var(--teal);transition:width .4s}
+.fw-pct{font-size:22px;font-weight:900;color:var(--teal)}
+.fw-stats{display:flex;gap:16px;margin-top:12px}
+.fw-stat{font-size:11px;color:var(--muted)}
+.fw-stat strong{display:block;font-size:14px;font-weight:800;color:var(--ink)}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.fw-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="controls-frameworks.html" class="subnav active">Framework Readiness</a>
+      <a href="controls-register.html" class="subnav">Controls Register</a>
+      <a href="controls-exceptions.html" class="subnav">Exception Register</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="controls.html">Compliance &amp; Controls</a> / Framework Readiness</div>
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Compliance &amp; Controls</div>
+        <h1>Framework Readiness</h1>
+        <p class="subtitle">Compliance readiness percentages across all active frameworks based on control attestation status.</p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Active Frameworks</h2>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="fw-count-label" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <a class="btn primary" href="controls-register.html">Manage Controls</a>
+        </div>
+      </div>
+      <div class="fw-grid" id="fw-grid">
+        <div class="empty">Loading frameworks…</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="rbac.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('list_frameworks',{},function(err,d){
+    if(err){document.getElementById('fw-grid').innerHTML='<div class="empty">Failed to load frameworks.</div>';return;}
+    var fws = d.frameworks||[];
+    var el = document.getElementById('fw-count-label');
+    if(el) el.textContent = fws.length+' framework'+(fws.length!==1?'s':'');
+    var grid = document.getElementById('fw-grid');
+    if(!fws.length){grid.innerHTML='<div class="empty">No frameworks configured.</div>';return;}
+    grid.innerHTML = fws.map(function(f){
+      var pct = f.readiness_pct||0;
+      var color = pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+      return '<div class="fw-card">'+
+        '<div class="fw-name">'+esc(f.name)+'</div>'+
+        '<div class="fw-ver">Version: '+esc(f.version||'—')+'</div>'+
+        '<div class="fw-bar-wrap"><div class="fw-bar" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+        '<div class="fw-pct" style="color:'+color+'">'+pct+'%</div>'+
+        '<div class="fw-stats">'+
+          '<div class="fw-stat"><strong>'+esc(f.total_controls||0)+'</strong>Total controls</div>'+
+          '<div class="fw-stat"><strong>'+esc(f.compliant_controls||0)+'</strong>Compliant</div>'+
+          '<div class="fw-stat"><strong>'+esc(f.gap_controls||0)+'</strong>Gaps</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  });
+})();
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>

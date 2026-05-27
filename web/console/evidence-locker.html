@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Evidence Locker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.good{background:#e6f4ed;color:var(--green)}.pill.neu{background:#f0f4f8;color:var(--muted)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:80px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.hash{font-family:monospace;font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a><a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a><a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="evidence-audits.html" class="subnav">Audit Schedule</a>
+      <a href="evidence-findings.html" class="subnav">Findings &amp; Observations</a>
+      <a href="evidence-locker.html" class="subnav active">Evidence Locker</a>
+      <a href="operations.html">IT Operations</a><a href="incidents.html">Incidents &amp; Awareness</a><a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="evidence.html">Audit &amp; Evidence</a> / Evidence Locker</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Audit &amp; Evidence</div><h1>Evidence Locker</h1><p class="subtitle">Tamper-evident storage of audit evidence with SHA-256 integrity checksums and immutable locking.</p></div>
+    </div>
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Evidence Files</h2>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="ev-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn primary" onclick="openAdd()">+ Add Evidence Record</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="f-audit" onchange="loadEvidence()"><option value="">All Audits</option></select>
+        <input id="f-search" type="search" placeholder="Search by filename…" oninput="applyFilters()">
+      </div>
+      <table>
+        <thead><tr><th>File Name</th><th>Audit</th><th>Uploaded By</th><th>Uploaded At</th><th>SHA-256</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ev-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <h2>Upload Evidence</h2>
+    <div style="background:#eaf5f3;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--teal)">File is uploaded to secure server storage. SHA-256 integrity checksum is computed automatically.</div>
+    <div class="form-row"><label>Evidence File</label><input type="file" id="add-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" required style="height:auto;padding:8px 10px"></div>
+    <div class="form-row"><label>Linked Audit</label><select id="add-audit"><option value="">— None —</option></select></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn primary" onclick="submitAdd()">Upload &amp; Lock Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+<script src="rbac.js"></script>
+<script>
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
+var state={evidence:[],audits:[]};
+
+function api(func,body,cb){
+  fetch('/api/v1/audit',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderEvidence(list){
+  var body=document.getElementById('ev-body');
+  var cnt=document.getElementById('ev-count');if(cnt)cnt.textContent=list.length+' file'+(list.length!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No evidence files found.</td></tr>';return;}
+  body.innerHTML=list.map(function(e){
+    var locked=e.is_locked?'<span class="pill good">Locked</span>':'<span class="pill neu">Unlocked</span>';
+    return '<tr>'+
+      '<td><strong>'+esc(e.file_name)+'</strong><div style="font-size:11px;color:var(--muted)">'+esc(e.file_path)+'</div></td>'+
+      '<td>'+esc(e.audit_title||'—')+'</td>'+
+      '<td>'+esc(e.uploaded_by_name||'—')+'</td>'+
+      '<td>'+esc(e.uploaded_at||'—')+'</td>'+
+      '<td><span class="hash" title="'+esc(e.sha256_checksum)+'">'+esc(e.sha256_checksum||'—')+'</span></td>'+
+      '<td>'+locked+'</td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="downloadEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Download</button>'+(isSuperAdmin?' <button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Delete</button>':'')+'</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function applyFilters(){
+  var srVal=document.getElementById('f-search').value.toLowerCase();
+  var list=state.evidence.filter(function(e){
+    if(srVal&&!(e.file_name||'').toLowerCase().includes(srVal))return false;
+    return true;
+  });
+  renderEvidence(list);
+}
+
+function loadEvidence(){
+  var auditId=document.getElementById('f-audit').value||null;
+  api('list_evidence',{audit_id:auditId},function(err,d){
+    if(err)return;state.evidence=d.evidence||[];applyFilters();
+  });
+}
+
+function loadAll(){
+  loadEvidence();
+  api('list_audits',{},function(err,d){
+    if(err)return;state.audits=d.audits||[];
+    ['f-audit','add-audit'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.audits.forEach(function(a){var o=document.createElement('option');o.value=a.id;o.textContent=a.title;sel.appendChild(o);});
+    });
+  });
+}
+
+function openAdd(){
+  document.getElementById('add-file').value='';
+  document.getElementById('add-audit').selectedIndex=0;
+  document.getElementById('modal-add').classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function deleteEvidence(id,fname){
+  if(!confirm('Permanently delete evidence record "'+fname+'"? This action is logged and cannot be undone.'))return;
+  api('delete_evidence',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Evidence record deleted');loadEvidence();
+  });
+}
+function submitAdd(){
+  var fileInput=document.getElementById('add-file');
+  if(!fileInput.files.length){alert('Please select a file.');return;}
+  var file=fileInput.files[0];
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var userId=localStorage.getItem('user_id')||null;
+    api('add_evidence',{file_name:file.name,file_data:ev.target.result,
+      uploaded_by:userId,audit_id:document.getElementById('add-audit').value||null},function(err){
+      if(err){alert('Error: '+err);return;}
+      closeModal('modal-add');showToast('Evidence uploaded (SHA-256 verified)');loadEvidence();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function downloadEvidence(id,fname){
+  api('get_evidence_file',{id:id},function(err,d){
+    if(err){alert('Error: '+err);return;}
+    var binary=atob(d.file_data);
+    var bytes=new Uint8Array(binary.length);
+    for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    var blob=new Blob([bytes]);
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=d.file_name||fname;
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);URL.revokeObjectURL(url);
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadAll();
+})();
+</script>
+</body>
+</html>

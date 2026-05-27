@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Compliance &amp; Controls</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.grid{display:grid;gap:16px}
+.col4{grid-template-columns:repeat(4,1fr)}
+.mb{margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
+.metric-note{color:var(--muted);font-size:12px}
+.stripe-teal{border-top:4px solid var(--teal)}
+.stripe-blue{border-top:4px solid var(--blue)}
+.stripe-amber{border-top:4px solid var(--amber)}
+.stripe-green{border-top:4px solid var(--green)}
+.hub-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
+.hub-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column}
+.hub-icon{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;flex-shrink:0}
+.hub-card h3{margin:0 0 6px;font-size:15px;font-weight:800}
+.hub-card p{margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6;flex:1}
+.hub-stats{display:flex;gap:20px;padding:12px 0;border-top:1px solid #edf2f6;margin-bottom:14px}
+.hub-stat strong{display:block;font-size:20px;font-weight:900;color:var(--ink);line-height:1.1}
+.hub-stat span{font-size:11px;color:var(--muted);white-space:nowrap}
+.hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
+.hub-manage:hover{color:var(--ink)}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html" class="active">Compliance &amp; Controls</a>
+      <a href="controls-frameworks.html" class="subnav">Framework Readiness</a>
+      <a href="controls-register.html" class="subnav">Controls Register</a>
+      <a href="controls-exceptions.html" class="subnav">Exception Register</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Compliance Management</div>
+        <h1>Compliance &amp; Controls</h1>
+        <p class="subtitle">Multi-framework compliance readiness, controls attestation, and exception management.</p>
+      </div>
+    </div>
+
+    <div class="grid col4 mb">
+      <div class="card stripe-teal">
+        <div class="metric-label">Frameworks</div>
+        <div class="metric-value" id="m-frameworks">—</div>
+        <div class="metric-note" id="m-frameworks-note">Loading…</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Total Controls</div>
+        <div class="metric-value" id="m-controls">—</div>
+        <div class="metric-note">Across all mapped frameworks</div>
+      </div>
+      <div class="card stripe-green">
+        <div class="metric-label">Compliant</div>
+        <div class="metric-value" id="m-pct">—</div>
+        <div class="metric-note" id="m-pct-note">Loading…</div>
+      </div>
+      <div class="card stripe-amber">
+        <div class="metric-label">Active Exceptions</div>
+        <div class="metric-value" id="m-exceptions">—</div>
+        <div class="metric-note" id="m-exceptions-note">Loading…</div>
+      </div>
+    </div>
+
+    <div class="hub-grid">
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#eaf5f3">&#128200;</div>
+        <h3>Framework Readiness</h3>
+        <p>Track readiness percentages and control coverage across ISO 27001, SOC 2, and DPDP. View gaps and identify controls that need attestation.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-fw-count">—</strong><span>Frameworks</span></div>
+          <div class="hub-stat"><strong id="hs-fw-compliant">—</strong><span>Controls compliant</span></div>
+          <div class="hub-stat"><strong id="hs-fw-pct">—</strong><span>Avg. readiness</span></div>
+        </div>
+        <a href="controls-frameworks.html" class="hub-manage">View Frameworks &#8250;</a>
+      </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#edf2ff">&#128203;</div>
+        <h3>Controls Register</h3>
+        <p>Maintain the full controls register mapped to multiple frameworks. Record attestation status, identify gaps, link evidence, and assign control owners.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-ctl-total">—</strong><span>Total controls</span></div>
+          <div class="hub-stat"><strong id="hs-ctl-gap">—</strong><span>Non-compliant</span></div>
+          <div class="hub-stat"><strong id="hs-ctl-pending">—</strong><span>Pending attestation</span></div>
+        </div>
+        <a href="controls-register.html" class="hub-manage">Manage Controls &#8250;</a>
+      </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#fff4df">&#128218;</div>
+        <h3>Exception Register</h3>
+        <p>Review and manage policy exceptions with business justifications, compensating controls, expiry tracking, and approval workflows.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-exc-total">—</strong><span>Active exceptions</span></div>
+          <div class="hub-stat"><strong id="hs-exc-approved">—</strong><span>Approved</span></div>
+          <div class="hub-stat"><strong id="hs-exc-pending">—</strong><span>Pending review</span></div>
+        </div>
+        <a href="controls-exceptions.html" class="hub-manage">View Exceptions &#8250;</a>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="rbac.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('get_controls_metrics',{},function(err,d){
+    if(err)return;
+    set('m-frameworks',      d.frameworks||0);
+    set('m-controls',        d.total_controls||0);
+    set('m-pct',             (d.compliance_pct||0)+'%');
+    set('m-exceptions',      d.active_exceptions||0);
+    set('m-frameworks-note', (d.frameworks||0)+' active frameworks');
+    set('m-pct-note',        (d.compliant_controls||0)+' of '+(d.total_controls||0)+' controls attested');
+    set('m-exceptions-note', (d.approved_exceptions||0)+' approved · '+(d.pending_exceptions||0)+' pending');
+    set('hs-fw-count',       d.frameworks||0);
+    set('hs-fw-compliant',   d.compliant_controls||0);
+    set('hs-fw-pct',         (d.compliance_pct||0)+'%');
+    set('hs-ctl-total',      d.total_controls||0);
+    set('hs-ctl-gap',        d.non_compliant_controls||0);
+    set('hs-ctl-pending',    d.pending_controls||0);
+    set('hs-exc-total',      d.active_exceptions||0);
+    set('hs-exc-approved',   d.approved_exceptions||0);
+    set('hs-exc-pending',    d.pending_exceptions||0);
+  });
+})();
+</script>
+</body>
+</html>

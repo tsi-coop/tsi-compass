@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Exception Register</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
+.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.success{background:var(--green);border-color:var(--green);color:#fff}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcfd}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.good{background:#e6f4ed;color:var(--green)}
+.pill.watch{background:#fef3cd;color:var(--amber)}
+.pill.risk{background:#fde8e8;color:var(--red)}
+.pill.info{background:#e8eeff;color:var(--blue)}
+.pill.neu{background:#f0f4f8;color:var(--muted)}
+.row-actions{display:flex;gap:6px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:80px;padding:8px 10px;resize:vertical}
+.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="controls-frameworks.html" class="subnav">Framework Readiness</a>
+      <a href="controls-register.html" class="subnav">Controls Register</a>
+      <a href="controls-exceptions.html" class="subnav active">Exception Register</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="controls.html">Compliance &amp; Controls</a> / Exception Register</div>
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Compliance &amp; Controls</div>
+        <h1>Exception Register</h1>
+        <p class="subtitle">Policy and control exceptions with business justifications, compensating controls, and approval workflow.</p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Exception Register</h2>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span id="exc-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn primary" onclick="openAdd()">+ Request Exception</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="f-status" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option>PENDING</option><option>APPROVED</option><option>REJECTED</option><option>EXPIRED</option>
+        </select>
+        <input id="f-search" type="search" placeholder="Search exceptions…" oninput="applyFilters()">
+      </div>
+      <table>
+        <thead><tr>
+          <th>Policy</th><th>Control</th><th>Reason</th><th>Requested By</th>
+          <th>Expiry</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="exc-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Add Exception Modal -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <h2>Request Exception</h2>
+    <div class="form-row half">
+      <div><label>Policy</label><select id="add-policy"><option value="">— Select —</option></select></div>
+      <div><label>Control (Optional)</label><select id="add-control"><option value="">— None —</option></select></div>
+    </div>
+    <div class="form-row"><label>Reason / Business Justification</label><textarea id="add-reason" required></textarea></div>
+    <div class="form-row"><label>Compensating Controls</label><textarea id="add-comp"></textarea></div>
+    <div class="form-row half">
+      <div><label>Requested By</label><select id="add-requester"><option value="">— Select —</option></select></div>
+      <div><label>Expiry Date</label><input id="add-expiry" type="date" required></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn primary" onclick="submitAdd()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="modal-review">
+  <div class="modal">
+    <h2>Review Exception</h2>
+    <input type="hidden" id="review-id">
+    <div id="review-detail" style="background:#f3f7f8;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7"></div>
+    <div class="form-row"><label>Your Decision</label>
+      <select id="review-status">
+        <option value="APPROVED">Approve</option>
+        <option value="REJECTED">Reject</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Approver</label><select id="review-approver"><option value="">— Select —</option></select></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-review')">Cancel</button>
+      <button class="btn primary" onclick="submitReview()">Submit Decision</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved successfully</div>
+<script src="rbac.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+var state = {exceptions: [], policies: [], controls: [], staff: []};
+var isAdmin = false;
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+var STATUS_PILL = {
+  'PENDING':  '<span class="pill watch">Pending</span>',
+  'APPROVED': '<span class="pill good">Approved</span>',
+  'REJECTED': '<span class="pill risk">Rejected</span>',
+  'EXPIRED':  '<span class="pill neu">Expired</span>'
+};
+
+function renderExceptions(list) {
+  var body = document.getElementById('exc-body');
+  var cnt  = document.getElementById('exc-count');
+  if(cnt) cnt.textContent = list.length+' exception'+(list.length!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No exceptions found.</td></tr>';return;}
+  body.innerHTML = list.map(function(e){
+    var canReview = e.status==='PENDING';
+    return '<tr>'+
+      '<td>'+esc(e.policy_title||'—')+'</td>'+
+      '<td>'+esc(e.control_code||'—')+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(e.reason)+'">'+esc(e.reason)+'</td>'+
+      '<td>'+esc(e.requester_name||'—')+'</td>'+
+      '<td>'+esc(e.expiry_date||'—')+'</td>'+
+      '<td>'+(STATUS_PILL[e.status]||esc(e.status))+'</td>'+
+      '<td><div class="row-actions">'+
+        (canReview?'<button class="btn sm primary" onclick="openReview(\''+e.id+'\')">Review</button>':'')+
+        (isAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteException(\''+e.id+'\')">Delete</button>':'')+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function applyFilters() {
+  var stVal = document.getElementById('f-status').value;
+  var srVal = document.getElementById('f-search').value.toLowerCase();
+  var list = state.exceptions.filter(function(e){
+    if(stVal && e.status!==stVal) return false;
+    if(srVal && !(e.reason||'').toLowerCase().includes(srVal) && !(e.policy_title||'').toLowerCase().includes(srVal)) return false;
+    return true;
+  });
+  renderExceptions(list);
+}
+
+function loadAll() {
+  api('list_exceptions',{},function(err,d){
+    if(err)return;
+    state.exceptions = d.exceptions||[];
+    applyFilters();
+  });
+  api('list_policies',{},function(err,d){
+    if(err)return;
+    state.policies=d.policies||[];
+    ['add-policy'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.policies.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.title;sel.appendChild(o);});
+    });
+  });
+  api('list_controls',{},function(err,d){
+    if(err)return;
+    state.controls=d.controls||[];
+    var sel=document.getElementById('add-control');
+    state.controls.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.code+' – '+c.title;sel.appendChild(o);});
+  });
+  api('list_staff',{},function(err,d){
+    if(err)return;
+    state.staff=d.staff||[];
+    ['add-requester','review-approver'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
+    });
+  });
+}
+
+function openAdd() {
+  ['add-policy','add-control','add-requester'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
+  ['add-reason','add-comp','add-expiry'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openReview(id) {
+  var ex = state.exceptions.find(function(x){return x.id===id;});
+  if(!ex) return;
+  document.getElementById('review-id').value = id;
+  document.getElementById('review-detail').innerHTML =
+    '<strong>Policy:</strong> '+esc(ex.policy_title||'—')+'<br>'+
+    '<strong>Reason:</strong> '+esc(ex.reason)+'<br>'+
+    '<strong>Compensating Controls:</strong> '+esc(ex.compensating_controls||'—')+'<br>'+
+    '<strong>Expiry:</strong> '+esc(ex.expiry_date||'—');
+  document.getElementById('review-approver').selectedIndex=0;
+  document.getElementById('modal-review').classList.add('open');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function submitAdd() {
+  var body = {
+    policy_id:            document.getElementById('add-policy').value,
+    control_id:           document.getElementById('add-control').value||null,
+    reason:               document.getElementById('add-reason').value,
+    compensating_controls:document.getElementById('add-comp').value,
+    requested_by:         document.getElementById('add-requester').value||null,
+    expiry_date:          document.getElementById('add-expiry').value
+  };
+  if(!body.policy_id||!body.reason||!body.expiry_date){alert('Policy, reason, and expiry date are required.');return;}
+  api('add_exception', body, function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal('modal-add');showToast('Exception submitted');loadAll();
+  });
+}
+
+function submitReview() {
+  var id      = document.getElementById('review-id').value;
+  var status  = document.getElementById('review-status').value;
+  var approver= document.getElementById('review-approver').value||null;
+  api('update_exception_status',{id:id,status:status,approver_id:approver},function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal('modal-review');showToast('Exception '+status.toLowerCase());loadAll();
+  });
+}
+
+function deleteException(id) {
+  if (!confirm('Delete this exception? This cannot be undone.')) return;
+  api('delete_exception', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    showToast('Exception deleted');
+    loadAll();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
+});
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadAll();
+})();
+</script>
+</body>
+</html>

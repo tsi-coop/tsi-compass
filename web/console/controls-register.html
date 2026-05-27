@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Controls Register</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}
+.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcfd}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.good{background:#e6f4ed;color:var(--green)}
+.pill.watch{background:#fef3cd;color:var(--amber)}
+.pill.risk{background:#fde8e8;color:var(--red)}
+.pill.info{background:#e8eeff;color:var(--blue)}
+.pill.neu{background:#f0f4f8;color:var(--muted)}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin:1px}
+.row-actions{display:flex;gap:6px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:80px;padding:8px 10px;resize:vertical}
+.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="controls-frameworks.html" class="subnav">Framework Readiness</a>
+      <a href="controls-register.html" class="subnav active">Controls Register</a>
+      <a href="controls-exceptions.html" class="subnav">Exception Register</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="controls.html">Compliance &amp; Controls</a> / Controls Register</div>
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Compliance &amp; Controls</div>
+        <h1>Controls Register</h1>
+        <p class="subtitle">Master register of all controls mapped to frameworks, with implementation status and linked evidence.</p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Controls Register</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="ctl-count" style="font-size:12px;color:var(--muted)">Loading…</span>
+          <button class="btn sm" onclick="openAddFromFramework()">Add from Framework</button>
+          <button class="btn sm primary" onclick="openAdd()">+ Add Control</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="f-fw" onchange="applyFilters()"><option value="">All Frameworks</option></select>
+        <select id="f-type" onchange="applyFilters()">
+          <option value="">All Types</option>
+          <option>TECHNICAL</option><option>ADMINISTRATIVE</option><option>PHYSICAL</option>
+        </select>
+        <select id="f-status" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="COMPLIANT">Compliant</option>
+          <option value="NON_COMPLIANT">Non-Compliant</option>
+          <option value="PENDING">Pending</option>
+        </select>
+        <input id="f-search" type="search" placeholder="Search controls…" oninput="applyFilters()">
+      </div>
+      <table>
+        <thead><tr>
+          <th>Code</th><th>Control Name</th><th>Type</th><th>Frameworks</th>
+          <th>Owner</th><th>Frequency</th><th>Attestation</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="ctl-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Add Control Modal -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <h2>Add Control</h2>
+    <div class="form-row half">
+      <div><label>Control Code</label><input id="add-code" placeholder="e.g. CTL-011" required></div>
+      <div><label>Type</label><select id="add-type"><option>TECHNICAL</option><option>ADMINISTRATIVE</option><option>PHYSICAL</option></select></div>
+    </div>
+    <div class="form-row"><label>Title</label><input id="add-title" placeholder="Short descriptive name" required></div>
+    <div class="form-row"><label>Description</label><textarea id="add-desc" placeholder="What this control achieves…"></textarea></div>
+    <div class="form-row half">
+      <div><label>Owner</label><select id="add-owner"><option value="">— Select —</option></select></div>
+      <div><label>Frequency</label><select id="add-freq"><option>DAILY</option><option>WEEKLY</option><option>MONTHLY</option><option>QUARTERLY</option><option>ANNUALLY</option><option>CONTINUOUS</option></select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn primary" onclick="submitAdd()">Add Control</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit + Attest Modal -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <h2>Edit Control &amp; Attest</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-row half">
+      <div><label>Code</label><input id="edit-code"></div>
+      <div><label>Type</label><select id="edit-type"><option>TECHNICAL</option><option>ADMINISTRATIVE</option><option>PHYSICAL</option></select></div>
+    </div>
+    <div class="form-row"><label>Title</label><input id="edit-title"></div>
+    <div class="form-row half">
+      <div><label>Owner</label><select id="edit-owner"><option value="">— Select —</option></select></div>
+      <div><label>Frequency</label><select id="edit-freq"><option>DAILY</option><option>WEEKLY</option><option>MONTHLY</option><option>QUARTERLY</option><option>ANNUALLY</option><option>CONTINUOUS</option></select></div>
+    </div>
+    <div style="border-top:1px solid var(--line);margin:16px 0;padding-top:16px">
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:12px">RECORD ATTESTATION</div>
+      <div class="form-row half">
+        <div><label>Attestation Status</label>
+          <select id="attest-status">
+            <option value="">— No attestation —</option>
+            <option value="COMPLIANT">Compliant</option>
+            <option value="NON_COMPLIANT">Non-Compliant</option>
+            <option value="PENDING">Pending Review</option>
+          </select>
+        </div>
+        <div><label>Next Due Date</label><input id="attest-due" type="date"></div>
+      </div>
+      <div class="form-row"><label>Evidence Link / File Reference</label><input id="attest-evidence" placeholder="e.g. EVD-042 or file URL"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add from Framework Modal -->
+<div class="modal-overlay" id="modal-add-from-fw" onclick="if(event.target===this)closeModal('modal-add-from-fw')">
+  <div class="modal" style="width:580px">
+    <h2>Add Controls from Framework</h2>
+    <div class="form-row">
+      <label>Framework</label>
+      <select id="fw-select" onchange="loadFrameworkRequirements(this.value)">
+        <option value="">— Select a framework —</option>
+      </select>
+    </div>
+    <div id="req-checklist-wrap" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Requirements</span>
+        <span style="font-size:11px;color:var(--teal);cursor:pointer;font-weight:700" onclick="toggleAllRequirements()"><span id="toggle-all-lbl">Select All</span></span>
+      </div>
+      <div id="req-checklist" style="max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:7px;padding:4px 0"></div>
+      <p id="req-empty" style="font-size:13px;color:var(--muted);margin:8px 0 0;display:none">No requirements found for this framework.</p>
+    </div>
+    <div id="req-loading" style="font-size:13px;color:var(--muted);margin:12px 0;display:none">Loading requirements…</div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-add-from-fw')">Cancel</button>
+      <button class="btn primary" id="btn-import-fw" onclick="confirmFrameworkImport()" disabled>Import Selected (0)</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved successfully</div>
+<script src="rbac.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+var state = {controls: [], frameworks: [], staff: [], filtered: []};
+var filterTimer = null;
+var isAdmin = false;
+
+function api(func, body, cb) {
+  fetch('/api/v1/controls', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+var ATTEST_PILL = {
+  'COMPLIANT':    '<span class="pill good">Compliant</span>',
+  'NON_COMPLIANT':'<span class="pill risk">Non-Compliant</span>',
+  'PENDING':      '<span class="pill watch">Pending</span>',
+  'APPROVED':     '<span class="pill info">Approved</span>'
+};
+
+function renderControls(list) {
+  var body = document.getElementById('ctl-body');
+  var cnt  = document.getElementById('ctl-count');
+  if(cnt) cnt.textContent = list.length+' control'+(list.length!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="8" class="empty">No controls found.</td></tr>';return;}
+  body.innerHTML = list.map(function(c){
+    var pill = ATTEST_PILL[c.attestation_status]||'<span class="pill neu">Not attested</span>';
+    var fws  = (c.frameworks||'').split(',').filter(Boolean).map(function(f){return '<span class="tag">'+esc(f.trim())+'</span>';}).join('');
+    return '<tr>'+
+      '<td><strong>'+esc(c.code)+'</strong></td>'+
+      '<td>'+esc(c.title)+'</td>'+
+      '<td><span class="tag">'+esc(c.type)+'</span></td>'+
+      '<td>'+fws+'</td>'+
+      '<td>'+esc(c.owner_name||'—')+'</td>'+
+      '<td>'+esc(c.frequency)+'</td>'+
+      '<td>'+pill+'</td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+
+        (isAdmin ? '<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteControl(\''+c.id+'\')">Delete</button>' : '')+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function applyFilters() {
+  var fwVal   = document.getElementById('f-fw').value.toLowerCase();
+  var typeVal = document.getElementById('f-type').value;
+  var stVal   = document.getElementById('f-status').value;
+  var srVal   = document.getElementById('f-search').value.toLowerCase();
+  var list = state.controls.filter(function(c){
+    if(fwVal   && !(c.frameworks||'').toLowerCase().includes(fwVal)) return false;
+    if(typeVal && c.type !== typeVal) return false;
+    if(stVal   && c.attestation_status !== stVal) return false;
+    if(srVal   && !((c.code||'')+(c.title||'')).toLowerCase().includes(srVal)) return false;
+    return true;
+  });
+  renderControls(list);
+}
+
+function loadControls() {
+  api('list_controls',{},function(err,d){
+    if(err)return;
+    state.controls = d.controls||[];
+    applyFilters();
+  });
+}
+
+function loadFrameworks() {
+  api('list_frameworks',{},function(err,d){
+    if(err)return;
+    state.frameworks = d.frameworks||[];
+    var sel = document.getElementById('f-fw');
+    state.frameworks.forEach(function(f){
+      var o=document.createElement('option');o.value=f.name;o.textContent=f.name;sel.appendChild(o);
+    });
+  });
+}
+
+function loadStaff() {
+  api('list_staff',{},function(err,d){
+    if(err)return;
+    state.staff = d.staff||[];
+    ['add-owner','edit-owner'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
+    });
+  });
+}
+
+function openAdd() {
+  ['add-code','add-title','add-desc','add-owner'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openEdit(id) {
+  var c = state.controls.find(function(x){return x.id===id;});
+  if(!c) return;
+  document.getElementById('edit-id').value    = c.id;
+  document.getElementById('edit-code').value  = c.code;
+  document.getElementById('edit-title').value = c.title;
+  setSelect('edit-type', c.type);
+  setSelect('edit-freq', c.frequency);
+  setSelect('edit-owner', c.owner_id||'');
+  document.getElementById('attest-status').value   = '';
+  document.getElementById('attest-due').value      = '';
+  document.getElementById('attest-evidence').value = '';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function setSelect(id, val) {
+  var sel=document.getElementById(id);
+  for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function submitAdd() {
+  var code  = document.getElementById('add-code').value.trim();
+  var title = document.getElementById('add-title').value.trim();
+  if(!code||!title){alert('Code and title are required.');return;}
+  var body = {
+    code:     code,
+    title:    title,
+    description: document.getElementById('add-desc').value,
+    type:     document.getElementById('add-type').value,
+    owner_id: document.getElementById('add-owner').value||null,
+    frequency:document.getElementById('add-freq').value
+  };
+  api('add_control', body, function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal('modal-add');
+    showToast('Control added');
+    loadControls();
+  });
+}
+
+function submitEdit() {
+  var id = document.getElementById('edit-id').value;
+  var body = {
+    id:       id,
+    code:     document.getElementById('edit-code').value,
+    title:    document.getElementById('edit-title').value,
+    type:     document.getElementById('edit-type').value,
+    owner_id: document.getElementById('edit-owner').value||null,
+    frequency:document.getElementById('edit-freq').value
+  };
+  api('update_control', body, function(err){
+    if(err){alert('Error: '+err);return;}
+    var attestStatus = document.getElementById('attest-status').value;
+    if(attestStatus) {
+      var due = document.getElementById('attest-due').value;
+      var evLink = document.getElementById('attest-evidence').value;
+      if(!due){alert('Next due date required for attestation.');return;}
+      api('attest_control',{control_id:id,status:attestStatus,next_due_date:due,evidence_file_link:evLink},function(e2){
+        if(e2){alert('Control saved but attestation failed: '+e2);}
+        closeModal('modal-edit');
+        showToast('Control updated');
+        loadControls();
+      });
+    } else {
+      closeModal('modal-edit');
+      showToast('Control updated');
+      loadControls();
+    }
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
+});
+
+// ---- Add from Framework ----
+
+function openAddFromFramework() {
+  var sel = document.getElementById('fw-select');
+  sel.innerHTML = '<option value="">— Select a framework —</option>';
+  state.frameworks.forEach(function(f) {
+    var o = document.createElement('option');
+    o.value = f.id; o.textContent = f.name; sel.appendChild(o);
+  });
+  document.getElementById('req-checklist-wrap').style.display = 'none';
+  document.getElementById('req-loading').style.display = 'none';
+  document.getElementById('req-checklist').innerHTML = '';
+  document.getElementById('req-empty').style.display = 'none';
+  updateImportBtn();
+  document.getElementById('modal-add-from-fw').classList.add('open');
+}
+
+function loadFrameworkRequirements(fwId) {
+  var wrap = document.getElementById('req-checklist-wrap');
+  var load = document.getElementById('req-loading');
+  var list = document.getElementById('req-checklist');
+  wrap.style.display = 'none'; list.innerHTML = '';
+  if (!fwId) { updateImportBtn(); return; }
+  load.style.display = 'block';
+  api('list_framework_requirements', {framework_id: fwId}, function(err, d) {
+    load.style.display = 'none';
+    wrap.style.display = 'block';
+    var empty = document.getElementById('req-empty');
+    if (err || !d.requirements || !d.requirements.length) {
+      empty.style.display = 'block'; list.innerHTML = '';
+      updateImportBtn(); return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = d.requirements.map(function(r) {
+      var disabled = r.has_control ? ' disabled' : '';
+      var muted    = r.has_control ? ' style="color:var(--muted)"' : '';
+      var badge    = r.has_control ? ' <span style="font-size:10px;color:var(--muted);font-weight:700;background:#f1f5f9;border-radius:4px;padding:1px 5px">Already in register</span>' : '';
+      return '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;cursor:'+(r.has_control?'default':'pointer')+';border-bottom:1px solid #f0f4f8">' +
+        '<input type="checkbox" data-req-id="'+r.id+'"'+disabled+' onchange="updateImportBtn()" style="margin-top:2px;flex-shrink:0">' +
+        '<span'+muted+'><strong>'+esc(r.section_code)+'</strong> — '+esc(r.title)+badge+'</span></label>';
+    }).join('');
+    updateImportBtn();
+  });
+}
+
+function toggleAllRequirements() {
+  var boxes = document.querySelectorAll('#req-checklist input[type=checkbox]:not(:disabled)');
+  var allChecked = Array.from(boxes).every(function(b){return b.checked;});
+  boxes.forEach(function(b){b.checked = !allChecked;});
+  document.getElementById('toggle-all-lbl').textContent = allChecked ? 'Select All' : 'Deselect All';
+  updateImportBtn();
+}
+
+function updateImportBtn() {
+  var checked = document.querySelectorAll('#req-checklist input[type=checkbox]:checked').length;
+  var btn = document.getElementById('btn-import-fw');
+  btn.disabled = checked === 0;
+  btn.textContent = checked > 0 ? 'Import Selected (' + checked + ')' : 'Import Selected (0)';
+}
+
+function deleteControl(id) {
+  if (!confirm('Delete this control? This will also remove all framework mappings. This cannot be undone.')) return;
+  api('delete_control', {id: id}, function(err) {
+    if (err) { alert(err); return; }
+    showToast('Control deleted');
+    loadControls();
+  });
+}
+
+function confirmFrameworkImport() {
+  var fwId = document.getElementById('fw-select').value;
+  var checked = Array.from(document.querySelectorAll('#req-checklist input[type=checkbox]:checked'));
+  var reqIds  = checked.map(function(b){return b.getAttribute('data-req-id');});
+  if (!fwId || !reqIds.length) return;
+  var btn = document.getElementById('btn-import-fw');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  api('import_framework_controls', {framework_id: fwId, requirement_ids: reqIds}, function(err, d) {
+    btn.disabled = false;
+    if (err) { alert('Import failed: ' + err); updateImportBtn(); return; }
+    var fwName = (state.frameworks.find(function(f){return f.id===fwId;})||{}).name || 'framework';
+    closeModal('modal-add-from-fw');
+    showToast('Imported ' + (d.imported||0) + ' control' + (d.imported===1?'':'s') + ' from ' + fwName);
+    loadControls();
+  });
+}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';
+  var r=localStorage.getItem('role')||'Admin';
+  isAdmin = (r === 'ADMIN');
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadFrameworks();
+  loadStaff();
+  loadControls();
+})();
+</script>
+</body>
+</html>

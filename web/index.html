@@ -53,7 +53,7 @@
             TC
         </div>
         <h2 class="text-2xl font-black text-[#172033] tracking-tight">TSI Compass</h2>
-        <p class="text-[11px] text-[#607086] font-bold uppercase tracking-[0.15em] mt-1.5">GRC made simple</p>
+        <p class="text-[11px] text-[#607086] font-bold uppercase tracking-[0.15em] mt-1.5">Your First Step into IT GRC</p>
         <div class="w-12 h-0.5 bg-[#d9e2ec] mx-auto mt-4"></div>
         <h1 class="text-xs font-black mt-4 text-[#006a67] uppercase tracking-widest">Navigate. Control. Comply.</h1>
     </div>
@@ -136,7 +136,7 @@ function handleLogin(event) {
             localStorage.setItem('role',        res.body.role);
             // permissions is a {module: level} map returned directly by login
             localStorage.setItem('permissions', JSON.stringify(res.body.permissions || {}));
-            window.location.href = 'dashboard.html';
+            window.location.href = 'console/dashboard.html';
         } else {
             var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';
             errBox.textContent = msg;
