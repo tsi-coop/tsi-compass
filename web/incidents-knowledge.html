@@ -129,6 +129,23 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-docs">
+  <div class="modal" style="width:660px">
+    <h2>Documents — <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
+    <div id="docs-list"><div class="empty">Loading…</div></div>
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)">Upload Document</div>
+    <div class="form-row">
+      <label>Select File</label>
+      <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" style="height:auto;padding:8px 10px">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV — max supported by server config.</div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-docs')">Close</button>
+      <button class="btn primary" onclick="uploadDoc()">Upload File</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">Saved</div>
 <script src="rbac.js"></script>
 <script>
@@ -157,7 +174,7 @@ function renderCards(list){
       '<div class="article-cat">'+esc(catLabel)+'</div>'+
       '<div class="article-excerpt">'+esc(excerpt)+'</div>'+
       '<div class="article-meta"><span>'+esc((a.updated_at||a.created_at||'').substring(0,10))+'</span><span>'+esc(a.author_name||'')+'</span></div>'+
-      '<div class="article-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Edit</button></div>'+
+      '<div class="article-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Edit</button><button class="btn sm" onclick="openDocs(\''+a.id+'\',\''+esc(a.title)+'\')">&#128206; Attach</button></div>'+
     '</div>';
   }).join('');
 }
@@ -214,6 +231,62 @@ function submitEdit(){
     audience:document.getElementById('edit-audience').value.trim(),
     status:document.getElementById('edit-status').value},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Updated');loadAll();
+  });
+}
+
+var docsEntityId = null;
+
+function openDocs(id, name) {
+  docsEntityId = id;
+  document.getElementById('docs-entity-name').textContent = name;
+  document.getElementById('docs-file').value = '';
+  document.getElementById('docs-list').innerHTML = '<div class="empty">Loading…</div>';
+  document.getElementById('modal-docs').classList.add('open');
+  loadDocs();
+}
+function loadDocs() {
+  api('list_kb_documents', {entity_id: docsEntityId}, function(err, d) {
+    var list = document.getElementById('docs-list');
+    if (err) { list.innerHTML = '<div class="empty">Error loading documents.</div>'; return; }
+    var docs = (d && d.documents) || [];
+    if (!docs.length) { list.innerHTML = '<div class="empty">No documents attached yet.</div>'; return; }
+    list.innerHTML = '<table style="width:100%;border-collapse:collapse"><thead><tr>' +
+      '<th style="text-align:left;padding:6px 8px;font-size:11px;font-weight:800;color:var(--muted)">File</th>' +
+      '<th style="text-align:left;padding:6px 8px;font-size:11px;font-weight:800;color:var(--muted)">Date</th>' +
+      '<th style="text-align:left;padding:6px 8px;font-size:11px;font-weight:800;color:var(--muted)">Uploaded By</th>' +
+      '<th></th></tr></thead><tbody>' +
+      docs.map(function(doc) {
+        return '<tr><td style="padding:6px 8px;font-size:13px">'+esc(doc.file_name)+'</td>' +
+          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc((doc.uploaded_at||'').substring(0,10))+'</td>' +
+          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'—')+'</td>' +
+          '<td style="padding:6px 8px"><button class="btn sm" onclick="downloadDoc(\''+doc.id+'\',\''+esc(doc.file_name)+'\')">&#8595; Download</button></td></tr>';
+      }).join('') + '</tbody></table>';
+  });
+}
+function uploadDoc() {
+  var fi = document.getElementById('docs-file');
+  if (!fi.files.length) { alert('Please select a file.'); return; }
+  var file = fi.files[0];
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    api('add_kb_document', {entity_id: docsEntityId, file_name: file.name, file_data: ev.target.result,
+      uploaded_by: localStorage.getItem('user_id') || null}, function(err) {
+      if (err) { alert('Upload error: ' + err); return; }
+      fi.value = ''; showToast('Document uploaded'); loadDocs();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+function downloadDoc(id, fname) {
+  api('get_kb_document', {id: id}, function(err, d) {
+    if (err) { alert('Download error: ' + err); return; }
+    var binary = atob(d.file_data);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes]);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = d.file_name || fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   });
 }
 

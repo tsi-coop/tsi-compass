@@ -468,6 +468,40 @@ CREATE TABLE scheduled_reports (
 
 
 -- ==========================================
+-- MODULE 8: INCIDENT & KB DOCUMENT STORAGE
+-- ==========================================
+
+CREATE TABLE incident_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    incident_id UUID REFERENCES incidents(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    sha256_checksum VARCHAR(64) NOT NULL,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE kb_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    article_id UUID REFERENCES best_practices_vault(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    sha256_checksum VARCHAR(64) NOT NULL,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE campaign_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    campaign_id UUID REFERENCES awareness_campaigns(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    sha256_checksum VARCHAR(64) NOT NULL,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
 -- IMMUTABLE AUDIT TRAIL TRIGGERS
 -- ==========================================
 

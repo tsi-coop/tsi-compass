@@ -1,6 +1,7 @@
 package org.tsicoop.compass.service.v1;
 
 import org.tsicoop.compass.framework.Action;
+import org.tsicoop.compass.framework.EventLog;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PoolDB;
@@ -9,10 +10,22 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.security.MessageDigest;
 import java.sql.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class Incidents implements Action {
+
+    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(
+        ".pdf",".doc",".docx",".xls",".xlsx",".ppt",".pptx",
+        ".png",".jpg",".jpeg",".zip",".txt",".csv"
+    ));
 
     @Override
     public void post(HttpServletRequest req, HttpServletResponse res) {
@@ -33,7 +46,16 @@ public class Incidents implements Action {
                 case "list_knowledge":       OutputProcessor.send(res, 200, listKnowledge(input));       break;
                 case "add_knowledge":        addKnowledge(req, res, input);                              break;
                 case "update_knowledge":     updateKnowledge(req, res, input);                           break;
-                case "list_staff":           OutputProcessor.send(res, 200, listStaff());               break;
+                case "list_staff":              OutputProcessor.send(res, 200, listStaff());                                      break;
+                case "add_incident_document":   addDocument(req, res, input, "incident");                                         break;
+                case "list_incident_documents": OutputProcessor.send(res, 200, listDocuments(input, "incident"));                 break;
+                case "get_incident_document":   OutputProcessor.send(res, 200, getDocument(input, "incident"));                   break;
+                case "add_kb_document":         addDocument(req, res, input, "kb");                                               break;
+                case "list_kb_documents":       OutputProcessor.send(res, 200, listDocuments(input, "kb"));                       break;
+                case "get_kb_document":         OutputProcessor.send(res, 200, getDocument(input, "kb"));                         break;
+                case "add_campaign_document":   addDocument(req, res, input, "campaign");                                         break;
+                case "list_campaign_documents": OutputProcessor.send(res, 200, listDocuments(input, "campaign"));                 break;
+                case "get_campaign_document":   OutputProcessor.send(res, 200, getDocument(input, "campaign"));                   break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -323,5 +345,126 @@ public class Incidents implements Action {
         JSONObject result = new JSONObject(); result.put("success", true); result.put("staff", staff); return result;
     }
 
+    @SuppressWarnings("unchecked")
+    private void addDocument(HttpServletRequest req, HttpServletResponse res, JSONObject input, String type) throws Exception {
+        String fileName  = strVal(input, "file_name");
+        String fileData  = strVal(input, "file_data");
+        String entityId  = strVal(input, "entity_id");
+        if (isBlank(fileName) || isBlank(fileData) || isBlank(entityId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "file_name, file_data, entity_id required", req.getRequestURI()); return;
+        }
+        String safeName = new File(fileName).getName();
+        int dot = safeName.lastIndexOf('.');
+        String ext = dot >= 0 ? safeName.substring(dot).toLowerCase() : "";
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "File type not allowed: " + ext, req.getRequestURI()); return;
+        }
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes = Base64.getDecoder().decode(raw.trim());
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(bytes);
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hash) { String h = Integer.toHexString(0xff & b); if (h.length()==1) sb.append('0'); sb.append(h); }
+        String checksum = sb.toString();
+        String uploadDir = System.getenv("TSI_EXPORT_PATH");
+        if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+        File dir = new File(uploadDir + "/" + type + "_docs");
+        if (!dir.exists() && !dir.mkdirs()) {
+            OutputProcessor.errorResponse(res, 500, "Internal Error", "Cannot create upload directory", req.getRequestURI()); return;
+        }
+        File dest = new File(dir, UUID.randomUUID().toString() + ext);
+        try (FileOutputStream fos = new FileOutputStream(dest)) { fos.write(bytes); }
+        String table, col;
+        switch (type) {
+            case "incident": table = "incident_documents"; col = "incident_id"; break;
+            case "kb":       table = "kb_documents";       col = "article_id";  break;
+            case "campaign": table = "campaign_documents"; col = "campaign_id"; break;
+            default: throw new IllegalArgumentException("Unknown document type");
+        }
+        String uploadedBy = strVal(input, "uploaded_by");
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO " + table + " ("+col+", file_name, file_path, sha256_checksum, uploaded_by) " +
+                "VALUES (?::uuid, ?, ?, ?, ?::uuid) RETURNING id::text"
+            );
+            p.setString(1, entityId); p.setString(2, safeName);
+            p.setString(3, dest.getAbsolutePath()); p.setString(4, checksum);
+            p.setString(5, isBlank(uploadedBy) ? null : uploadedBy);
+            rs = p.executeQuery();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            if (rs.next()) result.put("id", rs.getString(1));
+            result.put("sha256_checksum", checksum);
+            EventLog.log(InputProcessor.getEmail(req), type.toUpperCase()+"_DOC_UPLOADED",
+                "{\"entity_id\":\""+entityId+"\",\"file_name\":\""+safeName+"\"}");
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) pool.cleanup(rs, p, conn); }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listDocuments(JSONObject input, String type) throws Exception {
+        String entityId = strVal(input, "entity_id");
+        if (isBlank(entityId)) throw new IllegalArgumentException("entity_id required");
+        String table, col;
+        switch (type) {
+            case "incident": table = "incident_documents"; col = "incident_id"; break;
+            case "kb":       table = "kb_documents";       col = "article_id";  break;
+            case "campaign": table = "campaign_documents"; col = "campaign_id"; break;
+            default: throw new IllegalArgumentException("Unknown document type");
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray docs = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT d.id::text, d.file_name, d.sha256_checksum, d.uploaded_at::text, u.username AS uploaded_by_name " +
+                "FROM " + table + " d LEFT JOIN users u ON u.id = d.uploaded_by " +
+                "WHERE d." + col + " = ?::uuid ORDER BY d.uploaded_at DESC"
+            );
+            p.setString(1, entityId); rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject doc = new JSONObject();
+                doc.put("id",               rs.getString("id"));
+                doc.put("file_name",        rs.getString("file_name"));
+                doc.put("sha256_checksum",  rs.getString("sha256_checksum"));
+                doc.put("uploaded_at",      rs.getString("uploaded_at"));
+                doc.put("uploaded_by_name", rs.getString("uploaded_by_name"));
+                docs.add(doc);
+            }
+        } finally { if (pool != null) pool.cleanup(rs, p, conn); }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("documents", docs); return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getDocument(JSONObject input, String type) throws Exception {
+        String id = strVal(input, "id");
+        if (isBlank(id)) throw new IllegalArgumentException("id required");
+        String table;
+        switch (type) {
+            case "incident": table = "incident_documents"; break;
+            case "kb":       table = "kb_documents";       break;
+            case "campaign": table = "campaign_documents"; break;
+            default: throw new IllegalArgumentException("Unknown document type");
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT file_name, file_path FROM " + table + " WHERE id = ?::uuid");
+            p.setString(1, id); rs = p.executeQuery();
+            if (!rs.next()) throw new IllegalArgumentException("Document not found");
+            String fileName = rs.getString("file_name");
+            String filePath = rs.getString("file_path");
+            File file = new File(filePath);
+            if (!file.exists() || !file.isFile()) throw new IllegalArgumentException("File not found on server");
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("file_name", fileName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            return result;
+        } finally { if (pool != null) pool.cleanup(rs, p, conn); }
+    }
+
+    private String strVal(JSONObject obj, String key) { Object v = obj.get(key); return v == null ? null : v.toString().trim(); }
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 }
