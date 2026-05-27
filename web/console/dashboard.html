@@ -58,6 +58,19 @@ th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transf
 td{padding:12px 12px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px}
+.section-divider{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:8px}
+.metric-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.metric-val{font-size:2rem;font-weight:900;line-height:1;margin-bottom:4px}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:8px}
+.status-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.status-card h3{margin:0 0 14px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.stat-row:last-child{border-bottom:none}
+.stat-val{font-weight:800}
+.progress-bar{height:6px;background:var(--wash);border:1px solid var(--line);border-radius:3px;overflow:hidden;margin:6px 0 2px}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4,.col2{grid-template-columns:1fr}.page-header{display:block}}
 </style>
@@ -100,8 +113,9 @@ tbody tr:last-child td{border-bottom:none}
       <div>
         <div class="eyebrow">GRC Command Center</div>
         <h1>Executive Dashboard</h1>
-        <p class="subtitle">Platform health, risk posture, policy status, and control readiness at a glance.</p>
+        <p class="subtitle" id="exec-updated">Platform health, risk posture, policy status, and control readiness at a glance.</p>
       </div>
+      <div class="acts"><button class="btn" onclick="refreshAll()">&#8635; Refresh</button></div>
     </div>
 
     <!-- Metric cards -->
@@ -221,6 +235,47 @@ tbody tr:last-child td{border-bottom:none}
         </div>
       </a>
 
+    </div>
+
+    <div class="section-divider">Risk &amp; Vulnerability</div>
+    <div class="metrics-row">
+      <div class="metric-card"><div class="metric-val" id="ex-total-risks">—</div><div class="metric-label">Total Risks</div></div>
+      <div class="metric-card"><div class="metric-val" id="ex-open-risks" style="color:var(--red)">—</div><div class="metric-label">Open Risks</div><div class="metric-sub" id="ex-high-risks">— High</div></div>
+      <div class="metric-card"><div class="metric-val" id="ex-treated-risks" style="color:var(--green)">—</div><div class="metric-label">Treated</div></div>
+      <div class="metric-card"><div class="metric-val" id="ex-open-vulns" style="color:var(--amber)">—</div><div class="metric-label">Open Vulns</div><div class="metric-sub" id="ex-crit-vulns">— Critical</div></div>
+    </div>
+
+    <div class="section-divider">Compliance &amp; Controls</div>
+    <div class="metrics-row">
+      <div class="metric-card"><div class="metric-val" id="ex-total-controls">—</div><div class="metric-label">Total Controls</div></div>
+      <div class="metric-card"><div class="metric-val" id="ex-compliant" style="color:var(--green)">—</div><div class="metric-label">Compliant</div></div>
+      <div class="metric-card" style="grid-column:span 2">
+        <div class="metric-val" id="ex-compliance-pct">—%</div>
+        <div class="metric-label">Compliance Rate</div>
+        <div class="progress-bar"><div class="progress-fill" id="ex-compliance-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="status-grid" style="margin-top:16px">
+      <div class="status-card">
+        <h3>Audit &amp; Evidence</h3>
+        <div class="stat-row"><span>Active Audits</span><span class="stat-val" id="ex-active-audits">—</span></div>
+        <div class="stat-row"><span>Closed Audits</span><span class="stat-val" id="ex-closed-audits">—</span></div>
+        <div class="stat-row"><span>Open Findings</span><span class="stat-val" id="ex-open-obs" style="color:var(--amber)">—</span></div>
+        <div class="stat-row"><span>High-Priority Findings</span><span class="stat-val" id="ex-high-obs" style="color:var(--red)">—</span></div>
+      </div>
+      <div class="status-card">
+        <h3>Incidents</h3>
+        <div class="stat-row"><span>Open Incidents</span><span class="stat-val" id="ex-open-inc" style="color:var(--red)">—</span></div>
+        <div class="stat-row"><span>High / Critical</span><span class="stat-val" id="ex-high-inc" style="color:var(--amber)">—</span></div>
+      </div>
+      <div class="status-card">
+        <h3>IT Operations</h3>
+        <div class="stat-row"><span>Pending Changes</span><span class="stat-val" id="ex-pending-cr">—</span></div>
+        <div class="stat-row"><span>Active Changes</span><span class="stat-val" id="ex-active-cr">—</span></div>
+        <div class="stat-row"><span>Open Helpdesk Tickets</span><span class="stat-val" id="ex-open-hd">—</span></div>
+        <div class="stat-row"><span>High-Priority Tickets</span><span class="stat-val" id="ex-high-hd" style="color:var(--amber)">—</span></div>
+      </div>
     </div>
 
     <!-- Recent Activity -->
@@ -402,8 +457,60 @@ function loadActivity() {
   });
 }
 
+function apiReports(func, cb) {
+  fetch('/api/v1/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify({ _func: func })
+  })
+  .then(function(r) {
+    if (r.status === 401) { localStorage.clear(); window.location.replace('../index.html'); return null; }
+    return r.json();
+  })
+  .then(function(d) { if (d) cb(null, d); })
+  .catch(function(e) { cb(e.message, null); });
+}
+
+function setEx(id, val, suffix) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val == null ? '—' : (val + (suffix || ''));
+}
+
+function loadExecutive() {
+  apiReports('get_executive_summary', function(err, d) {
+    if (err || !d || !d.success) return;
+    setEx('ex-total-risks',    d.total_risks);
+    setEx('ex-open-risks',     d.open_risks);
+    setEx('ex-high-risks',     (d.high_risks || 0) + ' High');
+    setEx('ex-treated-risks',  d.treated_risks);
+    setEx('ex-open-vulns',     d.open_vulns);
+    setEx('ex-crit-vulns',     (d.critical_vulns || 0) + ' Critical');
+    setEx('ex-total-controls', d.total_controls);
+    setEx('ex-compliant',      d.compliant_controls);
+    var pct = d.compliance_pct || 0;
+    setEx('ex-compliance-pct', pct, '%');
+    var bar = document.getElementById('ex-compliance-bar');
+    if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 80 ? 'var(--teal)' : pct >= 50 ? 'var(--amber)' : 'var(--red)'; }
+    setEx('ex-active-audits',  d.active_audits);
+    setEx('ex-closed-audits',  d.closed_audits);
+    setEx('ex-open-obs',       d.open_observations);
+    setEx('ex-high-obs',       d.high_observations);
+    setEx('ex-open-inc',       d.open_incidents);
+    setEx('ex-high-inc',       d.high_incidents);
+    setEx('ex-pending-cr',     d.pending_changes);
+    setEx('ex-active-cr',      d.active_changes);
+    setEx('ex-open-hd',        d.open_tickets);
+    setEx('ex-high-hd',        d.high_tickets);
+    var upd = document.getElementById('exec-updated');
+    if (upd) upd.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+  });
+}
+
+function refreshAll() { loadMetrics(); loadActivity(); loadExecutive(); }
+
 loadMetrics();
 loadActivity();
+loadExecutive();
 </script>
 </body>
 </html>

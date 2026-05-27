@@ -40,10 +40,7 @@
     'incidents-register.html':    'incidents',
     'incidents-knowledge.html':   'incidents',
     'incidents-training.html':    'incidents',
-    'reports.html':               'reports',
-    'reports-dashboards.html':    'reports',
-    'reports-exports.html':       'reports',
-    'reports-scheduled.html':     'reports'
+    'reports.html':               'reports'
   };
 
   // Guard current page — redirect before any page script fires

@@ -3,62 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – Reports &amp; Exports</title>
+<title>TSI Compass – Export Reports</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
-a{color:inherit;text-decoration:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
 .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
 .side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
-.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
-.nav{display:grid;gap:3px}
-.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
 .nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
-.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
-.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
 .side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
 .main{padding:32px}
-.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
-.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.grid{display:grid;gap:16px}
-.col4{grid-template-columns:repeat(4,1fr)}
-.col3{grid-template-columns:repeat(3,1fr)}
-.mb{margin-bottom:24px}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
-.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
-.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
-.metric-note{color:var(--muted);font-size:12px}
-.stripe-teal{border-top:4px solid var(--teal)}
-.stripe-blue{border-top:4px solid var(--blue)}
-.stripe-amber{border-top:4px solid var(--amber)}
-.stripe-red{border-top:4px solid var(--red)}
-.stripe-green{border-top:4px solid var(--green)}
-.hub-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
-.hub-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column}
-.hub-icon{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;flex-shrink:0}
-.hub-card h3{margin:0 0 6px;font-size:15px;font-weight:800}
-.hub-card p{margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6;flex:1}
-.hub-stats{display:flex;gap:20px;padding:12px 0;border-top:1px solid #edf2f6;margin-bottom:14px}
-.hub-stat strong{display:block;font-size:20px;font-weight:900;color:var(--ink);line-height:1.1}
-.hub-stat span{font-size:11px;color:var(--muted);white-space:nowrap}
-.hub-manage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
-.hub-manage:hover{color:var(--ink)}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 28px}
+.exports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.export-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px}
+.export-icon{font-size:24px;margin-bottom:10px}
+.export-card h3{margin:0 0 6px;font-size:14px;font-weight:800}
+.export-card p{margin:0 0 14px;font-size:12px;color:var(--muted);line-height:1.5}
+.export-filter{margin-bottom:14px}
+.export-filter label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.export-filter select{width:100%;height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:var(--wash)}
+.export-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:36px;border-radius:6px;border:none;background:var(--teal);color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.export-btn:disabled{opacity:.6;cursor:default}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.col3{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}}
 </style>
 </head>
 <body>
-<header class="mobilebar">
-  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
-</header>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
 <div class="app">
   <aside class="side">
     <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
@@ -72,142 +47,161 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="operations.html">IT Operations</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html" class="active">Reports &amp; Exports</a>
-      <a href="reports-dashboards.html" class="subnav">Executive Dashboard</a>
-      <a href="reports-exports.html" class="subnav">Export Reports</a>
-      <a href="reports-scheduled.html" class="subnav">Scheduled Reports</a>
     </nav>
     <div class="side-foot">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
         <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
-        <div style="min-width:0;flex:1">
-          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
-          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
-        </div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
       </div>
       <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
       </a>
     </div>
   </aside>
   <main class="main">
-    <div class="page-header">
-      <div>
-        <div class="eyebrow">Reporting</div>
-        <h1>Reports &amp; Exports</h1>
-        <p class="subtitle">Cross-module executive dashboards, on-demand data exports, and scheduled report delivery.</p>
-      </div>
-      <div class="acts">
-        <a class="btn" href="reports-exports.html">Export Data</a>
-        <a class="btn primary" href="reports-dashboards.html">Live Dashboard</a>
-      </div>
-    </div>
+    <div class="eyebrow">Reports &amp; Exports</div>
+    <h1>Export Reports</h1>
+    <p class="subtitle">Download live data as CSV for offline analysis or compliance evidence packs.</p>
 
-    <div class="grid col4 mb">
-      <div class="card stripe-red">
-        <div class="metric-label">Open Risks</div>
-        <div class="metric-value" id="m-risks">—</div>
-        <div class="metric-note" id="m-risks-note">Loading…</div>
-      </div>
-      <div class="card stripe-green">
-        <div class="metric-label">Controls Compliance</div>
-        <div class="metric-value" id="m-compliance">—</div>
-        <div class="metric-note" id="m-compliance-note">Loading…</div>
-      </div>
-      <div class="card stripe-amber">
-        <div class="metric-label">Open Incidents</div>
-        <div class="metric-value" id="m-incidents">—</div>
-        <div class="metric-note" id="m-incidents-note">Loading…</div>
-      </div>
-      <div class="card stripe-blue">
-        <div class="metric-label">Active Audits</div>
-        <div class="metric-value" id="m-audits">—</div>
-        <div class="metric-note" id="m-audits-note">Loading…</div>
-      </div>
-    </div>
+    <div class="exports-grid">
 
-    <div class="hub-grid">
-      <div class="hub-card">
-        <div class="hub-icon" style="background:#eaf5f3">&#128202;</div>
-        <h3>Executive Dashboard</h3>
-        <p>Live cross-module metrics dashboard combining risk posture, compliance status, audit progress, incident counts, and operational health in one view for leadership.</p>
-        <div class="hub-stats">
-          <div class="hub-stat"><strong id="hs-dash-risks">—</strong><span>High risks</span></div>
-          <div class="hub-stat"><strong id="hs-dash-vulns">—</strong><span>Critical vulns</span></div>
-          <div class="hub-stat"><strong id="hs-dash-pct">—</strong><span>Compliance</span></div>
+      <div class="export-card">
+        <div class="export-icon">&#128202;</div>
+        <h3>Risk Register</h3>
+        <p>All risks with scores, owners, status, and treatment plans.</p>
+        <div class="export-filter"><label>Filter by Status</label>
+          <select id="ef-risk-status"><option value="">All Statuses</option><option>OPEN</option><option>TREATED</option><option>MONITORED</option><option>ACCEPTED</option><option>RETIRED</option></select>
         </div>
-        <a href="reports-dashboards.html" class="hub-manage">Open Dashboard &#8250;</a>
+        <button class="export-btn" id="ebtn-risks" onclick="doExport('risks')">&#8595; Export CSV</button>
       </div>
-      <div class="hub-card">
-        <div class="hub-icon" style="background:#fff4df">&#128229;</div>
-        <h3>Export Reports</h3>
-        <p>Generate on-demand CSV exports for any module — risk register, vulnerability log, controls list, audit findings, incident register, and asset inventory.</p>
-        <div class="hub-stats">
-          <div class="hub-stat"><strong>8</strong><span>Export types</span></div>
-          <div class="hub-stat"><strong>CSV</strong><span>Format</span></div>
+
+      <div class="export-card">
+        <div class="export-icon">&#128737;</div>
+        <h3>Controls Register</h3>
+        <p>All controls with framework mapping, type, and attestation status.</p>
+        <div class="export-filter"><label>Filter by Status</label>
+          <select id="ef-ctrl-status"><option value="">All Statuses</option><option>ACTIVE</option><option>DRAFT</option><option>RETIRED</option></select>
         </div>
-        <a href="reports-exports.html" class="hub-manage">Export Data &#8250;</a>
+        <button class="export-btn" id="ebtn-controls" onclick="doExport('controls')">&#8595; Export CSV</button>
       </div>
-      <div class="hub-card">
-        <div class="hub-icon" style="background:#edf2ff">&#128337;</div>
-        <h3>Scheduled Reports</h3>
-        <p>Configure recurring report schedules with cadence, recipient email lists, and report type. Track last run and next scheduled delivery for each configured report.</p>
-        <div class="hub-stats">
-          <div class="hub-stat"><strong id="hs-sched-active">—</strong><span>Active schedules</span></div>
-          <div class="hub-stat"><strong id="hs-sched-total">—</strong><span>Total configured</span></div>
+
+      <div class="export-card">
+        <div class="export-icon">&#128203;</div>
+        <h3>Audit Observations</h3>
+        <p>Findings from all audits with priority, status, and remediation.</p>
+        <div class="export-filter"><label>Filter by Priority</label>
+          <select id="ef-obs-priority"><option value="">All Priorities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
         </div>
-        <a href="reports-scheduled.html" class="hub-manage">Manage Schedules &#8250;</a>
+        <button class="export-btn" id="ebtn-observations" onclick="doExport('observations')">&#8595; Export CSV</button>
       </div>
+
+      <div class="export-card">
+        <div class="export-icon">&#128680;</div>
+        <h3>Incident Log</h3>
+        <p>Security incidents with severity, timeline, and RCA details.</p>
+        <div class="export-filter"><label>Filter by Severity</label>
+          <select id="ef-inc-severity"><option value="">All Severities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        </div>
+        <button class="export-btn" id="ebtn-incidents" onclick="doExport('incidents')">&#8595; Export CSV</button>
+      </div>
+
+      <div class="export-card">
+        <div class="export-icon">&#128187;</div>
+        <h3>Asset Inventory</h3>
+        <p>All IT assets with criticality, patch status, and lifecycle state.</p>
+        <div class="export-filter"><label>Filter by Criticality</label>
+          <select id="ef-ast-crit"><option value="">All Criticalities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        </div>
+        <button class="export-btn" id="ebtn-assets" onclick="doExport('assets')">&#8595; Export CSV</button>
+      </div>
+
+      <div class="export-card">
+        <div class="export-icon">&#129309;</div>
+        <h3>Vendor Register</h3>
+        <p>Third-party vendors with risk scores and review status.</p>
+        <div class="export-filter"><label>Filter</label>
+          <select id="ef-vnd-filter"><option value="">All Vendors</option><option value="review_due">Review Due Only</option></select>
+        </div>
+        <button class="export-btn" id="ebtn-vendors" onclick="doExport('vendors')">&#8595; Export CSV</button>
+      </div>
+
     </div>
   </main>
 </div>
+
+<div class="toast" id="toast"></div>
 <script src="rbac.js"></script>
 <script>
-var TOKEN = localStorage.getItem('token');
-if (!TOKEN) window.location.href = '../index.html';
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 
-function apiReports(func, body, cb) {
-  fetch('/api/v1/reports', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-    body: JSON.stringify(Object.assign({_func:func}, body||{}))
-  }).then(function(r){
-    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
-    return r.json();
-  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
-  .catch(function(e){cb(e.message||'Network error',null);});
+function showToast(msg,err){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=err?'var(--red)':'var(--teal)';
+  t.style.display='block';setTimeout(function(){t.style.display='none';},3000);
 }
-function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+var EXPORT_MAP={
+  risks:{service:'risk',func:'list_risks',key:'risks',cols:['title','category','likelihood','impact','inherent_risk_score','status','owner_name','treatment_plan','created_at'],file:'risk-register'},
+  controls:{service:'controls',func:'list_controls',key:'controls',cols:['title','framework_name','control_type','attestation_status','last_attested_at','next_due_date','owner_name'],file:'controls-register'},
+  observations:{service:'audit',func:'list_observations',key:'observations',cols:['title','audit_name','priority','status','linked_risk_title','failed_control_title','created_at'],file:'audit-observations'},
+  incidents:{service:'incidents',func:'list_incidents',key:'incidents',cols:['title','severity','status','rca_root_cause','rca_preventative_actions','created_at','resolved_at'],file:'incident-log'},
+  assets:{service:'ops',func:'list_assets',key:'assets',cols:['name','category','criticality','patch_status','lifecycle_status','owner_name'],file:'asset-inventory'},
+  vendors:{service:'ops',func:'list_vendors',key:'vendors',cols:['name','agreement_details','license_expiry','baseline_risk_score','security_questionnaire_status'],file:'vendor-register'}
+};
+
+function getFilters(type){
+  var p={};
+  if(type==='risks'&&document.getElementById('ef-risk-status').value)p.status=document.getElementById('ef-risk-status').value;
+  if(type==='controls'&&document.getElementById('ef-ctrl-status').value)p.status=document.getElementById('ef-ctrl-status').value;
+  if(type==='observations'&&document.getElementById('ef-obs-priority').value)p.priority=document.getElementById('ef-obs-priority').value;
+  if(type==='incidents'&&document.getElementById('ef-inc-severity').value)p.severity=document.getElementById('ef-inc-severity').value;
+  if(type==='assets'&&document.getElementById('ef-ast-crit').value)p.criticality=document.getElementById('ef-ast-crit').value;
+  if(type==='vendors'&&document.getElementById('ef-vnd-filter').value==='review_due')p.review_due='true';
+  return p;
+}
+
+function toCSV(rows,cols){
+  var header=cols.map(function(c){return'"'+c+'"';}).join(',');
+  var lines=rows.map(function(row){
+    return cols.map(function(c){
+      var v=row[c];if(v==null)return'""';
+      return'"'+String(v).replace(/"/g,'""')+'"';
+    }).join(',');
+  });
+  return [header].concat(lines).join('\r\n');
+}
+
+function downloadCSV(csv,filename){
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;
+  a.download=filename+'-'+new Date().toISOString().substring(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function doExport(type){
+  var cfg=EXPORT_MAP[type];if(!cfg)return;
+  var btn=document.getElementById('ebtn-'+type);
+  if(btn){btn.disabled=true;btn.textContent='Exporting…';}
+  var body=Object.assign({_func:cfg.func},getFilters(type));
+  fetch('/api/v1/'+cfg.service,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},body:JSON.stringify(body)})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';}return r.json();})
+  .then(function(d){
+    if(btn){btn.disabled=false;btn.innerHTML='&#8595; Export CSV';}
+    if(!d||!d.success){showToast('Export failed',true);return;}
+    var rows=d[cfg.key]||[];
+    if(!rows.length){showToast('No data to export',true);return;}
+    downloadCSV(toCSV(rows,cfg.cols),cfg.file);
+    showToast('Exported '+rows.length+' rows');
+  })
+  .catch(function(){if(btn){btn.disabled=false;btn.innerHTML='&#8595; Export CSV';}showToast('Export failed',true);});
+}
 
 (function(){
-  var n=localStorage.getItem('username')||'Demo Administrator';
-  var r=localStorage.getItem('role')||'Admin';
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
-  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
-
-  apiReports('get_executive_summary',{},function(err,d){
-    if(err)return;
-    set('m-risks',          d.open_risks||0);
-    set('m-compliance',     (d.compliance_pct||0)+'%');
-    set('m-incidents',      d.open_incidents||0);
-    set('m-audits',         d.active_audits||0);
-    set('m-risks-note',     (d.high_risks||0)+' high severity');
-    set('m-compliance-note',(d.compliant_controls||0)+' of '+(d.total_controls||0)+' controls');
-    set('m-incidents-note', (d.high_incidents||0)+' critical/high');
-    set('m-audits-note',    (d.total_audits||0)+' total audits');
-    set('hs-dash-risks',    d.high_risks||0);
-    set('hs-dash-vulns',    d.critical_vulns||0);
-    set('hs-dash-pct',      (d.compliance_pct||0)+'%');
-  });
-
-  apiReports('list_schedules',{},function(err,d){
-    if(err)return;
-    var scheds = d.schedules||[];
-    var active = scheds.filter(function(s){return s.is_active;}).length;
-    set('hs-sched-active', active);
-    set('hs-sched-total',  scheds.length);
-  });
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
 })();
 </script>
 </body>
