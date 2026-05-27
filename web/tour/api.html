@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSI Compass – API Reference</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        :root{--teal:#006a67;--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+        *{box-sizing:border-box}
+        body{background:var(--wash);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif;margin:0;padding:32px}
+        a{color:var(--teal)}
+        .page{max-width:960px;margin:0 auto}
+        header{margin-bottom:40px;border-bottom:1px solid var(--line);padding-bottom:24px;text-align:center}
+        .mark{width:44px;height:44px;border-radius:10px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:15px;margin:0 auto 14px}
+        h1{font-size:30px;font-weight:900;margin:0 0 6px}
+        .lead{color:var(--muted);font-size:13px;margin:0}
+        .toc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:24px}
+        .toc-title{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}
+        .toc-links{display:flex;flex-wrap:wrap;gap:6px}
+        .toc-links a{font-size:11px;font-weight:700;color:var(--teal);padding:3px 10px;border:1px solid #b2d8d7;border-radius:999px;background:#eaf5f3;text-decoration:none}
+        .toc-links a:hover{background:#d1eeec}
+        .section-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-bottom:20px}
+        .section-card.accent{border-left:4px solid var(--teal)}
+        .snum{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:4px}
+        h2{font-size:16px;font-weight:900;margin:0 0 14px;text-transform:uppercase;letter-spacing:.03em}
+        .ep{font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;font-weight:700;color:var(--teal);background:var(--wash);border:1px solid var(--line);border-radius:6px;padding:5px 12px;display:inline-block;margin-bottom:16px}
+        .mbadge{display:inline-block;background:#edf2ff;color:var(--blue);font-size:10px;font-weight:900;padding:2px 7px;border-radius:4px;margin-right:5px;vertical-align:middle}
+        .fn-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px}
+        .fn-table th{text-align:left;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:7px 10px;border-bottom:1px solid var(--line)}
+        .fn-table td{padding:7px 10px;border-bottom:1px solid #edf2f6;vertical-align:top}
+        .fn-table tbody tr:last-child td{border-bottom:none}
+        .fn-table tbody tr:hover{background:var(--wash)}
+        .fn{font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;font-weight:700;color:var(--ink)}
+        .fd{color:var(--muted);font-size:11px}
+        .pill{display:inline-flex;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+        .pr{background:#edf2ff;color:var(--blue)}
+        .pw{background:#fff4df;color:var(--amber)}
+        .pa{background:#fdeceb;color:var(--red)}
+        .ex-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+        .code-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+        .clbl{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+        pre.cb{background:#0f172a;border-radius:8px;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;overflow-x:auto;line-height:1.6;margin:0;white-space:pre}
+        pre.cb.blue{color:#7dd3fc}
+        pre.cb.green{color:#86efac}
+        pre.cb.amber{color:#fcd34d}
+        .footer-bar{background:#0f172a;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:40px}
+        .footer-bar p{color:#94a3b8;font-size:11px;margin:0}
+        .etags{display:flex;gap:6px;flex-wrap:wrap}
+        .etag{font-size:9px;border:1px solid #334155;color:#94a3b8;padding:3px 7px;border-radius:4px;font-family:ui-monospace,monospace}
+        footer{text-align:center;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;padding-bottom:40px}
+        @media(max-width:700px){body{padding:16px}.code-grid{grid-template-columns:1fr}.footer-bar{flex-direction:column;gap:12px}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+<header>
+    <div class="mark">TC</div>
+    <h1>TSI Compass <span style="color:var(--teal)">API Reference</span></h1>
+    <p class="lead">Complete function reference for all GRC module endpoints. All calls use <strong>POST</strong> with a JSON body containing <code>_func</code>.</p>
+</header>
+
+<div class="toc">
+    <div class="toc-title">Jump to module</div>
+    <div class="toc-links">
+        <a href="#auth">Authentication</a>
+        <a href="#platform">Platform &amp; Access</a>
+        <a href="#governance">Governance &amp; Policy</a>
+        <a href="#risk">Risk &amp; Vulnerability</a>
+        <a href="#controls">Compliance &amp; Controls</a>
+        <a href="#audit">Audit &amp; Evidence</a>
+        <a href="#ops">IT Operations</a>
+        <a href="#incidents">Incidents &amp; Awareness</a>
+        <a href="#reports">Reports</a>
+        <a href="#apikey">API Keys</a>
+    </div>
+</div>
+
+<!-- Auth -->
+<div class="section-card accent" id="auth">
+    <div class="snum">Authentication</div>
+    <h2>Auth &amp; Request Format</h2>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">All requests use <strong>POST</strong> with <code>Content-Type: application/json</code>. Authenticate using an API Key + Secret pair generated from <strong>Platform › API Keys</strong> in the console.</p>
+    <div class="code-grid" style="margin-bottom:10px">
+        <div>
+            <div class="clbl">Required headers</div>
+            <pre class="cb blue">X-API-Key: &lt;your-api-key&gt;
+X-API-Secret: &lt;your-api-secret&gt;
+Content-Type: application/json</pre>
+        </div>
+        <div>
+            <div class="clbl">Request body structure</div>
+            <pre class="cb blue">POST /api/v1/admin/{module}
+
+{
+  "_func": "function_name",
+  "param1": "value",
+  "param2": "value"
+}</pre>
+        </div>
+    </div>
+    <div class="code-grid">
+        <div>
+            <div class="clbl">Success response</div>
+            <pre class="cb green">{
+  "success": true,
+  // ... function-specific fields
+}</pre>
+        </div>
+        <div>
+            <div class="clbl">Error response</div>
+            <pre class="cb" style="color:#f87171">{
+  "success": false,
+  "status": 400,
+  "title": "Bad Request",
+  "message": "name is required"
+}</pre>
+        </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin:14px 0 0">Generate API keys from the console: <strong>Platform &amp; Access › API Keys › + Generate API Key</strong>. The secret is shown once at creation — store it securely.</p>
+</div>
+
+<!-- Platform -->
+<div class="section-card" id="platform">
+    <div class="snum">Section 1</div>
+    <h2>Platform &amp; Access</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/platform</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_platform_metrics</td><td class="fd">User counts, org count, dept count summary</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_users</td><td class="fd">All users. Filters: <code>department_id</code>, <code>role</code>, <code>status</code>, <code>search</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">provision_user</td><td class="fd">Create user. Fields: <code>username</code>, <code>email</code>, <code>password</code>, <code>role</code>, <code>department_id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">update_user</td><td class="fd">Update user fields by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">set_user_status</td><td class="fd">Set status (ACTIVE / SUSPENDED). Fields: <code>id</code>, <code>status</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">reset_user_password</td><td class="fd">Reset password. Fields: <code>id</code>, <code>new_password</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_organizations</td><td class="fd">All office/org locations</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_organization</td><td class="fd">Create org. Fields: <code>name</code>, <code>type</code>, <code>country</code>, <code>city</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">update_organization</td><td class="fd">Update org by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_departments</td><td class="fd">All departments with org names</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_department</td><td class="fd">Create dept. Fields: <code>name</code>, <code>org_id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">update_department</td><td class="fd">Update dept by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_designations</td><td class="fd">All designations</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_designation</td><td class="fd">Create designation. Fields: <code>title</code>, <code>dept_id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">update_designation</td><td class="fd">Update designation by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_roles_summary</td><td class="fd">All roles with user counts</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">get_role_permissions</td><td class="fd">Full RBAC permission matrix for all roles and modules</td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">save_role_permissions</td><td class="fd">Update RBAC matrix. Body: <code>permissions</code> array of <code>{role, module, level}</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_platform_metrics</div>
+        <pre class="cb blue">{ "_func": "get_platform_metrics" }</pre></div>
+        <div><div class="clbl">list_users — with filters</div>
+        <pre class="cb blue">{
+  "_func": "list_users",
+  "role": "RISK_OWNER",
+  "status": "ACTIVE",
+  "search": "alice"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">provision_user</div>
+        <pre class="cb blue">{
+  "_func": "provision_user",
+  "username": "Alice Chen",
+  "email": "alice@example.com",
+  "password": "TempPass123!",
+  "role": "COMPLIANCE_OFFICER",
+  "department_id": "dept-uuid"
+}</pre></div>
+        <div><div class="clbl">update_user</div>
+        <pre class="cb blue">{
+  "_func": "update_user",
+  "id": "user-uuid",
+  "role": "RISK_OWNER",
+  "department_id": "dept-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">set_user_status</div>
+        <pre class="cb blue">{
+  "_func": "set_user_status",
+  "id": "user-uuid",
+  "status": "SUSPENDED"
+}</pre></div>
+        <div><div class="clbl">reset_user_password</div>
+        <pre class="cb blue">{
+  "_func": "reset_user_password",
+  "id": "user-uuid",
+  "new_password": "NewPass123!"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_organizations</div>
+        <pre class="cb blue">{ "_func": "list_organizations" }</pre></div>
+        <div><div class="clbl">add_organization</div>
+        <pre class="cb blue">{
+  "_func": "add_organization",
+  "name": "Singapore Office",
+  "type": "Branch",
+  "country": "Singapore",
+  "city": "Raffles Place"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_organization</div>
+        <pre class="cb blue">{
+  "_func": "update_organization",
+  "id": "org-uuid",
+  "city": "One Raffles Quay"
+}</pre></div>
+        <div><div class="clbl">list_departments</div>
+        <pre class="cb blue">{ "_func": "list_departments" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_department</div>
+        <pre class="cb blue">{
+  "_func": "add_department",
+  "name": "Security Operations",
+  "org_id": "org-uuid"
+}</pre></div>
+        <div><div class="clbl">update_department</div>
+        <pre class="cb blue">{
+  "_func": "update_department",
+  "id": "dept-uuid",
+  "name": "IT Security"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_designations</div>
+        <pre class="cb blue">{ "_func": "list_designations" }</pre></div>
+        <div><div class="clbl">add_designation</div>
+        <pre class="cb blue">{
+  "_func": "add_designation",
+  "title": "SOC Analyst",
+  "dept_id": "dept-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_designation</div>
+        <pre class="cb blue">{
+  "_func": "update_designation",
+  "id": "desig-uuid",
+  "title": "Senior SOC Analyst"
+}</pre></div>
+        <div><div class="clbl">list_roles_summary</div>
+        <pre class="cb blue">{ "_func": "list_roles_summary" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">get_role_permissions</div>
+        <pre class="cb blue">{ "_func": "get_role_permissions" }</pre></div>
+        <div><div class="clbl">save_role_permissions</div>
+        <pre class="cb blue">{
+  "_func": "save_role_permissions",
+  "permissions": [
+    { "role": "RISK_OWNER", "module": "risk",  "level": "WRITE" },
+    { "role": "RISK_OWNER", "module": "audit", "level": "READ"  }
+  ]
+}</pre></div>
+    </div>
+</div>
+
+<!-- Governance -->
+<div class="section-card" id="governance">
+    <div class="snum">Section 2</div>
+    <h2>Governance &amp; Policy</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/governance</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_governance_metrics</td><td class="fd">Policy counts by status, committee and meeting counts</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_committees</td><td class="fd">All governance committees</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_meetings</td><td class="fd">All committee meetings</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">schedule_meeting</td><td class="fd">Schedule meeting. Fields: <code>committee_id</code>, <code>title</code>, <code>scheduled_date</code>, <code>agenda</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_meeting</td><td class="fd">Update meeting by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_meeting</td><td class="fd">Delete meeting by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">log_minutes</td><td class="fd">Record minutes. Fields: <code>meeting_id</code>, <code>summary</code>, <code>decisions</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_action_items</td><td class="fd">All committee action items</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_action_item</td><td class="fd">Create action item. Fields: <code>meeting_id</code>, <code>description</code>, <code>assignee_id</code>, <code>due_date</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">bulk_add_action_items</td><td class="fd">Create multiple action items. Body: <code>items</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_action_item_status</td><td class="fd">Update status. Fields: <code>id</code>, <code>status</code> (OPEN / IN_PROGRESS / CLOSED)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_action_item</td><td class="fd">Delete action item by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_policies</td><td class="fd">All policies with status and version</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">create_policy</td><td class="fd">Create policy. Fields: <code>title</code>, <code>category</code>, <code>version</code>, <code>content</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_policy</td><td class="fd">Update policy fields by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">set_policy_status</td><td class="fd">Approve / retire policy. Fields: <code>id</code>, <code>status</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">delete_policy</td><td class="fd">Delete policy by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">upload_policy_document</td><td class="fd">Attach file. Fields: <code>policy_id</code>, <code>file_name</code>, <code>file_data</code> (base64)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">get_policy_document</td><td class="fd">Download file by <code>id</code>. Returns <code>file_name</code> + <code>file_data</code> (base64)</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_governance_metrics</div>
+        <pre class="cb blue">{ "_func": "get_governance_metrics" }</pre></div>
+        <div><div class="clbl">list_committees &amp; list_meetings</div>
+        <pre class="cb blue">{ "_func": "list_committees" }
+
+{ "_func": "list_meetings" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">schedule_meeting</div>
+        <pre class="cb blue">{
+  "_func": "schedule_meeting",
+  "committee_id": "committee-uuid",
+  "title": "Q3 Security Review",
+  "scheduled_date": "2025-09-15T10:00:00",
+  "agenda": "Review Q3 risk posture and policy updates"
+}</pre></div>
+        <div><div class="clbl">update_meeting</div>
+        <pre class="cb blue">{
+  "_func": "update_meeting",
+  "id": "meeting-uuid",
+  "scheduled_date": "2025-09-20T14:00:00",
+  "agenda": "Updated agenda: include vendor risk review"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_meeting</div>
+        <pre class="cb blue">{
+  "_func": "delete_meeting",
+  "id": "meeting-uuid"
+}</pre></div>
+        <div><div class="clbl">log_minutes</div>
+        <pre class="cb blue">{
+  "_func": "log_minutes",
+  "meeting_id": "meeting-uuid",
+  "summary": "Reviewed open risks, approved 3 policies",
+  "decisions": "ISP-001 approved; risk treatment plans updated"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_action_items</div>
+        <pre class="cb blue">{ "_func": "list_action_items" }</pre></div>
+        <div><div class="clbl">add_action_item</div>
+        <pre class="cb blue">{
+  "_func": "add_action_item",
+  "meeting_id": "meeting-uuid",
+  "description": "Update firewall ruleset by month end",
+  "assignee_id": "user-uuid",
+  "due_date": "2025-09-30"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">bulk_add_action_items</div>
+        <pre class="cb blue">{
+  "_func": "bulk_add_action_items",
+  "items": [
+    {
+      "meeting_id": "meeting-uuid",
+      "description": "Review VPN access policy",
+      "assignee_id": "user-uuid-1",
+      "due_date": "2025-09-30"
+    },
+    {
+      "meeting_id": "meeting-uuid",
+      "description": "Patch management audit",
+      "assignee_id": "user-uuid-2",
+      "due_date": "2025-10-15"
+    }
+  ]
+}</pre></div>
+        <div><div class="clbl">update_action_item_status</div>
+        <pre class="cb blue">{
+  "_func": "update_action_item_status",
+  "id": "action-uuid",
+  "status": "IN_PROGRESS"
+}
+
+// status values: OPEN | IN_PROGRESS | CLOSED</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_action_item</div>
+        <pre class="cb blue">{
+  "_func": "delete_action_item",
+  "id": "action-uuid"
+}</pre></div>
+        <div><div class="clbl">list_policies</div>
+        <pre class="cb blue">{ "_func": "list_policies" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">create_policy</div>
+        <pre class="cb blue">{
+  "_func": "create_policy",
+  "title": "Information Security Policy",
+  "category": "Security",
+  "version": "1.0",
+  "content": "This policy establishes the baseline..."
+}</pre></div>
+        <div><div class="clbl">update_policy</div>
+        <pre class="cb blue">{
+  "_func": "update_policy",
+  "id": "policy-uuid",
+  "version": "1.1",
+  "content": "Revised to address remote work controls..."
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">set_policy_status</div>
+        <pre class="cb blue">{
+  "_func": "set_policy_status",
+  "id": "policy-uuid",
+  "status": "APPROVED"
+}
+
+// status values: DRAFT | APPROVED | RETIRED</pre></div>
+        <div><div class="clbl">delete_policy</div>
+        <pre class="cb blue">{
+  "_func": "delete_policy",
+  "id": "policy-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">upload_policy_document</div>
+        <pre class="cb blue">{
+  "_func": "upload_policy_document",
+  "policy_id": "policy-uuid",
+  "file_name": "ISP-v1.0.pdf",
+  "file_data": "data:application/pdf;base64,JVBERi..."
+}</pre></div>
+        <div><div class="clbl">get_policy_document</div>
+        <pre class="cb blue">{
+  "_func": "get_policy_document",
+  "id": "doc-uuid"
+}
+// Returns: { file_name, file_data (base64) }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_staff</div>
+        <pre class="cb blue">{ "_func": "list_staff" }</pre></div>
+    </div>
+</div>
+
+<!-- Risk -->
+<div class="section-card" id="risk">
+    <div class="snum">Section 3</div>
+    <h2>Risk &amp; Vulnerability</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/risk</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_risk_metrics</td><td class="fd">Open/closed risk counts, average scores, vulnerability counts</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_risks</td><td class="fd">All risks. Filters: <code>status</code> (OPEN / TREATED / MONITORED / ACCEPTED / RETIRED), <code>category</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_risk</td><td class="fd">Create risk. Fields: <code>title</code>, <code>category</code>, <code>likelihood</code> (1–5), <code>impact</code> (1–5), <code>description</code>, <code>owner_id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_risk</td><td class="fd">Update risk by <code>id</code>. Includes <code>status</code>, <code>treatment_plan</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_risk</td><td class="fd">Delete risk by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">bulk_add_risks</td><td class="fd">Import multiple risks. Body: <code>risks</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_engagements</td><td class="fd">All VAPT engagements</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_engagement</td><td class="fd">Create VAPT engagement. Fields: <code>title</code>, <code>vendor</code>, <code>start_date</code>, <code>end_date</code>, <code>scope</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_vulnerabilities</td><td class="fd">All vulnerabilities. Filters: <code>severity</code>, <code>status</code>, <code>engagement_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_vulnerability</td><td class="fd">Create vulnerability. Fields: <code>title</code>, <code>severity</code>, <code>engagement_id</code>, <code>cvss_score</code>, <code>description</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_vulnerability</td><td class="fd">Update vulnerability by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_vulnerability</td><td class="fd">Delete vulnerability by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">bulk_add_vulnerabilities</td><td class="fd">Import multiple vulnerabilities. Body: <code>vulnerabilities</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for owner dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_risk_metrics</div>
+        <pre class="cb blue">{ "_func": "get_risk_metrics" }</pre></div>
+        <div><div class="clbl">list_risks — with filters</div>
+        <pre class="cb blue">{
+  "_func": "list_risks",
+  "status": "OPEN",
+  "category": "Technical"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_risk</div>
+        <pre class="cb blue">{
+  "_func": "add_risk",
+  "title": "Unpatched server OS",
+  "category": "Technical",
+  "likelihood": 4,
+  "impact": 5,
+  "description": "Legacy servers running EOL OS",
+  "owner_id": "user-uuid"
+}</pre></div>
+        <div><div class="clbl">add_risk — response</div>
+        <pre class="cb green">{
+  "success": true,
+  "id": "risk-uuid",
+  "inherent_risk_score": 20
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_risk</div>
+        <pre class="cb blue">{
+  "_func": "update_risk",
+  "id": "risk-uuid",
+  "status": "TREATED",
+  "treatment_plan": "Applied critical patches on 2025-08-01"
+}</pre></div>
+        <div><div class="clbl">delete_risk</div>
+        <pre class="cb blue">{
+  "_func": "delete_risk",
+  "id": "risk-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">bulk_add_risks</div>
+        <pre class="cb blue">{
+  "_func": "bulk_add_risks",
+  "risks": [
+    {
+      "title": "SQL injection exposure",
+      "category": "Technical",
+      "likelihood": 3,
+      "impact": 4
+    },
+    {
+      "title": "Weak access controls",
+      "category": "Operational",
+      "likelihood": 2,
+      "impact": 3
+    }
+  ]
+}</pre></div>
+        <div><div class="clbl">list_engagements</div>
+        <pre class="cb blue">{ "_func": "list_engagements" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_engagement</div>
+        <pre class="cb blue">{
+  "_func": "add_engagement",
+  "title": "Q3 External Pentest",
+  "vendor": "SecureTest Ltd",
+  "start_date": "2025-08-01",
+  "end_date": "2025-08-15",
+  "scope": "External perimeter, web applications"
+}</pre></div>
+        <div><div class="clbl">list_vulnerabilities — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_vulnerabilities",
+  "severity": "CRITICAL",
+  "engagement_id": "eng-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_vulnerability</div>
+        <pre class="cb blue">{
+  "_func": "add_vulnerability",
+  "title": "RCE via API endpoint",
+  "severity": "CRITICAL",
+  "engagement_id": "eng-uuid",
+  "cvss_score": 9.8,
+  "description": "Unauthenticated RCE in /api/upload"
+}</pre></div>
+        <div><div class="clbl">update_vulnerability</div>
+        <pre class="cb blue">{
+  "_func": "update_vulnerability",
+  "id": "vuln-uuid",
+  "status": "REMEDIATED",
+  "notes": "Patched in v2.3.1 — deployed 2025-08-10"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_vulnerability</div>
+        <pre class="cb blue">{
+  "_func": "delete_vulnerability",
+  "id": "vuln-uuid"
+}</pre></div>
+        <div><div class="clbl">bulk_add_vulnerabilities</div>
+        <pre class="cb blue">{
+  "_func": "bulk_add_vulnerabilities",
+  "vulnerabilities": [
+    {
+      "title": "XSS in admin panel",
+      "severity": "HIGH",
+      "engagement_id": "eng-uuid",
+      "cvss_score": 7.2
+    },
+    {
+      "title": "SSRF vulnerability",
+      "severity": "HIGH",
+      "engagement_id": "eng-uuid",
+      "cvss_score": 7.5
+    }
+  ]
+}</pre></div>
+    </div>
+</div>
+
+<!-- Controls -->
+<div class="section-card" id="controls">
+    <div class="snum">Section 4</div>
+    <h2>Compliance &amp; Controls</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/controls</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_controls_metrics</td><td class="fd">Totals by status, compliance rate, upcoming attestations</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_frameworks</td><td class="fd">All compliance frameworks (ISO 27001, SOC 2, etc.)</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_framework_requirements</td><td class="fd">Framework requirements. Field: <code>framework_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_controls</td><td class="fd">All controls. Filters: <code>status</code> (ACTIVE / DRAFT / RETIRED), <code>framework_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_control</td><td class="fd">Create control. Fields: <code>title</code>, <code>description</code>, <code>control_type</code>, <code>owner_id</code>, <code>framework_id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_control</td><td class="fd">Update control by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_control</td><td class="fd">Delete control by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_framework_controls</td><td class="fd">Bulk-import controls from a framework template. Field: <code>framework_id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">attest_control</td><td class="fd">Record attestation. Fields: <code>control_id</code>, <code>status</code> (COMPLIANT / NON_COMPLIANT / PARTIAL), <code>notes</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_exceptions</td><td class="fd">All control exceptions</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_exception</td><td class="fd">Create exception. Fields: <code>control_id</code>, <code>justification</code>, <code>expiry_date</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_exception_status</td><td class="fd">Approve / reject exception. Fields: <code>id</code>, <code>status</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">delete_exception</td><td class="fd">Delete exception by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_policies</td><td class="fd">Policy list for linking dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for owner dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_controls_metrics</div>
+        <pre class="cb blue">{ "_func": "get_controls_metrics" }</pre></div>
+        <div><div class="clbl">list_frameworks</div>
+        <pre class="cb blue">{ "_func": "list_frameworks" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_framework_requirements</div>
+        <pre class="cb blue">{
+  "_func": "list_framework_requirements",
+  "framework_id": "fw-uuid"
+}</pre></div>
+        <div><div class="clbl">list_controls — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_controls",
+  "status": "ACTIVE",
+  "framework_id": "fw-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_control</div>
+        <pre class="cb blue">{
+  "_func": "add_control",
+  "title": "Access Control Policy Review",
+  "description": "Quarterly review of all access control policies",
+  "control_type": "Preventive",
+  "owner_id": "user-uuid",
+  "framework_id": "fw-uuid"
+}</pre></div>
+        <div><div class="clbl">update_control</div>
+        <pre class="cb blue">{
+  "_func": "update_control",
+  "id": "ctrl-uuid",
+  "status": "ACTIVE",
+  "description": "Revised to bi-annual review cadence"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_control</div>
+        <pre class="cb blue">{
+  "_func": "delete_control",
+  "id": "ctrl-uuid"
+}</pre></div>
+        <div><div class="clbl">import_framework_controls</div>
+        <pre class="cb blue">{
+  "_func": "import_framework_controls",
+  "framework_id": "fw-uuid"
+}
+// Bulk-imports all template controls for the framework</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">attest_control</div>
+        <pre class="cb blue">{
+  "_func": "attest_control",
+  "control_id": "ctrl-uuid",
+  "status": "COMPLIANT",
+  "notes": "Verified via Q3 audit review"
+}
+// status: COMPLIANT | NON_COMPLIANT | PARTIAL</pre></div>
+        <div><div class="clbl">list_exceptions</div>
+        <pre class="cb blue">{ "_func": "list_exceptions" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_exception</div>
+        <pre class="cb blue">{
+  "_func": "add_exception",
+  "control_id": "ctrl-uuid",
+  "justification": "Legacy system migration in progress",
+  "expiry_date": "2025-12-31"
+}</pre></div>
+        <div><div class="clbl">update_exception_status</div>
+        <pre class="cb blue">{
+  "_func": "update_exception_status",
+  "id": "exc-uuid",
+  "status": "APPROVED"
+}
+// status: APPROVED | REJECTED</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_exception</div>
+        <pre class="cb blue">{
+  "_func": "delete_exception",
+  "id": "exc-uuid"
+}</pre></div>
+        <div><div class="clbl">list_policies &amp; list_staff (dropdowns)</div>
+        <pre class="cb blue">{ "_func": "list_policies" }
+
+{ "_func": "list_staff" }</pre></div>
+    </div>
+</div>
+
+<!-- Audit -->
+<div class="section-card" id="audit">
+    <div class="snum">Section 5</div>
+    <h2>Audit &amp; Evidence</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/audit</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_audit_metrics</td><td class="fd">Active/closed audit counts, open observation counts, evidence totals</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">get_internal_audit_metrics</td><td class="fd">Detailed metrics for internal audit dashboard</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_events</td><td class="fd">System audit trail events. Filters: <code>limit</code>, <code>user_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_audits</td><td class="fd">All internal audits with status</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_audit</td><td class="fd">Create audit. Fields: <code>title</code>, <code>scope</code>, <code>start_date</code>, <code>end_date</code>, <code>lead_auditor_id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_audit</td><td class="fd">Update audit by <code>id</code> (including <code>status</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_audit</td><td class="fd">Delete audit by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_observations</td><td class="fd">All findings. Filters: <code>audit_id</code>, <code>priority</code>, <code>status</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_observation</td><td class="fd">Create finding. Fields: <code>audit_id</code>, <code>title</code>, <code>priority</code>, <code>description</code>, <code>linked_risk_id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_observation</td><td class="fd">Update observation by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_observation</td><td class="fd">Delete observation by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_observations</td><td class="fd">Bulk import findings. Body: <code>audit_id</code> + <code>observations</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_evidence</td><td class="fd">Evidence locker records. Filter: <code>audit_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_evidence</td><td class="fd">Upload evidence file. Fields: <code>file_name</code>, <code>file_data</code> (base64 data-URI), <code>audit_id</code>. SHA-256 computed server-side.</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">get_evidence_file</td><td class="fd">Download evidence by <code>id</code>. Returns <code>file_name</code> + <code>file_data</code> (base64)</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">delete_evidence</td><td class="fd">Delete evidence record by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for auditor dropdown</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_frameworks_dd</td><td class="fd">Framework list for dropdown</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_departments_dd</td><td class="fd">Department list for dropdown</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_controls_dd</td><td class="fd">Control list for linking observations</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_risks_dd</td><td class="fd">Risk list for linking observations</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_audit_metrics &amp; get_internal_audit_metrics</div>
+        <pre class="cb blue">{ "_func": "get_audit_metrics" }
+
+{ "_func": "get_internal_audit_metrics" }</pre></div>
+        <div><div class="clbl">list_events</div>
+        <pre class="cb blue">{
+  "_func": "list_events",
+  "limit": 50,
+  "user_id": "user-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_audits</div>
+        <pre class="cb blue">{ "_func": "list_audits" }</pre></div>
+        <div><div class="clbl">add_audit</div>
+        <pre class="cb blue">{
+  "_func": "add_audit",
+  "title": "Q3 SOC 2 Internal Audit",
+  "scope": "Security and Availability criteria",
+  "start_date": "2025-09-01",
+  "end_date": "2025-09-30",
+  "lead_auditor_id": "user-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_audit</div>
+        <pre class="cb blue">{
+  "_func": "update_audit",
+  "id": "audit-uuid",
+  "status": "CLOSED"
+}</pre></div>
+        <div><div class="clbl">delete_audit</div>
+        <pre class="cb blue">{
+  "_func": "delete_audit",
+  "id": "audit-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_observations — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_observations",
+  "audit_id": "audit-uuid",
+  "priority": "HIGH",
+  "status": "OPEN"
+}</pre></div>
+        <div><div class="clbl">add_observation</div>
+        <pre class="cb blue">{
+  "_func": "add_observation",
+  "audit_id": "audit-uuid",
+  "title": "MFA not enforced on VPN",
+  "priority": "HIGH",
+  "description": "VPN allows password-only authentication",
+  "linked_risk_id": "risk-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_observation</div>
+        <pre class="cb blue">{
+  "_func": "update_observation",
+  "id": "obs-uuid",
+  "status": "RESOLVED",
+  "management_response": "MFA enforced as of 2025-08-01"
+}</pre></div>
+        <div><div class="clbl">delete_observation</div>
+        <pre class="cb blue">{
+  "_func": "delete_observation",
+  "id": "obs-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">import_observations</div>
+        <pre class="cb blue">{
+  "_func": "import_observations",
+  "audit_id": "audit-uuid",
+  "observations": [
+    {
+      "title": "Weak password policy",
+      "priority": "MEDIUM",
+      "description": "No complexity requirements enforced"
+    },
+    {
+      "title": "No DLP controls",
+      "priority": "HIGH",
+      "description": "Sensitive data egress unmonitored"
+    }
+  ]
+}</pre></div>
+        <div><div class="clbl">list_evidence</div>
+        <pre class="cb blue">{
+  "_func": "list_evidence",
+  "audit_id": "audit-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_evidence</div>
+        <pre class="cb blue">{
+  "_func": "add_evidence",
+  "audit_id": "audit-uuid",
+  "file_name": "network-scan-report.pdf",
+  "file_data": "data:application/pdf;base64,JVBERi..."
+}
+// SHA-256 checksum computed server-side</pre></div>
+        <div><div class="clbl">get_evidence_file &amp; delete_evidence</div>
+        <pre class="cb blue">{ "_func": "get_evidence_file", "id": "evidence-uuid" }
+// Returns: { file_name, file_data (base64) }
+
+{ "_func": "delete_evidence", "id": "evidence-uuid" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">Dropdown helpers</div>
+        <pre class="cb blue">{ "_func": "list_staff" }
+{ "_func": "list_frameworks_dd" }
+{ "_func": "list_departments_dd" }
+{ "_func": "list_controls_dd" }
+{ "_func": "list_risks_dd" }</pre></div>
+    </div>
+</div>
+
+<!-- Ops -->
+<div class="section-card" id="ops">
+    <div class="snum">Section 6</div>
+    <h2>IT Operations</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/ops</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_ops_metrics</td><td class="fd">Pending/active change counts, open ticket counts, asset totals</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_changes</td><td class="fd">Change requests. Filters: <code>status</code>, <code>type</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_change</td><td class="fd">Raise change request. Fields: <code>title</code>, <code>change_type</code>, <code>priority</code>, <code>description</code>, <code>planned_date</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_change</td><td class="fd">Update change by <code>id</code> (including gate approvals and <code>status</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_change</td><td class="fd">Delete change request by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_changes</td><td class="fd">Bulk import change requests. Body: <code>changes</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_assets</td><td class="fd">IT asset inventory. Filters: <code>criticality</code>, <code>category</code>, <code>lifecycle_status</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_asset</td><td class="fd">Register asset. Fields: <code>name</code>, <code>category</code>, <code>criticality</code>, <code>owner_id</code>, <code>lifecycle_status</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_asset</td><td class="fd">Update asset by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_asset</td><td class="fd">Delete asset by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_assets</td><td class="fd">Bulk import assets. Body: <code>assets</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_vendors</td><td class="fd">All third-party vendors with risk scores</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_vendor</td><td class="fd">Register vendor. Fields: <code>name</code>, <code>category</code>, <code>baseline_risk_score</code>, <code>agreement_details</code>, <code>license_expiry</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_vendor</td><td class="fd">Update vendor by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_vendor</td><td class="fd">Delete vendor by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_vendors</td><td class="fd">Bulk import vendors. Body: <code>vendors</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_tickets</td><td class="fd">Helpdesk tickets. Filters: <code>status</code>, <code>priority</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_ticket</td><td class="fd">Open ticket. Fields: <code>subject</code>, <code>description</code>, <code>priority</code>, <code>category</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_ticket</td><td class="fd">Update ticket by <code>id</code> (including resolution and <code>status</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">delete_ticket</td><td class="fd">Delete ticket by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">import_tickets</td><td class="fd">Bulk import helpdesk tickets. Body: <code>tickets</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for assignment dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_ops_metrics</div>
+        <pre class="cb blue">{ "_func": "get_ops_metrics" }</pre></div>
+        <div><div class="clbl">list_changes — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_changes",
+  "status": "PENDING",
+  "type": "Emergency"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_change</div>
+        <pre class="cb blue">{
+  "_func": "add_change",
+  "title": "OS patch rollout — prod servers",
+  "change_type": "Standard",
+  "priority": "HIGH",
+  "description": "Apply critical OS patches to all prod servers",
+  "planned_date": "2025-08-15"
+}</pre></div>
+        <div><div class="clbl">update_change</div>
+        <pre class="cb blue">{
+  "_func": "update_change",
+  "id": "change-uuid",
+  "status": "APPROVED",
+  "approval_notes": "CAB approved on 2025-08-10"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_change</div>
+        <pre class="cb blue">{
+  "_func": "delete_change",
+  "id": "change-uuid"
+}</pre></div>
+        <div><div class="clbl">import_changes</div>
+        <pre class="cb blue">{
+  "_func": "import_changes",
+  "changes": [
+    {
+      "title": "Firewall rule update",
+      "change_type": "Standard",
+      "priority": "MEDIUM",
+      "planned_date": "2025-08-20"
+    },
+    {
+      "title": "SSL certificate renewal",
+      "change_type": "Minor",
+      "priority": "LOW",
+      "planned_date": "2025-09-01"
+    }
+  ]
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_assets — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_assets",
+  "criticality": "CRITICAL",
+  "category": "Server"
+}</pre></div>
+        <div><div class="clbl">add_asset</div>
+        <pre class="cb blue">{
+  "_func": "add_asset",
+  "name": "Prod DB Server 01",
+  "category": "Server",
+  "criticality": "CRITICAL",
+  "lifecycle_status": "PRODUCTION",
+  "owner_id": "user-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_asset</div>
+        <pre class="cb blue">{
+  "_func": "update_asset",
+  "id": "asset-uuid",
+  "lifecycle_status": "DECOMMISSIONED"
+}</pre></div>
+        <div><div class="clbl">delete_asset</div>
+        <pre class="cb blue">{
+  "_func": "delete_asset",
+  "id": "asset-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">import_assets</div>
+        <pre class="cb blue">{
+  "_func": "import_assets",
+  "assets": [
+    {
+      "name": "Firewall-01",
+      "category": "Network",
+      "criticality": "HIGH",
+      "lifecycle_status": "PRODUCTION"
+    },
+    {
+      "name": "Backup Server",
+      "category": "Server",
+      "criticality": "MEDIUM",
+      "lifecycle_status": "PRODUCTION"
+    }
+  ]
+}</pre></div>
+        <div><div class="clbl">list_vendors</div>
+        <pre class="cb blue">{ "_func": "list_vendors" }</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_vendor</div>
+        <pre class="cb blue">{
+  "_func": "add_vendor",
+  "name": "SecureCloud Inc",
+  "category": "Cloud Provider",
+  "baseline_risk_score": 3,
+  "agreement_details": "MSA signed 2024-01-15",
+  "license_expiry": "2026-01-14"
+}</pre></div>
+        <div><div class="clbl">update_vendor</div>
+        <pre class="cb blue">{
+  "_func": "update_vendor",
+  "id": "vendor-uuid",
+  "baseline_risk_score": 4,
+  "license_expiry": "2027-01-14"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">delete_vendor</div>
+        <pre class="cb blue">{
+  "_func": "delete_vendor",
+  "id": "vendor-uuid"
+}</pre></div>
+        <div><div class="clbl">import_vendors</div>
+        <pre class="cb blue">{
+  "_func": "import_vendors",
+  "vendors": [
+    {
+      "name": "PenTest Corp",
+      "category": "Security Services",
+      "baseline_risk_score": 2
+    },
+    {
+      "name": "CloudBackup Ltd",
+      "category": "Storage",
+      "baseline_risk_score": 3
+    }
+  ]
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_tickets — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_tickets",
+  "status": "OPEN",
+  "priority": "HIGH"
+}</pre></div>
+        <div><div class="clbl">add_ticket</div>
+        <pre class="cb blue">{
+  "_func": "add_ticket",
+  "subject": "VPN dropping for remote users",
+  "description": "Multiple remote users report intermittent drops",
+  "priority": "HIGH",
+  "category": "Network"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_ticket</div>
+        <pre class="cb blue">{
+  "_func": "update_ticket",
+  "id": "ticket-uuid",
+  "status": "CLOSED",
+  "resolution": "Updated VPN client to v5.2.1 — resolved"
+}</pre></div>
+        <div><div class="clbl">delete_ticket</div>
+        <pre class="cb blue">{
+  "_func": "delete_ticket",
+  "id": "ticket-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">import_tickets</div>
+        <pre class="cb blue">{
+  "_func": "import_tickets",
+  "tickets": [
+    {
+      "subject": "Password reset request",
+      "description": "User locked out of system",
+      "priority": "LOW",
+      "category": "Access"
+    },
+    {
+      "subject": "Slow file server — Finance",
+      "description": "Finance dept reporting high latency",
+      "priority": "MEDIUM",
+      "category": "Performance"
+    }
+  ]
+}</pre></div>
+        <div><div class="clbl">list_staff</div>
+        <pre class="cb blue">{ "_func": "list_staff" }</pre></div>
+    </div>
+</div>
+
+<!-- Incidents -->
+<div class="section-card" id="incidents">
+    <div class="snum">Section 7</div>
+    <h2>Incidents &amp; Awareness</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/incidents</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_incident_metrics</td><td class="fd">Open/closed incident counts by severity, campaign enrollment totals</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_incidents</td><td class="fd">All incidents. Filters: <code>severity</code>, <code>status</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_incident</td><td class="fd">Log incident. Fields: <code>title</code>, <code>severity</code>, <code>description</code>, <code>affected_systems</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_incident</td><td class="fd">Update incident by <code>id</code> (includes RCA fields, <code>status</code>, <code>resolved_at</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">add_incident_document</td><td class="fd">Attach file to incident. Fields: <code>incident_id</code>, <code>file_name</code>, <code>file_data</code> (base64)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_incident_documents</td><td class="fd">List incident attachments. Field: <code>entity_id</code> (incident UUID)</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">get_incident_document</td><td class="fd">Download incident attachment by <code>id</code>. Returns base64</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_campaigns</td><td class="fd">All security awareness campaigns with enrollment stats</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_campaign</td><td class="fd">Create campaign. Fields: <code>title</code>, <code>type</code>, <code>start_date</code>, <code>end_date</code>, <code>target_audience</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_campaign</td><td class="fd">Update campaign by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">add_campaign_document</td><td class="fd">Attach file to campaign. Fields: <code>campaign_id</code>, <code>file_name</code>, <code>file_data</code> (base64)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_campaign_documents</td><td class="fd">List campaign attachments. Field: <code>entity_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">get_campaign_document</td><td class="fd">Download campaign attachment by <code>id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_knowledge</td><td class="fd">Knowledge base articles. Filter: <code>category</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_knowledge</td><td class="fd">Create KB article. Fields: <code>title</code>, <code>category</code>, <code>content</code>, <code>tags</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">update_knowledge</td><td class="fd">Update KB article by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">add_kb_document</td><td class="fd">Attach file to KB article. Fields: <code>kb_id</code>, <code>file_name</code>, <code>file_data</code> (base64)</td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_kb_documents</td><td class="fd">List KB article attachments. Field: <code>entity_id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">get_kb_document</td><td class="fd">Download KB article attachment by <code>id</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_staff</td><td class="fd">User list for dropdowns</td><td><span class="pill pr">READ+</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_incident_metrics</div>
+        <pre class="cb blue">{ "_func": "get_incident_metrics" }</pre></div>
+        <div><div class="clbl">list_incidents — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_incidents",
+  "severity": "HIGH",
+  "status": "OPEN"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_incident</div>
+        <pre class="cb blue">{
+  "_func": "add_incident",
+  "title": "Phishing campaign — Finance dept",
+  "severity": "HIGH",
+  "description": "3 users clicked malicious link in spoofed email",
+  "affected_systems": "Email, Office 365"
+}</pre></div>
+        <div><div class="clbl">update_incident — close with RCA</div>
+        <pre class="cb blue">{
+  "_func": "update_incident",
+  "id": "incident-uuid",
+  "status": "CLOSED",
+  "rca_root_cause": "No phishing simulation training conducted",
+  "rca_preventative_actions": "Enroll all staff in Q3 awareness campaign",
+  "resolved_at": "2025-07-20T10:00:00Z"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_incident_document</div>
+        <pre class="cb blue">{
+  "_func": "add_incident_document",
+  "incident_id": "incident-uuid",
+  "file_name": "email-screenshot.png",
+  "file_data": "data:image/png;base64,iVBORw..."
+}</pre></div>
+        <div><div class="clbl">list_incident_documents &amp; get_incident_document</div>
+        <pre class="cb blue">{
+  "_func": "list_incident_documents",
+  "entity_id": "incident-uuid"
+}
+
+{
+  "_func": "get_incident_document",
+  "id": "doc-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_campaigns</div>
+        <pre class="cb blue">{ "_func": "list_campaigns" }</pre></div>
+        <div><div class="clbl">add_campaign</div>
+        <pre class="cb blue">{
+  "_func": "add_campaign",
+  "title": "Q3 Phishing Awareness",
+  "type": "Phishing Simulation",
+  "start_date": "2025-09-01",
+  "end_date": "2025-09-30",
+  "target_audience": "All Staff"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_campaign</div>
+        <pre class="cb blue">{
+  "_func": "update_campaign",
+  "id": "campaign-uuid",
+  "target_audience": "Finance and HR Departments",
+  "end_date": "2025-10-15"
+}</pre></div>
+        <div><div class="clbl">add_campaign_document</div>
+        <pre class="cb blue">{
+  "_func": "add_campaign_document",
+  "campaign_id": "campaign-uuid",
+  "file_name": "training-deck.pptx",
+  "file_data": "data:application/vnd.ms-powerpoint;base64,UEsDB..."
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_campaign_documents &amp; get_campaign_document</div>
+        <pre class="cb blue">{
+  "_func": "list_campaign_documents",
+  "entity_id": "campaign-uuid"
+}
+
+{
+  "_func": "get_campaign_document",
+  "id": "doc-uuid"
+}</pre></div>
+        <div><div class="clbl">list_knowledge — filtered</div>
+        <pre class="cb blue">{
+  "_func": "list_knowledge",
+  "category": "Phishing"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_knowledge</div>
+        <pre class="cb blue">{
+  "_func": "add_knowledge",
+  "title": "How to Identify Phishing Emails",
+  "category": "Phishing",
+  "content": "Key warning signs to watch for include...",
+  "tags": "phishing,email,social-engineering"
+}</pre></div>
+        <div><div class="clbl">update_knowledge</div>
+        <pre class="cb blue">{
+  "_func": "update_knowledge",
+  "id": "kb-uuid",
+  "content": "Updated to include QR code phishing variants...",
+  "tags": "phishing,email,qr-code,awareness"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">add_kb_document</div>
+        <pre class="cb blue">{
+  "_func": "add_kb_document",
+  "kb_id": "kb-uuid",
+  "file_name": "phishing-awareness-guide.pdf",
+  "file_data": "data:application/pdf;base64,JVBERi..."
+}</pre></div>
+        <div><div class="clbl">list_kb_documents &amp; get_kb_document</div>
+        <pre class="cb blue">{
+  "_func": "list_kb_documents",
+  "entity_id": "kb-uuid"
+}
+
+{
+  "_func": "get_kb_document",
+  "id": "doc-uuid"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_staff</div>
+        <pre class="cb blue">{ "_func": "list_staff" }</pre></div>
+    </div>
+</div>
+
+<!-- Reports -->
+<div class="section-card" id="reports">
+    <div class="snum">Section 8</div>
+    <h2>Reports</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/reports</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">get_executive_summary</td><td class="fd">Cross-module snapshot: risk counts, compliance rate, audit status, incident totals, ops stats</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_schedules</td><td class="fd">All scheduled report jobs</td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_schedule</td><td class="fd">Schedule a report. Fields: <code>report_type</code>, <code>frequency</code>, <code>recipients</code>, <code>next_run_at</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">update_schedule</td><td class="fd">Update scheduled report by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">get_executive_summary</div>
+        <pre class="cb blue">{ "_func": "get_executive_summary" }</pre></div>
+        <div><div class="clbl">get_executive_summary — response</div>
+        <pre class="cb green">{
+  "success": true,
+  "total_risks": 42,
+  "open_risks": 17,
+  "high_risks": 6,
+  "total_controls": 84,
+  "compliant_controls": 71,
+  "compliance_pct": 84,
+  "active_audits": 2,
+  "open_observations": 8,
+  "open_incidents": 3,
+  "pending_changes": 5,
+  "open_tickets": 12
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">list_schedules</div>
+        <pre class="cb blue">{ "_func": "list_schedules" }</pre></div>
+        <div><div class="clbl">add_schedule</div>
+        <pre class="cb blue">{
+  "_func": "add_schedule",
+  "report_type": "EXECUTIVE_SUMMARY",
+  "frequency": "WEEKLY",
+  "recipients": "ciso@example.com,cto@example.com",
+  "next_run_at": "2025-09-01T08:00:00Z"
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">update_schedule</div>
+        <pre class="cb blue">{
+  "_func": "update_schedule",
+  "id": "schedule-uuid",
+  "frequency": "MONTHLY",
+  "recipients": "ciso@example.com"
+}</pre></div>
+    </div>
+</div>
+
+<!-- API Keys -->
+<div class="section-card" id="apikey">
+    <div class="snum">Section 9</div>
+    <h2>API Key Management</h2>
+    <div class="ep"><span class="mbadge">POST</span>/api/v1/admin/apikey</div>
+    <table class="fn-table">
+        <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
+        <tbody>
+            <tr><td class="fn">generate_api_key</td><td class="fd">Create a new key pair. Fields: <code>name</code> (required), <code>description</code>. Returns plain key + secret <strong>once only</strong> — only SHA-256 hashes are stored.</td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">list_api_keys</td><td class="fd">List all keys showing prefix, name, status, created_by, last_used. Never returns plain key or secret.</td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">revoke_api_key</td><td class="fd">Revoke a key immediately. Field: <code>id</code>. Status set to REVOKED — cannot be undone.</td><td><span class="pill pa">ADMIN</span></td></tr>
+        </tbody>
+    </table>
+    <div class="ex-label">Examples</div>
+    <div class="code-grid">
+        <div><div class="clbl">generate_api_key</div>
+        <pre class="cb blue">{
+  "_func": "generate_api_key",
+  "name": "CI Reporting Pipeline",
+  "description": "Nightly risk export job"
+}</pre>
+        <pre class="cb amber" style="margin-top:8px">{
+  "success": true,
+  "id": "key-uuid",
+  "api_key": "a7f3k9d2h1j4...",
+  "api_secret": "xq29mzb8n3k7...",
+  "key_prefix": "a7f3k9d2h1j4"
+}
+// Secret shown ONCE — store securely</pre></div>
+        <div><div class="clbl">list_api_keys</div>
+        <pre class="cb blue">{ "_func": "list_api_keys" }</pre>
+        <pre class="cb green" style="margin-top:8px">{
+  "success": true,
+  "api_keys": [
+    {
+      "id": "key-uuid",
+      "name": "CI Reporting Pipeline",
+      "key_prefix": "a7f3k9d2h1j4",
+      "status": "ACTIVE",
+      "created_by_name": "Admin User",
+      "created_at": "2025-08-01T09:00:00Z",
+      "last_used_at": "2025-08-15T02:00:00Z"
+    }
+  ]
+}</pre></div>
+    </div>
+    <div class="code-grid">
+        <div><div class="clbl">revoke_api_key</div>
+        <pre class="cb blue">{
+  "_func": "revoke_api_key",
+  "id": "key-uuid"
+}
+// Immediate effect — key stops working at once</pre></div>
+        <div><div class="clbl">Use a key to call any module</div>
+        <pre class="cb blue">POST /api/v1/admin/risk
+X-API-Key: a7f3k9d2h1j4...
+X-API-Secret: xq29mzb8n3k7...
+Content-Type: application/json
+
+{
+  "_func": "list_risks",
+  "status": "OPEN"
+}</pre></div>
+    </div>
+</div>
+
+<div class="footer-bar">
+    <div>
+        <p style="color:#5eead4;font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Immutable Audit Trail Active</p>
+        <p>Every API call is recorded in the cryptographically chained <code>system_audit_trail</code>. Includes actor, action, timestamp, and context JSON.</p>
+    </div>
+    <div class="etags">
+        <span class="etag">RISK_CREATE</span>
+        <span class="etag">CONTROL_ATTEST</span>
+        <span class="etag">POLICY_APPROVE</span>
+        <span class="etag">AUDIT_OPEN</span>
+        <span class="etag">INCIDENT_CLOSE</span>
+        <span class="etag">API_KEY_GENERATED</span>
+    </div>
+</div>
+
+<footer>TSI Compass &copy; 2026 &mdash; API Reference &mdash; All Endpoints</footer>
+
+</div>
+</body>
+</html>

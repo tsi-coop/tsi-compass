@@ -16,6 +16,7 @@
     'platform-users.html':        'platform',
     'platform-roles.html':        'platform',
     'platform-audit.html':        'platform',
+    'platform-apikeys.html':      'platform',
     'governance.html':            'governance',
     'governance-policies.html':   'governance',
     'governance-committees.html': 'governance',

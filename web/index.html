@@ -1,156 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSI Compass - Sign In</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800;900&display=swap');
-        
-        :root {
-            --ink: #172033;
-            --muted: #607086;
-            --line: #d9e2ec;
-            --paper: #ffffff;
-            --wash: #f3f7f8;
-            --teal: #006a67;
-            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-        }
-
-        body {
-            background-color: var(--wash);
-            color: var(--ink);
-            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 1.5rem;
-        }
-
-        .tsi-panel {
-            background-color: var(--paper);
-            border: 1px solid var(--line);
-            border-top: 4px solid var(--teal);
-            box-shadow: var(--shadow);
-        }
-
-        .input-focus:focus {
-            border-color: var(--teal);
-            box-shadow: 0 0 0 4px rgba(0, 106, 103, 0.08);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Sign In</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;margin-bottom:32px;justify-content:center;color:var(--ink)}
+.mark{width:40px;height:40px;border-radius:10px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:14px;flex-shrink:0}
+.card{background:#fff;border:1px solid var(--line);border-top:4px solid var(--teal);border-radius:14px;padding:32px;width:100%;max-width:420px}
+.card h1{margin:0 0 4px;font-size:20px;font-weight:900}
+.card .sub{color:var(--muted);font-size:13px;margin:0 0 28px;line-height:1.5}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;height:42px;border:1px solid var(--line);border-radius:7px;padding:0 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--teal)}
+.recover{display:block;text-align:right;font-size:11px;font-weight:700;color:var(--teal);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.recover:hover{text-decoration:underline}
+.error-box{display:none;margin-bottom:14px;padding:10px 14px;border-radius:7px;background:#fef2f2;border:1px solid #fde8e8;font-size:12px;font-weight:600;color:var(--red)}
+.btn{width:100%;height:44px;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;font-family:inherit}
+.btn:hover{background:#005450}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
-
 <body>
-<div class="w-full max-w-xl p-8 sm:p-12 rounded-2xl tsi-panel">
 
-    <div class="text-center mb-10">
-        <div class="inline-flex items-center justify-center w-12 h-12 bg-[#006a67] text-white text-lg font-black rounded-lg mb-4 shadow-sm select-none">
-            TC
-        </div>
-        <h2 class="text-2xl font-black text-[#172033] tracking-tight">TSI Compass</h2>
-        <p class="text-[11px] text-[#607086] font-bold uppercase tracking-[0.15em] mt-1.5">Your First Step into IT GRC</p>
-        <div class="w-12 h-0.5 bg-[#d9e2ec] mx-auto mt-4"></div>
-        <h1 class="text-xs font-black mt-4 text-[#006a67] uppercase tracking-widest">Navigate. Control. Comply.</h1>
+<div class="brand">
+  <span class="mark">TC</span>
+  <span>TSI Compass</span>
+</div>
+
+<div class="card">
+  <h1>Sign In</h1>
+  <p class="sub">Your First Step into IT GRC</p>
+
+  <form onsubmit="handleLogin(event)">
+    <div class="field">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="admin@example.com" autocomplete="email">
     </div>
 
-    <form onsubmit="handleLogin(event)">
-        <div class="space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-start space-y-1.5 sm:space-y-0">
-                <label for="email" class="sm:w-1/3 block text-[11px] font-extrabold text-[#607086] uppercase tracking-wider sm:pt-3.5 px-1">
-                    Email Address
-                </label>
-                <div class="sm:w-2/3 w-full">
-                    <input type="email" id="email" name="email" 
-                           class="w-full h-11 px-3.5 bg-[#f9fafb] border border-[#d9e2ec] rounded-lg outline-none transition-all text-sm text-[#172033] input-focus"
-                           placeholder="admin@tsicoop.org">
-                </div>
-            </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="••••••••••••" autocomplete="current-password">
+    </div>
 
-            <div class="flex flex-col sm:flex-row sm:items-start space-y-1.5 sm:space-y-0">
-                <div class="sm:w-1/3 sm:pt-2">
-                    <label for="password" class="block text-[11px] font-extrabold text-[#607086] uppercase tracking-wider px-1">
-                        Password
-                    </label>
-                    <p class="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 px-1">Console Key</p>
-                </div>
-                <div class="sm:w-2/3 w-full">
-                    <input type="password" id="password" name="password" 
-                           class="w-full h-11 px-3.5 bg-[#f9fafb] border border-[#d9e2ec] rounded-lg outline-none transition-all text-sm text-[#172033] input-focus"
-                           placeholder="••••••••••••">
-                </div>
-            </div>
+    <a href="password-reset.html" class="recover">Forgot password?</a>
 
-            <div class="pt-4 w-full">
-                <div class="flex justify-end mb-3">
-                    <a href="password-reset.html" class="text-[10px] font-bold text-[#006a67] hover:underline uppercase tracking-wider">
-                        Recover Access
-                    </a>
-                </div>
-                <div id="login-error" class="hidden mb-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-[12px] font-semibold text-red-700"></div>
-                <button id="login-btn" type="submit"
-                        class="w-full h-12 bg-[#006a67] text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-[#005a57] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
-                    Sign In
-                </button>
-            </div>
-        </div>
-    </form>
+    <div class="error-box" id="login-error"></div>
 
+    <button type="submit" class="btn" id="login-btn">Sign In</button>
+  </form>
 </div>
 
 <script>
 function handleLogin(event) {
-    event.preventDefault();
+  event.preventDefault();
+  var email    = document.getElementById('email').value.trim();
+  var password = document.getElementById('password').value;
+  var btn      = document.getElementById('login-btn');
+  var errBox   = document.getElementById('login-error');
 
-    var email = document.getElementById('email').value.trim();
-    var password = document.getElementById('password').value;
-    var btn = document.getElementById('login-btn');
-    var errBox = document.getElementById('login-error');
+  errBox.style.display = 'none';
+  errBox.textContent = '';
 
-    errBox.classList.add('hidden');
-    errBox.textContent = '';
+  if (!email || !password) {
+    errBox.textContent = 'Please enter your email address and password.';
+    errBox.style.display = 'block';
+    return;
+  }
 
-    if (!email || !password) {
-        errBox.textContent = 'Please enter your email address and password.';
-        errBox.classList.remove('hidden');
-        return;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+
+  fetch('/api/v1/admin/user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ _func: 'login', email: email, password: password })
+  })
+  .then(function(r) { return r.json().then(function(data) { return { status: r.status, body: data }; }); })
+  .then(function(res) {
+    if (res.status === 200 && res.body.success) {
+      localStorage.setItem('token',       res.body.token);
+      localStorage.setItem('username',    res.body.username);
+      localStorage.setItem('role',        res.body.role);
+      localStorage.setItem('permissions', JSON.stringify(res.body.permissions || {}));
+      window.location.href = 'console/dashboard.html';
+    } else {
+      var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';
+      errBox.textContent = msg;
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = 'Sign In';
     }
-
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Signing in…';
-
-    fetch('/api/v1/admin/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _func: 'login', email: email, password: password })
-    })
-    .then(function(r) { return r.json().then(function(data) { return { status: r.status, body: data }; }); })
-    .then(function(res) {
-        if (res.status === 200 && res.body.success) {
-            localStorage.setItem('token',       res.body.token);
-            localStorage.setItem('username',    res.body.username);
-            localStorage.setItem('role',        res.body.role);
-            // permissions is a {module: level} map returned directly by login
-            localStorage.setItem('permissions', JSON.stringify(res.body.permissions || {}));
-            window.location.href = 'console/dashboard.html';
-        } else {
-            var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';
-            errBox.textContent = msg;
-            errBox.classList.remove('hidden');
-            btn.disabled = false;
-            btn.innerHTML = 'Sign In';
-        }
-    })
-    .catch(function() {
-        errBox.textContent = 'Unable to reach the server. Please check your connection and try again.';
-        errBox.classList.remove('hidden');
-        btn.disabled = false;
-        btn.innerHTML = 'Sign In';
-    });
+  })
+  .catch(function() {
+    errBox.textContent = 'Unable to reach the server. Please check your connection.';
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In';
+  });
 }
 </script>
 </body>

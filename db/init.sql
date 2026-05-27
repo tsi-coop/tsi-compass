@@ -501,6 +501,19 @@ CREATE TABLE campaign_documents (
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE api_keys (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    key_prefix VARCHAR(12) NOT NULL,
+    api_key_hash VARCHAR(64) NOT NULL,
+    api_secret_hash VARCHAR(64) NOT NULL,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(10) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'REVOKED'))
+);
+
 -- ==========================================
 -- IMMUTABLE AUDIT TRAIL TRIGGERS
 -- ==========================================
