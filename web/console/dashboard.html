@@ -23,27 +23,28 @@ a{color:inherit;text-decoration:none}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.btn{height:34px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer}
+.btn:hover{border-color:#b2d8d7;color:var(--teal)}
 .grid{display:grid;gap:16px}
 .col4{grid-template-columns:repeat(4,1fr)}
-.col2{grid-template-columns:repeat(2,1fr)}
 .mb{margin-bottom:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
 .metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
 .metric-note{color:var(--muted);font-size:12px}
-.stripe-teal{border-top:4px solid var(--teal)}
-.stripe-blue{border-top:4px solid var(--blue)}
-.stripe-amber{border-top:4px solid var(--amber)}
-.stripe-green{border-top:4px solid var(--green)}
-.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:14px;transition:box-shadow .15s,border-color .15s}
-.section-card:hover{box-shadow:0 4px 20px rgba(0,106,103,.09);border-color:#b2d8d7}
-.icon-wrap{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;margin-bottom:4px}
-.section-card h2{margin:0 0 6px;font-size:15px;font-weight:800}
-.section-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-.card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--line);margin-top:auto}
-.card-stat{font-size:12px;color:var(--muted)}
-.card-stat strong{color:var(--ink)}
-.open-link{font-size:12px;font-weight:800;color:var(--teal);display:flex;align-items:center;gap:3px}
+.stripe-teal{border-top:3px solid var(--teal)}
+.stripe-blue{border-top:3px solid var(--blue)}
+.stripe-amber{border-top:3px solid var(--amber)}
+.stripe-green{border-top:3px solid var(--green)}
+.modules-table{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.module-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);transition:background .12s}
+.module-row:last-child{border-bottom:none}
+.module-row:hover{background:#f8fbfb}
+.module-name{font-size:14px;font-weight:800;margin-bottom:3px}
+.module-desc{font-size:12px;color:var(--muted);line-height:1.45}
+.module-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
+.module-stat{font-size:12px;color:var(--muted);text-align:right;max-width:220px}
+.open-link{font-size:12px;font-weight:800;color:var(--teal);white-space:nowrap}
 .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
 .good{background:#eaf7ef;color:var(--green)}
 .watch{background:#fff4df;color:var(--amber)}
@@ -52,27 +53,20 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .neu{background:#f1f5f9;color:#475569}
 .section-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .section-head h2{margin:0;font-size:16px;font-weight:800}
-.immutable-badge{display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:800;color:var(--muted)}
+.immutable-badge{display:inline-flex;align-items:center;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:800;color:var(--muted)}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px 12px;border-bottom:1px solid var(--line)}
 td{padding:12px 12px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px}
-.section-divider{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:8px}
-.metric-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
-.metric-val{font-size:2rem;font-weight:900;line-height:1;margin-bottom:4px}
-.metric-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:8px}
+.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:20px}
 .status-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
 .status-card h3{margin:0 0 14px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
 .stat-row:last-child{border-bottom:none}
 .stat-val{font-weight:800}
-.progress-bar{height:6px;background:var(--wash);border:1px solid var(--line);border-radius:3px;overflow:hidden;margin:6px 0 2px}
-.progress-fill{height:100%;border-radius:3px;transition:width .4s}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4,.col2{grid-template-columns:1fr}.page-header{display:block}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:repeat(2,1fr)}.page-header{display:block}.module-right{flex-direction:column;align-items:flex-end;gap:6px}}
 </style>
 </head>
 <body>
@@ -115,7 +109,7 @@ tbody tr:last-child td{border-bottom:none}
         <h1>Executive Dashboard</h1>
         <p class="subtitle" id="exec-updated">Platform health, risk posture, policy status, and control readiness at a glance.</p>
       </div>
-      <div class="acts"><button class="btn" onclick="refreshAll()">&#8635; Refresh</button></div>
+      <div><button class="btn" onclick="refreshAll()">&#8635; Refresh</button></div>
     </div>
 
     <!-- Metric cards -->
@@ -142,121 +136,92 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <!-- Section cards -->
-    <div class="grid col2 mb">
+    <!-- Module navigation -->
+    <div class="modules-table">
 
-      <!-- Platform & Access -->
-      <a class="section-card" href="platform.html">
+      <a class="module-row" href="platform.html">
         <div>
-          <div class="icon-wrap" style="background:#edf2ff">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <h2>Platform &amp; Access</h2>
-          <p>User accounts, org structure, role permissions, and the immutable audit trail.</p>
+          <div class="module-name">Platform &amp; Access</div>
+          <div class="module-desc">User accounts, org structure, role permissions, and the immutable audit trail.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-platform">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-platform">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
-      <!-- Risk & Vulnerability -->
-      <a class="section-card" href="risks.html">
+      <a class="module-row" href="risks.html">
         <div>
-          <div class="icon-wrap" style="background:#fdeceb">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </div>
-          <h2>Risk &amp; Vulnerability</h2>
-          <p>Enterprise risk register, vulnerability tracking, and treatment workflows.</p>
+          <div class="module-name">Risk &amp; Vulnerability</div>
+          <div class="module-desc">Enterprise risk register, vulnerability tracking, and treatment workflows.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-risks">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-risks">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
-      <!-- Governance & Policy -->
-      <a class="section-card" href="governance.html">
+      <a class="module-row" href="governance.html">
         <div>
-          <div class="icon-wrap" style="background:#fff4df">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <h2>Governance &amp; Policy</h2>
-          <p>Committee governance, policy lifecycle, and attestation management.</p>
+          <div class="module-name">Governance &amp; Policy</div>
+          <div class="module-desc">Committee governance, policy lifecycle, and attestation management.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-governance">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-governance">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
-      <!-- Compliance & Controls -->
-      <a class="section-card" href="controls.html">
+      <a class="module-row" href="controls.html">
         <div>
-          <div class="icon-wrap" style="background:#eaf5f3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-          </div>
-          <h2>Compliance &amp; Controls</h2>
-          <p>Control framework mappings, attestations, and compliance calendar.</p>
+          <div class="module-name">Compliance &amp; Controls</div>
+          <div class="module-desc">Control framework mappings, attestations, and compliance calendar.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-controls">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-controls">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
-      <!-- Audit & Evidence -->
-      <a class="section-card" href="evidence.html">
+      <a class="module-row" href="evidence.html">
         <div>
-          <div class="icon-wrap" style="background:#edf2ff">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          </div>
-          <h2>Audit &amp; Evidence</h2>
-          <p>Internal audit lifecycle, evidence locker, and observation management.</p>
+          <div class="module-name">Audit &amp; Evidence</div>
+          <div class="module-desc">Internal audit lifecycle, evidence locker, and observation management.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-evidence">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-evidence">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
-      <!-- Incidents & Awareness -->
-      <a class="section-card" href="incidents.html">
+      <a class="module-row" href="incidents.html">
         <div>
-          <div class="icon-wrap" style="background:#fdeceb">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
-          <h2>Incidents &amp; Awareness</h2>
-          <p>Incident classification, response workflows, RCA, and awareness campaigns.</p>
+          <div class="module-name">Incidents &amp; Awareness</div>
+          <div class="module-desc">Incident classification, response workflows, RCA, and awareness campaigns.</div>
         </div>
-        <div class="card-foot">
-          <span class="card-stat" id="sc-incidents">Loading…</span>
-          <span class="open-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <div class="module-right">
+          <div class="module-stat" id="sc-incidents">Loading…</div>
+          <span class="open-link">Open &rarr;</span>
         </div>
       </a>
 
     </div>
 
-    <div class="section-divider">Risk &amp; Vulnerability</div>
-    <div class="metrics-row">
-      <div class="metric-card"><div class="metric-val" id="ex-total-risks">—</div><div class="metric-label">Total Risks</div></div>
-      <div class="metric-card"><div class="metric-val" id="ex-open-risks" style="color:var(--red)">—</div><div class="metric-label">Open Risks</div><div class="metric-sub" id="ex-high-risks">— High</div></div>
-      <div class="metric-card"><div class="metric-val" id="ex-treated-risks" style="color:var(--green)">—</div><div class="metric-label">Treated</div></div>
-      <div class="metric-card"><div class="metric-val" id="ex-open-vulns" style="color:var(--amber)">—</div><div class="metric-label">Open Vulns</div><div class="metric-sub" id="ex-crit-vulns">— Critical</div></div>
-    </div>
-
-    <div class="section-divider">Compliance &amp; Controls</div>
-    <div class="metrics-row">
-      <div class="metric-card"><div class="metric-val" id="ex-total-controls">—</div><div class="metric-label">Total Controls</div></div>
-      <div class="metric-card"><div class="metric-val" id="ex-compliant" style="color:var(--green)">—</div><div class="metric-label">Compliant</div></div>
-      <div class="metric-card" style="grid-column:span 2">
-        <div class="metric-val" id="ex-compliance-pct">—%</div>
-        <div class="metric-label">Compliance Rate</div>
-        <div class="progress-bar"><div class="progress-fill" id="ex-compliance-bar" style="width:0%"></div></div>
+    <div class="status-grid" style="margin-top:4px">
+      <div class="status-card">
+        <h3>Risk &amp; Vulnerability</h3>
+        <div class="stat-row"><span>Total Risks</span><span class="stat-val" id="ex-total-risks">—</span></div>
+        <div class="stat-row"><span>Open</span><span class="stat-val" id="ex-open-risks" style="color:var(--red)">—</span></div>
+        <div class="stat-row"><span>High Severity</span><span class="stat-val" id="ex-high-risks" style="color:var(--amber)">—</span></div>
+        <div class="stat-row"><span>Open Vulnerabilities</span><span class="stat-val" id="ex-open-vulns" style="color:var(--amber)">—</span></div>
       </div>
-    </div>
-
-    <div class="status-grid" style="margin-top:16px">
+      <div class="status-card">
+        <h3>Compliance &amp; Controls</h3>
+        <div class="stat-row"><span>Total Controls</span><span class="stat-val" id="ex-total-controls">—</span></div>
+        <div class="stat-row"><span>Compliant</span><span class="stat-val" id="ex-compliant" style="color:var(--green)">—</span></div>
+        <div class="stat-row"><span>Compliance Rate</span><span class="stat-val" id="ex-compliance-pct" style="color:var(--teal)">—</span></div>
+        <div class="stat-row"><span>Treated Risks</span><span class="stat-val" id="ex-treated-risks" style="color:var(--green)">—</span></div>
+      </div>
       <div class="status-card">
         <h3>Audit &amp; Evidence</h3>
         <div class="stat-row"><span>Active Audits</span><span class="stat-val" id="ex-active-audits">—</span></div>
@@ -282,10 +247,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="card">
       <div class="section-head">
         <h2>Recent System Activity</h2>
-        <span class="immutable-badge">
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Immutable
-        </span>
+        <span class="immutable-badge">Immutable</span>
       </div>
       <div style="overflow-x:auto">
         <table>
@@ -312,7 +274,6 @@ tbody tr:last-child td{border-bottom:none}
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) { window.location.replace('../index.html'); }
 
-// Populate sidebar user info
 (function() {
   var n = localStorage.getItem('username') || '';
   var r = localStorage.getItem('role') || '';
@@ -343,10 +304,7 @@ function api(func, body, cb) {
     if (res.status === 401) { localStorage.clear(); window.location.replace('../index.html'); return null; }
     return res.json();
   })
-  .then(function(data) {
-    if (!data) return;
-    cb(null, data);
-  })
+  .then(function(data) { if (!data) return; cb(null, data); })
   .catch(function(e) { cb(e.message, null); });
 }
 
@@ -381,45 +339,37 @@ function loadMetrics() {
     var evidence = data.evidence_count != null ? data.evidence_count : '—';
     var activeUsers = data.active_users != null ? data.active_users : '—';
     var pendingUsers = data.pending_users != null ? data.pending_users : 0;
-    var controlsTotal = data.controls_total != null ? data.controls_total : '—';
     var controlsAttested = data.controls_attested != null ? data.controls_attested : '—';
     var openIncidents = data.open_incidents != null ? data.open_incidents : 0;
     var criticalIncidents = data.critical_incidents != null ? data.critical_incidents : 0;
 
-    // Metric cards
     setText('m-readiness', readiness !== '—' ? readiness + '%' : '—');
     setText('m-risks', openRisks);
     setHTML('m-risks-note', highRisks + ' high severity');
     setText('m-policies', policyTasks);
     setText('m-evidence', evidence);
 
-    // Platform & Access card
     var platformPill = pendingUsers > 0
       ? '<span class="pill watch">' + esc(pendingUsers) + ' Pending</span>'
       : '<span class="pill good">All Active</span>';
-    setHTML('sc-platform', '<strong>' + esc(activeUsers) + '</strong> active users &middot; <strong>' + esc(pendingUsers) + '</strong> pending &nbsp;' + platformPill);
+    setHTML('sc-platform', '<strong>' + esc(activeUsers) + '</strong> active &middot; <strong>' + esc(pendingUsers) + '</strong> pending &nbsp;' + platformPill);
 
-    // Risk & Vulnerability card
     var riskPill = highRisks > 0
       ? '<span class="pill risk">' + esc(highRisks) + ' High</span>'
       : '<span class="pill good">Managed</span>';
-    setHTML('sc-risks', '<strong>' + esc(openRisks) + '</strong> open risks &middot; <strong>' + esc(highRisks) + '</strong> high severity &nbsp;' + riskPill);
+    setHTML('sc-risks', '<strong>' + esc(openRisks) + '</strong> open &middot; <strong>' + esc(highRisks) + '</strong> high severity &nbsp;' + riskPill);
 
-    // Governance & Policy card
     var govPill = (policyTasks !== '—' && policyTasks > 0)
       ? '<span class="pill watch">' + esc(policyTasks) + ' Due</span>'
       : '<span class="pill good">Current</span>';
     setHTML('sc-governance', '<strong>' + esc(policiesTotal) + '</strong> total &middot; <strong>' + esc(policyTasks) + '</strong> under review &nbsp;' + govPill);
 
-    // Compliance & Controls card
     var ctrlPillClass = readiness !== '—' && readiness >= 80 ? 'good' : (readiness >= 50 ? 'watch' : 'risk');
     var ctrlPill = '<span class="pill ' + ctrlPillClass + '">' + esc(readiness !== '—' ? readiness + '%' : '—') + '</span>';
     setHTML('sc-controls', '<strong>' + esc(readiness !== '—' ? readiness + '%' : '—') + '</strong> readiness &middot; <strong>' + esc(controlsAttested) + '</strong> attested &nbsp;' + ctrlPill);
 
-    // Audit & Evidence card
     setHTML('sc-evidence', '<strong>' + esc(evidence) + '</strong> artifacts in evidence locker &nbsp;<span class="pill good">Secured</span>');
 
-    // Incidents & Awareness card
     var incPill = openIncidents > 0
       ? '<span class="pill risk">' + esc(openIncidents) + ' Open</span>'
       : '<span class="pill good">Clear</span>';
@@ -431,29 +381,19 @@ function loadActivity() {
   api('list_recent_activity', {}, function(err, data) {
     var tbody = document.getElementById('activity-tbody');
     if (!tbody) return;
-    if (err || !data || !data.events) {
+    if (err || !data || !data.events || !data.events.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No recent activity</td></tr>';
       return;
     }
-    var events = data.events;
-    if (!events.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No recent activity</td></tr>';
-      return;
-    }
-    var rows = events.map(function(ev) {
-      var ts = ev.timestamp ? esc(ev.timestamp) : '—';
-      var user = ev.username ? esc(ev.username) : '—';
+    tbody.innerHTML = data.events.map(function(ev) {
       var action = ev.audit_action || '—';
-      var cls = pillClass(action);
-      var details = (ev.details != null && ev.details !== '') ? esc(ev.details) : '—';
       return '<tr>' +
-        '<td class="mono">' + ts + '</td>' +
-        '<td>' + user + '</td>' +
-        '<td><span class="pill ' + cls + '">' + esc(action) + '</span></td>' +
-        '<td style="color:var(--muted)">' + details + '</td>' +
+        '<td class="mono">' + esc(ev.timestamp || '—') + '</td>' +
+        '<td>' + esc(ev.username || '—') + '</td>' +
+        '<td><span class="pill ' + pillClass(action) + '">' + esc(action) + '</span></td>' +
+        '<td style="color:var(--muted)">' + esc(ev.details || '—') + '</td>' +
         '</tr>';
     }).join('');
-    tbody.innerHTML = rows;
   });
 }
 
@@ -481,16 +421,12 @@ function loadExecutive() {
     if (err || !d || !d.success) return;
     setEx('ex-total-risks',    d.total_risks);
     setEx('ex-open-risks',     d.open_risks);
-    setEx('ex-high-risks',     (d.high_risks || 0) + ' High');
+    setEx('ex-high-risks',     d.high_risks || 0);
     setEx('ex-treated-risks',  d.treated_risks);
     setEx('ex-open-vulns',     d.open_vulns);
-    setEx('ex-crit-vulns',     (d.critical_vulns || 0) + ' Critical');
     setEx('ex-total-controls', d.total_controls);
     setEx('ex-compliant',      d.compliant_controls);
-    var pct = d.compliance_pct || 0;
-    setEx('ex-compliance-pct', pct, '%');
-    var bar = document.getElementById('ex-compliance-bar');
-    if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 80 ? 'var(--teal)' : pct >= 50 ? 'var(--amber)' : 'var(--red)'; }
+    setEx('ex-compliance-pct', (d.compliance_pct || 0), '%');
     setEx('ex-active-audits',  d.active_audits);
     setEx('ex-closed-audits',  d.closed_audits);
     setEx('ex-open-obs',       d.open_observations);
