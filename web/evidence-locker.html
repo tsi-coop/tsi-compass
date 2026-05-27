@@ -98,17 +98,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
-    <h2>Add Evidence Record</h2>
-    <div style="background:#fef3cd;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--amber)">Evidence records are metadata entries. Once added, records are locked and cannot be modified.</div>
-    <div class="form-row"><label>File Name</label><input id="add-fname" placeholder="e.g. access-control-policy-v2.pdf" required></div>
-    <div class="form-row"><label>File Path / Storage Reference</label><input id="add-fpath" placeholder="e.g. /evidence/2026/Q1/ or SharePoint URL" required></div>
-    <div class="form-row half">
-      <div><label>Linked Audit</label><select id="add-audit"><option value="">— None —</option></select></div>
-      <div><label>SHA-256 Checksum</label><input id="add-hash" placeholder="Leave blank if unknown" style="font-family:monospace;font-size:11px"></div>
-    </div>
+    <h2>Upload Evidence</h2>
+    <div style="background:#eaf5f3;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--teal)">File is uploaded to secure server storage. SHA-256 integrity checksum is computed automatically.</div>
+    <div class="form-row"><label>Evidence File</label><input type="file" id="add-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" required style="height:auto;padding:8px 10px"></div>
+    <div class="form-row"><label>Linked Audit</label><select id="add-audit"><option value="">— None —</option></select></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
-      <button class="btn primary" onclick="submitAdd()">Add &amp; Lock Record</button>
+      <button class="btn primary" onclick="submitAdd()">Upload &amp; Lock Record</button>
     </div>
   </div>
 </div>
@@ -142,7 +138,7 @@ function renderEvidence(list){
       '<td>'+esc(e.uploaded_at||'—')+'</td>'+
       '<td><span class="hash" title="'+esc(e.sha256_checksum)+'">'+esc(e.sha256_checksum||'—')+'</span></td>'+
       '<td>'+locked+'</td>'+
-      '<td><div class="row-actions">'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Delete</button>':'—')+'</div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="downloadEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Download</button>'+(isSuperAdmin?' <button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -175,7 +171,8 @@ function loadAll(){
 }
 
 function openAdd(){
-  ['add-fname','add-fpath','add-hash'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('add-file').value='';
+  document.getElementById('add-audit').selectedIndex=0;
   document.getElementById('modal-add').classList.add('open');
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -188,13 +185,33 @@ function deleteEvidence(id,fname){
   });
 }
 function submitAdd(){
-  var fname=document.getElementById('add-fname').value.trim();
-  var fpath=document.getElementById('add-fpath').value.trim();
-  if(!fname||!fpath){alert('File name and path are required.');return;}
-  var userId=localStorage.getItem('user_id')||null;
-  api('add_evidence',{file_name:fname,file_path:fpath,sha256_checksum:document.getElementById('add-hash').value||null,
-    uploaded_by:userId,audit_id:document.getElementById('add-audit').value||null},function(err){
-    if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Evidence record added');loadEvidence();
+  var fileInput=document.getElementById('add-file');
+  if(!fileInput.files.length){alert('Please select a file.');return;}
+  var file=fileInput.files[0];
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var userId=localStorage.getItem('user_id')||null;
+    api('add_evidence',{file_name:file.name,file_data:ev.target.result,
+      uploaded_by:userId,audit_id:document.getElementById('add-audit').value||null},function(err){
+      if(err){alert('Error: '+err);return;}
+      closeModal('modal-add');showToast('Evidence uploaded (SHA-256 verified)');loadEvidence();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function downloadEvidence(id,fname){
+  api('get_evidence_file',{id:id},function(err,d){
+    if(err){alert('Error: '+err);return;}
+    var binary=atob(d.file_data);
+    var bytes=new Uint8Array(binary.length);
+    for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    var blob=new Blob([bytes]);
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=d.file_name||fname;
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);URL.revokeObjectURL(url);
   });
 }
 

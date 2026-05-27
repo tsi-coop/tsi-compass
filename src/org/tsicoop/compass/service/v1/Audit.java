@@ -10,9 +10,23 @@ import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PoolDB;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
 import java.sql.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class Audit implements Action {
+
+    private static final Set<String> EVIDENCE_EXTENSIONS = new HashSet<>(Arrays.asList(
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".png", ".jpg", ".jpeg", ".zip", ".txt", ".csv"
+    ));
 
     @Override
     public void post(HttpServletRequest req, HttpServletResponse res) {
@@ -56,6 +70,9 @@ public class Audit implements Action {
                     break;
                 case "add_evidence":
                     OutputProcessor.send(res, 200, addEvidence(input));
+                    break;
+                case "get_evidence_file":
+                    OutputProcessor.send(res, 200, getEvidenceFile(input));
                     break;
                 case "delete_audit":
                     OutputProcessor.send(res, 200, deleteAudit(input, req));
@@ -651,16 +668,38 @@ public class Audit implements Action {
 
     @SuppressWarnings("unchecked")
     private JSONObject addEvidence(JSONObject input) throws Exception {
-        String fileName          = (String) input.get("file_name");
-        String filePath          = (String) input.get("file_path");
-        String checksum          = (String) input.get("sha256_checksum");
-        String timestampSig      = (String) input.get("timestamp_signature");
-        String uploadedBy        = (String) input.get("uploaded_by");
-        String auditId           = (String) input.get("audit_id");
-        if (isBlank(fileName) || isBlank(filePath))
-            throw new IllegalArgumentException("file_name and file_path are required");
-        if (isBlank(checksum))       checksum       = "unverified";
-        if (isBlank(timestampSig))   timestampSig   = "manual-upload";
+        String fileName   = (String) input.get("file_name");
+        String fileData   = (String) input.get("file_data");
+        String uploadedBy = (String) input.get("uploaded_by");
+        String auditId    = (String) input.get("audit_id");
+        if (isBlank(fileName) || isBlank(fileData))
+            throw new IllegalArgumentException("file_name and file_data are required");
+
+        String safeName = new File(fileName).getName();
+        int dotIdx = safeName.lastIndexOf('.');
+        String ext = dotIdx >= 0 ? safeName.substring(dotIdx).toLowerCase() : "";
+        if (!EVIDENCE_EXTENSIONS.contains(ext))
+            throw new IllegalArgumentException("File type not allowed: " + ext);
+
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes;
+        try { bytes = Base64.getDecoder().decode(raw.trim()); }
+        catch (Exception e) { throw new IllegalArgumentException("Invalid base64 content"); }
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(bytes);
+        StringBuilder hexSb = new StringBuilder();
+        for (byte b : hashBytes) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) hexSb.append('0'); hexSb.append(h); }
+        String checksum = hexSb.toString();
+
+        String uploadDir = System.getenv("TSI_EXPORT_PATH");
+        if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+        File dir = new File(uploadDir + "/evidence");
+        if (!dir.exists() && !dir.mkdirs())
+            throw new IOException("Cannot create evidence upload directory");
+        String storedName = UUID.randomUUID().toString() + ext;
+        File dest = new File(dir, storedName);
+        try (FileOutputStream fos = new FileOutputStream(dest)) { fos.write(bytes); }
 
         PoolDB pool = null;
         Connection conn = null;
@@ -672,17 +711,17 @@ public class Audit implements Action {
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(
                 "INSERT INTO evidence_locker (file_name, file_path, sha256_checksum, timestamp_signature, uploaded_by, audit_id) " +
-                "VALUES (?, ?, ?, ?, ?::uuid, ?::uuid) RETURNING id"
+                "VALUES (?, ?, ?, 'file-upload', ?::uuid, ?::uuid) RETURNING id"
             );
-            pstmt.setString(1, fileName);
-            pstmt.setString(2, filePath);
+            pstmt.setString(1, safeName);
+            pstmt.setString(2, dest.getAbsolutePath());
             pstmt.setString(3, checksum);
-            pstmt.setString(4, timestampSig);
-            pstmt.setString(5, isBlank(uploadedBy) ? null : uploadedBy);
-            pstmt.setString(6, isBlank(auditId)    ? null : auditId);
+            pstmt.setString(4, isBlank(uploadedBy) ? null : uploadedBy);
+            pstmt.setString(5, isBlank(auditId)    ? null : auditId);
             rs = pstmt.executeQuery();
             rs.next();
             result.put("id", rs.getString("id"));
+            result.put("sha256_checksum", checksum);
         } finally {
             if (pool != null) {
                 try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
@@ -690,6 +729,45 @@ public class Audit implements Action {
         }
         result.put("success", true);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getEvidenceFile(JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) throw new IllegalArgumentException("id is required");
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT file_name, file_path FROM evidence_locker WHERE id = ?::uuid"
+            );
+            pstmt.setString(1, id);
+            rs = pstmt.executeQuery();
+            if (!rs.next() || isBlank(rs.getString("file_path")))
+                throw new IllegalArgumentException("Evidence record not found");
+            String name = rs.getString("file_name");
+            String path = rs.getString("file_path");
+
+            File file = new File(path);
+            if (!file.exists() || !file.isFile())
+                throw new IllegalArgumentException("File not found on server");
+
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("file_name", name);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            return result;
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
     }
 
     // ── Delete (ADMIN only) ──────────────────────────────────────────────────
