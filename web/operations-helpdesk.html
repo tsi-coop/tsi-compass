@@ -80,10 +80,9 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Helpdesk Tickets</div>
     <div class="page-header">
       <div><div class="eyebrow">IT Operations</div><h1>Helpdesk Tickets</h1><p class="subtitle">Track and resolve IT support requests from staff.</p></div>
-      <div class="acts"><button class="btn primary" onclick="openAdd()">+ New Ticket</button></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Tickets</h2><span id="t-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="section-head"><h2>Tickets</h2><div style="display:flex;align-items:center;gap:12px"><span id="t-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ New Ticket</button></div></div>
       <div class="filter-bar">
         <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select>
         <select id="f-priority" onchange="applyFilters()"><option value="">All Priorities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
@@ -130,10 +129,25 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <h2>Import Helpdesk Tickets</h2>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import tickets. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
+    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
+    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-import')">Close</button>
+      <button class="btn primary" onclick="submitImport()">Import</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">Saved</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
 var state={tickets:[],staff:[]};
 
 function api(func,body,cb){
@@ -161,7 +175,7 @@ function renderTickets(list){
       '<td>'+esc(t.assigned_to_name||'Unassigned')+'</td>'+
       '<td>'+esc(t.asset_name||'—')+'</td>'+
       '<td>'+esc((t.created_at||'').substring(0,10))+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+t.id+'\')">Update</button></div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+t.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteTicket(\''+t.id+'\',\''+esc(t.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -219,6 +233,59 @@ function submitEdit(){
     priority:document.getElementById('edit-priority').value,
     assigned_to:document.getElementById('edit-assignee').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Updated');loadAll();
+  });
+}
+
+function downloadTemplate(){
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet([
+    ['Title','Description','Priority'],
+    ['VPN access issue','User unable to connect to VPN since last update','HIGH']
+  ]);
+  ws['!cols']=[{wch:32},{wch:50},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'Tickets');
+  var ref=XLSX.utils.aoa_to_sheet([
+    ['Column','Valid Values'],
+    ['Priority','CRITICAL, HIGH, MEDIUM, LOW (defaults to MEDIUM if blank)']
+  ]);
+  ref['!cols']=[{wch:12},{wch:54}];
+  XLSX.utils.book_append_sheet(wb,ref,'Reference');
+  XLSX.writeFile(wb,'helpdesk_tickets_template.xlsx');
+}
+function openImport(){
+  document.getElementById('import-file').value='';
+  document.getElementById('import-result').textContent='';
+  document.getElementById('import-result').style.color='var(--muted)';
+  document.getElementById('modal-import').classList.add('open');
+}
+function submitImport(){
+  var fi=document.getElementById('import-file');
+  if(!fi.files.length){alert('Please select a file.');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var data=XLSX.utils.sheet_to_json(ws);
+      if(!data.length){alert('No data rows found in the file.');return;}
+      var rows=data.map(function(r){return{title:String(r['Title']||'').trim(),description:String(r['Description']||'').trim(),priority:String(r['Priority']||'').trim()};}).filter(function(r){return r.title&&r.description;});
+      if(!rows.length){alert('No valid rows found. Title and Description columns must be filled.');return;}
+      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
+      api('import_tickets',{rows:rows},function(err,d){
+        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
+        el.style.color='var(--teal)';
+        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
+        loadAll();
+      });
+    }catch(ex){alert('Failed to parse file: '+ex.message);}
+  };
+  reader.readAsBinaryString(fi.files[0]);
+}
+
+function deleteTicket(id,title){
+  if(!confirm('Delete ticket "'+title+'"? This cannot be undone.'))return;
+  api('delete_ticket',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Ticket deleted');loadAll();
   });
 }
 

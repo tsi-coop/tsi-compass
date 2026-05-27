@@ -1,6 +1,7 @@
 package org.tsicoop.compass.service.v1;
 
 import org.tsicoop.compass.framework.Action;
+import org.tsicoop.compass.framework.EventLog;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PoolDB;
@@ -37,6 +38,14 @@ public class Operations implements Action {
                 case "add_ticket":         addTicket(req, res, input);                            break;
                 case "update_ticket":      updateTicket(req, res, input);                         break;
                 case "list_staff":         OutputProcessor.send(res, 200, listStaff());           break;
+                case "delete_change":      deleteChange(req, res, input);                         break;
+                case "delete_asset":       deleteAsset(req, res, input);                          break;
+                case "delete_vendor":      deleteVendor(req, res, input);                         break;
+                case "delete_ticket":      deleteTicket(req, res, input);                         break;
+                case "import_changes":     importChanges(req, res, input);                        break;
+                case "import_assets":      importAssets(req, res, input);                         break;
+                case "import_vendors":     importVendors(req, res, input);                        break;
+                case "import_tickets":     importTickets(req, res, input);                        break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -384,6 +393,228 @@ public class Operations implements Action {
             while (rs.next()) { JSONObject s=new JSONObject(); s.put("id",rs.getString(1)); s.put("username",rs.getString(2)); staff.add(s); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
         JSONObject result = new JSONObject(); result.put("success", true); result.put("staff", staff); return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteChange(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        if (!"ADMIN".equals(InputProcessor.getRole(req))) {
+            OutputProcessor.errorResponse(res, 403, "Forbidden", "Admin role required", req.getRequestURI()); return;
+        }
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title FROM change_requests WHERE id=?::uuid");
+            p.setString(1, id); rs = p.executeQuery();
+            String title = rs.next() ? rs.getString("title") : id;
+            pool.cleanup(rs, p, null); rs = null; p = null;
+            p = conn.prepareStatement("DELETE FROM change_requests WHERE id=?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject ctx = new JSONObject(); ctx.put("change_id", id); ctx.put("change_title", title);
+            EventLog.log(InputProcessor.getEmail(req), "CHANGE_REQUEST_DELETED", ctx.toJSONString());
+            JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteAsset(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        if (!"ADMIN".equals(InputProcessor.getRole(req))) {
+            OutputProcessor.errorResponse(res, 403, "Forbidden", "Admin role required", req.getRequestURI()); return;
+        }
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT name FROM assets WHERE id=?::uuid");
+            p.setString(1, id); rs = p.executeQuery();
+            String name = rs.next() ? rs.getString("name") : id;
+            pool.cleanup(rs, p, null); rs = null; p = null;
+            p = conn.prepareStatement("DELETE FROM assets WHERE id=?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject ctx = new JSONObject(); ctx.put("asset_id", id); ctx.put("asset_name", name);
+            EventLog.log(InputProcessor.getEmail(req), "ASSET_DELETED", ctx.toJSONString());
+            JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteVendor(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        if (!"ADMIN".equals(InputProcessor.getRole(req))) {
+            OutputProcessor.errorResponse(res, 403, "Forbidden", "Admin role required", req.getRequestURI()); return;
+        }
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT name FROM vendors WHERE id=?::uuid");
+            p.setString(1, id); rs = p.executeQuery();
+            String name = rs.next() ? rs.getString("name") : id;
+            pool.cleanup(rs, p, null); rs = null; p = null;
+            p = conn.prepareStatement("DELETE FROM vendors WHERE id=?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject ctx = new JSONObject(); ctx.put("vendor_id", id); ctx.put("vendor_name", name);
+            EventLog.log(InputProcessor.getEmail(req), "VENDOR_DELETED", ctx.toJSONString());
+            JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        if (!"ADMIN".equals(InputProcessor.getRole(req))) {
+            OutputProcessor.errorResponse(res, 403, "Forbidden", "Admin role required", req.getRequestURI()); return;
+        }
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title FROM helpdesk_tickets WHERE id=?::uuid");
+            p.setString(1, id); rs = p.executeQuery();
+            String title = rs.next() ? rs.getString("title") : id;
+            pool.cleanup(rs, p, null); rs = null; p = null;
+            p = conn.prepareStatement("DELETE FROM helpdesk_tickets WHERE id=?::uuid");
+            p.setString(1, id); p.executeUpdate();
+            JSONObject ctx = new JSONObject(); ctx.put("ticket_id", id); ctx.put("ticket_title", title);
+            EventLog.log(InputProcessor.getEmail(req), "TICKET_DELETED", ctx.toJSONString());
+            JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void importChanges(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray rows = (JSONArray) input.get("rows");
+        if (rows == null || rows.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        int imported = 0; JSONArray errors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("INSERT INTO change_requests (title, description, stage, status) VALUES (?, ?, ?, ?)");
+            for (Object obj : rows) {
+                JSONObject row = (JSONObject) obj;
+                String title = strVal(row, "title"); String desc = strVal(row, "description");
+                if (isBlank(title) || isBlank(desc)) { errors.add("Row skipped: title and description required"); continue; }
+                String stage = strVal(row, "stage"); String status = strVal(row, "status");
+                try {
+                    p.setString(1, title); p.setString(2, desc);
+                    p.setString(3, isBlank(stage)  ? "BRD"   : stage.toUpperCase());
+                    p.setString(4, isBlank(status) ? "DRAFT" : status.toUpperCase());
+                    p.executeUpdate(); imported++;
+                } catch (Exception ex) { errors.add("Row '"+title+"': "+ex.getMessage()); }
+            }
+            EventLog.log(InputProcessor.getEmail(req), "CHANGES_IMPORTED", "{\"count\":"+imported+"}");
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("imported", (long) imported); result.put("errors", errors);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void importAssets(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray rows = (JSONArray) input.get("rows");
+        if (rows == null || rows.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        int imported = 0; JSONArray errors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO assets (name, category, criticality, description, patch_status, lifecycle_status) VALUES (?, ?, ?, ?, ?, ?)"
+            );
+            for (Object obj : rows) {
+                JSONObject row = (JSONObject) obj;
+                String name = strVal(row, "name"); String cat = strVal(row, "category"); String crit = strVal(row, "criticality");
+                if (isBlank(name) || isBlank(cat) || isBlank(crit)) { errors.add("Row skipped: name, category and criticality required"); continue; }
+                try {
+                    p.setString(1, name); p.setString(2, cat.toUpperCase()); p.setString(3, crit.toUpperCase());
+                    p.setString(4, strVal(row, "description"));
+                    String ps = strVal(row, "patch_status");
+                    p.setString(5, isBlank(ps) ? "CURRENT" : ps.toUpperCase());
+                    String ls = strVal(row, "lifecycle_status");
+                    p.setString(6, isBlank(ls) ? "ACTIVE" : ls.toUpperCase());
+                    p.executeUpdate(); imported++;
+                } catch (Exception ex) { errors.add("Row '"+name+"': "+ex.getMessage()); }
+            }
+            EventLog.log(InputProcessor.getEmail(req), "ASSETS_IMPORTED", "{\"count\":"+imported+"}");
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("imported", (long) imported); result.put("errors", errors);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void importVendors(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray rows = (JSONArray) input.get("rows");
+        if (rows == null || rows.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        int imported = 0; JSONArray errors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO vendors (name, agreement_details, license_expiry, baseline_risk_score, security_questionnaire_status) VALUES (?, ?, ?::date, ?, ?)"
+            );
+            for (Object obj : rows) {
+                JSONObject row = (JSONObject) obj;
+                String name = strVal(row, "name");
+                if (isBlank(name)) { errors.add("Row skipped: name required"); continue; }
+                try {
+                    p.setString(1, name); p.setString(2, strVal(row, "agreement_details"));
+                    String exp = strVal(row, "license_expiry"); p.setString(3, isBlank(exp) ? null : exp);
+                    Object scoreObj = row.get("baseline_risk_score");
+                    String scoreStr = scoreObj != null ? scoreObj.toString().trim() : "";
+                    if (!scoreStr.isEmpty()) { p.setInt(4, (int) Double.parseDouble(scoreStr)); }
+                    else { p.setNull(4, Types.INTEGER); }
+                    String qs = strVal(row, "security_questionnaire_status");
+                    p.setString(5, isBlank(qs) ? null : qs.toUpperCase());
+                    p.executeUpdate(); imported++;
+                } catch (Exception ex) { errors.add("Row '"+name+"': "+ex.getMessage()); }
+            }
+            EventLog.log(InputProcessor.getEmail(req), "VENDORS_IMPORTED", "{\"count\":"+imported+"}");
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("imported", (long) imported); result.put("errors", errors);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void importTickets(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        JSONArray rows = (JSONArray) input.get("rows");
+        if (rows == null || rows.isEmpty()) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        int imported = 0; JSONArray errors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title, description, priority) VALUES (?, ?, ?)");
+            for (Object obj : rows) {
+                JSONObject row = (JSONObject) obj;
+                String title = strVal(row, "title"); String desc = strVal(row, "description");
+                if (isBlank(title) || isBlank(desc)) { errors.add("Row skipped: title and description required"); continue; }
+                try {
+                    p.setString(1, title); p.setString(2, desc);
+                    String prio = strVal(row, "priority");
+                    p.setString(3, isBlank(prio) ? "MEDIUM" : prio.toUpperCase());
+                    p.executeUpdate(); imported++;
+                } catch (Exception ex) { errors.add("Row '"+title+"': "+ex.getMessage()); }
+            }
+            EventLog.log(InputProcessor.getEmail(req), "TICKETS_IMPORTED", "{\"count\":"+imported+"}");
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("imported", (long) imported); result.put("errors", errors);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+    }
+
+    private String strVal(JSONObject obj, String key) {
+        Object v = obj.get(key);
+        return v == null ? null : v.toString().trim();
     }
 
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }

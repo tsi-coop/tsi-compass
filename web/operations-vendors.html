@@ -76,10 +76,9 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Vendor Register</div>
     <div class="page-header">
       <div><div class="eyebrow">IT Operations</div><h1>Vendor Register</h1><p class="subtitle">Track vendors, agreement details, license expiry, security questionnaire status, and risk scores.</p></div>
-      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Add Vendor</button></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Vendors</h2><span id="vnd-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="section-head"><h2>Vendors</h2><div style="display:flex;align-items:center;gap:12px"><span id="vnd-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Vendor</button></div></div>
       <div class="filter-bar">
         <select id="f-due" onchange="applyFilters()"><option value="">All Vendors</option><option value="1">Review Due (90 days)</option></select>
         <select id="f-qs" onchange="applyFilters()"><option value="">All Questionnaire Statuses</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
@@ -131,10 +130,25 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <h2>Import Vendor Register</h2>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import vendors. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
+    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
+    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-import')">Close</button>
+      <button class="btn primary" onclick="submitImport()">Import</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">Saved</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
 var state={vendors:[]};
 
 function api(func,body,cb){
@@ -166,7 +180,7 @@ function renderVendors(list){
       '<td style="font-size:16px;font-weight:900;color:'+riskColor(v.baseline_risk_score)+'">'+esc(v.baseline_risk_score||'—')+'</td>'+
       '<td>'+(QS_PILL[v.security_questionnaire_status]||'<span class="pill neu">—</span>')+'</td>'+
       '<td>'+duePill+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button></div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVendor(\''+v.id+'\',\''+esc(v.name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -219,6 +233,67 @@ function submitEdit(){
     baseline_risk_score:document.getElementById('edit-risk').value?parseInt(document.getElementById('edit-risk').value):null,
     security_questionnaire_status:document.getElementById('edit-qs').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Vendor updated');loadAll();
+  });
+}
+
+function downloadTemplate(){
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet([
+    ['Name','Agreement Details','License Expiry','Baseline Risk Score','Security Questionnaire Status'],
+    ['Acme Corp','Annual SLA agreement','2026-12-31','8','EVALUATED']
+  ]);
+  ws['!cols']=[{wch:28},{wch:36},{wch:18},{wch:22},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,'Vendors');
+  var ref=XLSX.utils.aoa_to_sheet([
+    ['Column','Notes'],
+    ['License Expiry','Format: YYYY-MM-DD (e.g. 2026-06-30)'],
+    ['Baseline Risk Score','Number from 1 (lowest) to 25 (highest)'],
+    ['Security Questionnaire Status','SENT, RECEIVED, EVALUATED, NOT_APPLICABLE']
+  ]);
+  ref['!cols']=[{wch:28},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ref,'Reference');
+  XLSX.writeFile(wb,'vendor_register_template.xlsx');
+}
+function openImport(){
+  document.getElementById('import-file').value='';
+  document.getElementById('import-result').textContent='';
+  document.getElementById('import-result').style.color='var(--muted)';
+  document.getElementById('modal-import').classList.add('open');
+}
+function submitImport(){
+  var fi=document.getElementById('import-file');
+  if(!fi.files.length){alert('Please select a file.');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var data=XLSX.utils.sheet_to_json(ws);
+      if(!data.length){alert('No data rows found in the file.');return;}
+      var rows=data.map(function(r){
+        var exp=r['License Expiry'];
+        var expStr='';
+        if(exp instanceof Date){expStr=exp.toISOString().substring(0,10);}
+        else if(exp){expStr=String(exp).trim();}
+        return{name:String(r['Name']||'').trim(),agreement_details:String(r['Agreement Details']||'').trim(),license_expiry:expStr||null,baseline_risk_score:r['Baseline Risk Score']!=null?r['Baseline Risk Score']:null,security_questionnaire_status:String(r['Security Questionnaire Status']||'').trim()};
+      }).filter(function(r){return r.name;});
+      if(!rows.length){alert('No valid rows found. Name column must be filled.');return;}
+      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
+      api('import_vendors',{rows:rows},function(err,d){
+        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
+        el.style.color='var(--teal)';
+        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
+        loadAll();
+      });
+    }catch(ex){alert('Failed to parse file: '+ex.message);}
+  };
+  reader.readAsBinaryString(fi.files[0]);
+}
+
+function deleteVendor(id,name){
+  if(!confirm('Delete vendor "'+name+'"? This cannot be undone.'))return;
+  api('delete_vendor',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Vendor deleted');loadAll();
   });
 }
 
