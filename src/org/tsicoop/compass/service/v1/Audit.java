@@ -83,6 +83,9 @@ public class Audit implements Action {
                 case "delete_evidence":
                     OutputProcessor.send(res, 200, deleteEvidence(input, req));
                     break;
+                case "import_observations":
+                    OutputProcessor.send(res, 200, importObservations(input, req));
+                    break;
                 case "list_staff":
                     OutputProcessor.send(res, 200, listStaff());
                     break;
@@ -1035,6 +1038,65 @@ public class Audit implements Action {
         result.put("success", true);
         result.put("risks",   list);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject importObservations(JSONObject input, HttpServletRequest req) throws Exception {
+        JSONArray rows = (JSONArray) input.get("rows");
+        if (rows == null || rows.isEmpty())
+            throw new IllegalArgumentException("rows array required");
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        int imported = 0; JSONArray errors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO audit_observations (audit_id, title, description, priority) " +
+                "VALUES (?::uuid, ?, ?, ?)"
+            );
+            for (Object obj : rows) {
+                JSONObject row = (JSONObject) obj;
+                String title    = strVal(row, "title");
+                String priority = strVal(row, "priority");
+                if (isBlank(title)) { errors.add("Row skipped: title required"); continue; }
+
+                String auditTitle      = strVal(row, "audit_title");
+                String resolvedAuditId = null;
+                if (!isBlank(auditTitle)) {
+                    PreparedStatement pa = null; ResultSet ra = null;
+                    try {
+                        pa = conn.prepareStatement("SELECT id::text FROM audits WHERE title ILIKE ? LIMIT 1");
+                        pa.setString(1, auditTitle); ra = pa.executeQuery();
+                        if (ra.next()) resolvedAuditId = ra.getString(1);
+                    } finally {
+                        if (ra != null) try { ra.close(); } catch (Exception ignored) {}
+                        if (pa != null) try { pa.close(); } catch (Exception ignored) {}
+                    }
+                }
+
+                try {
+                    p.setString(1, resolvedAuditId);
+                    p.setString(2, title);
+                    p.setString(3, strVal(row, "description"));
+                    p.setString(4, isBlank(priority) ? "MEDIUM" : priority.toUpperCase());
+                    p.executeUpdate(); imported++;
+                } catch (Exception ex) { errors.add("Row '" + title + "': " + ex.getMessage()); }
+            }
+            JSONObject ctx = new JSONObject(); ctx.put("count", (long) imported);
+            EventLog.log(InputProcessor.getEmail(req), "OBSERVATIONS_IMPORTED", ctx.toJSONString());
+        } finally {
+            if (pool != null) try { pool.cleanup(null, p, conn); } catch (Exception ignored) {}
+        }
+        JSONObject result = new JSONObject();
+        result.put("success",  true);
+        result.put("imported", (long) imported);
+        result.put("errors",   errors);
+        return result;
+    }
+
+    private String strVal(JSONObject obj, String key) {
+        Object v = obj.get(key);
+        return v == null ? null : v.toString().trim();
     }
 
     private boolean isBlank(String s) {
