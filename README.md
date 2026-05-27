@@ -28,18 +28,6 @@ TSI Compass is a self-hosted Governance, Risk & Compliance (GRC) tool built for 
 
 ---
 
-## Tech stack
-
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Java 17, Jakarta Servlet, Jetty 11 |
-| Database | PostgreSQL 15 |
-| Connection pool | Apache Commons DBCP2 |
-| Password hashing | BCrypt (12 rounds) |
-| Frontend | Vanilla HTML/CSS/JS (no framework, no build step) |
-
----
-
 ## Quick start
 
 **Prerequisites:** Docker and Docker Compose.
