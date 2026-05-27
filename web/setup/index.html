@@ -66,40 +66,42 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
       <h2>Welcome to TSI Compass</h2>
       <p class="sub">Set up your organisation to get started. This creates your Head Office and the first administrator account.</p>
 
-      <div class="field" id="f-org-name">
-        <label>Organisation Name</label>
-        <input type="text" id="org-name" placeholder="e.g. Acme Financial Services Ltd" autocomplete="organization">
-        <div class="err-msg">Organisation name is required.</div>
-      </div>
-
-      <div class="field" id="f-admin-name">
-        <label>Admin Name</label>
-        <input type="text" id="admin-name" placeholder="e.g. Priya Mendis" autocomplete="name">
-        <div class="err-msg">Admin name is required.</div>
-      </div>
-
-      <div class="field" id="f-admin-email">
-        <label>Admin Email</label>
-        <input type="email" id="admin-email" placeholder="e.g. priya.mendis@example.com" autocomplete="email">
-        <div class="err-msg">A valid email address is required.</div>
-      </div>
-
-      <div class="row2">
-        <div class="field" id="f-admin-pwd">
-          <label>Password</label>
-          <input type="password" id="admin-pwd" placeholder="Min. 10 characters" autocomplete="new-password">
-          <div class="err-msg">Password must be at least 10 characters.</div>
+      <form onsubmit="submitSetup();return false;">
+        <div class="field" id="f-org-name">
+          <label>Organisation Name</label>
+          <input type="text" id="org-name" placeholder="e.g. Acme Financial Services Ltd" autocomplete="organization">
+          <div class="err-msg">Organisation name is required.</div>
         </div>
-        <div class="field" id="f-admin-pwd2">
-          <label>Confirm Password</label>
-          <input type="password" id="admin-pwd2" placeholder="Re-enter password" autocomplete="new-password">
-          <div class="err-msg">Passwords do not match.</div>
-        </div>
-      </div>
 
-      <div class="btn-row">
-        <button class="btn primary" id="submit-btn" onclick="submitSetup()">Complete Setup →</button>
-      </div>
+        <div class="field" id="f-admin-name">
+          <label>Admin Name</label>
+          <input type="text" id="admin-name" placeholder="e.g. Priya Mendis" autocomplete="name">
+          <div class="err-msg">Admin name is required.</div>
+        </div>
+
+        <div class="field" id="f-admin-email">
+          <label>Admin Email</label>
+          <input type="email" id="admin-email" placeholder="e.g. priya.mendis@example.com" autocomplete="email">
+          <div class="err-msg">A valid email address is required.</div>
+        </div>
+
+        <div class="row2">
+          <div class="field" id="f-admin-pwd">
+            <label>Password</label>
+            <input type="password" id="admin-pwd" placeholder="Min. 10 characters" autocomplete="new-password">
+            <div class="err-msg">Password must be at least 10 characters.</div>
+          </div>
+          <div class="field" id="f-admin-pwd2">
+            <label>Confirm Password</label>
+            <input type="password" id="admin-pwd2" placeholder="Re-enter password" autocomplete="new-password">
+            <div class="err-msg">Passwords do not match.</div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn primary" id="submit-btn">Complete Setup →</button>
+        </div>
+      </form>
     </div>
   </div>
 

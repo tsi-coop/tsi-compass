@@ -91,6 +91,7 @@ tr:last-child td{border-bottom:none}
       <a href="platform-users.html" class="subnav active">User Management</a>
       <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
+      <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
@@ -169,10 +170,10 @@ tr:last-child td{border-bottom:none}
       </div>
       <table>
         <thead>
-          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th></th></tr>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Recovery Key</th><th></th></tr>
         </thead>
         <tbody id="users-tbody">
-          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
         </tbody>
       </table>
     </div>
@@ -275,6 +276,36 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Modal: Set Recovery Key (generate + reveal) -->
+<div id="modal-set-key" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Set Recovery Key</h2><button class="modal-close" onclick="closeModal('modal-set-key')">&#x2715;</button></div>
+    <div id="set-key-form">
+      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Generate a 5-word recovery passphrase for <strong id="set-key-username">this user</strong>. The passphrase will be shown once — give it to the user to store securely offline.</p>
+      <div class="modal-footer">
+        <button type="button" class="cancel-btn" onclick="closeModal('modal-set-key')">Cancel</button>
+        <button type="button" class="btn primary" id="gen-key-btn" onclick="generateRecoveryKey()">Generate &amp; Set Key</button>
+      </div>
+    </div>
+    <div id="set-key-reveal" style="display:none">
+      <div style="background:#fff4df;border:1px solid #f6c660;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#7c5200;line-height:1.5">
+        <strong style="display:block;margin-bottom:3px">Copy this passphrase now — it will not be shown again.</strong>
+        Give it to the user to store securely. They will enter it on the password recovery page.
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Recovery Passphrase</div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="reveal-passphrase" readonly style="flex:1;height:36px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:0 10px;font-family:ui-monospace,monospace;background:var(--wash);color:var(--ink)">
+          <button onclick="copyPassphrase()" style="height:36px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--teal)">Copy</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn primary" onclick="closeKeyReveal()">I have copied the passphrase</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Deactivate User -->
 <div id="modal-deactivate-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-deactivate-user')">
   <div class="modal-box">
@@ -297,6 +328,7 @@ tr:last-child td{border-bottom:none}
     </form>
   </div>
 </div>
+
 
 <script src="rbac.js"></script>
 <script>
@@ -442,7 +474,7 @@ function loadUsers() {
     if (err) {
       showToast('Failed to load users: ' + err, true);
       document.getElementById('users-tbody').innerHTML =
-        '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error loading users.</td></tr>';
+        '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">Error loading users.</td></tr>';
       return;
     }
     state.users = data.users || [];
@@ -464,8 +496,9 @@ function renderUsers(users) {
 
   // Render main table (all users)
   var tbody = document.getElementById('users-tbody');
+  var isAdmin = (localStorage.getItem('role') === 'ADMIN');
   if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
   } else {
     tbody.innerHTML = users.map(function(u) {
       var name = esc(u.username || u.email);
@@ -473,6 +506,9 @@ function renderUsers(users) {
       var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
       var roleLabel = esc(ROLES[u.role] || u.role || '—');
       var deptLabel = esc(u.department_name || '—');
+      var keyCell = isAdmin
+        ? '<button class="tbl-action" onclick="openSetKeyModal(\'' + esc(u.id) + '\',\'' + esc(u.username || u.email) + '\')">Set Key</button>'
+        : '<span style="color:var(--muted);font-size:11px">—</span>';
       var actions = '';
       if (u.status === 'SUSPENDED') {
         actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
@@ -487,6 +523,7 @@ function renderUsers(users) {
         '<td>' + roleLabel + '</td>' +
         '<td>' + deptLabel + '</td>' +
         '<td>' + statusPill(u.status) + '</td>' +
+        '<td>' + keyCell + '</td>' +
         '<td>' + actions + '</td>' +
         '</tr>';
     }).join('');
@@ -632,6 +669,46 @@ document.getElementById('form-reset-pwd').addEventListener('submit', function(e)
     showToast('Password reset successfully.');
   });
 });
+
+// Recovery key
+var setKeyUserId = null;
+
+window.openSetKeyModal = function(id, name) {
+  setKeyUserId = id;
+  document.getElementById('set-key-username').textContent = name;
+  document.getElementById('set-key-form').style.display = '';
+  document.getElementById('set-key-reveal').style.display = 'none';
+  document.getElementById('reveal-passphrase').value = '';
+  openModal('modal-set-key');
+};
+
+window.generateRecoveryKey = function() {
+  var btn = document.getElementById('gen-key-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  api('set_recovery_key', { id: setKeyUserId }, function(err, data) {
+    btn.disabled = false;
+    btn.textContent = 'Generate & Set Key';
+    if (err) { showToast('Failed to set recovery key: ' + err, true); return; }
+    document.getElementById('reveal-passphrase').value = data.passphrase;
+    document.getElementById('set-key-form').style.display = 'none';
+    document.getElementById('set-key-reveal').style.display = '';
+  });
+};
+
+window.closeKeyReveal = function() {
+  document.getElementById('reveal-passphrase').value = '';
+  closeModal('modal-set-key');
+};
+
+window.copyPassphrase = function() {
+  var el = document.getElementById('reveal-passphrase');
+  try { el.select(); document.execCommand('copy'); } catch(e) {
+    if (navigator.clipboard) navigator.clipboard.writeText(el.value);
+  }
+  showToast('Passphrase copied to clipboard.');
+};
 
 // Filter change handlers
 document.getElementById('f-dept').addEventListener('change', loadUsers);

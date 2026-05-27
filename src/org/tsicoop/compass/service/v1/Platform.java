@@ -50,6 +50,9 @@ public class Platform implements Action {
                 case "reset_user_password":
                     resetUserPassword(req, res, input);
                     break;
+                case "set_recovery_key":
+                    setRecoveryKey(req, res, input);
+                    break;
                 case "list_organizations":
                     OutputProcessor.send(res, 200, listOrganizations());
                     break;
@@ -484,6 +487,68 @@ public class Platform implements Action {
                 try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
             }
         }
+    }
+
+    private static final String[] WORD_LIST = {
+        "amber","apple","arrow","atlas","azure","badge","basin","batch","birch","blade",
+        "blaze","bloom","board","brake","brave","bravo","brick","bridge","brook","brush",
+        "cabin","cable","cedar","chalk","chase","chess","chief","chisel","chord","civic",
+        "clamp","cloak","cloud","coast","comet","coral","crest","crisp","crown","curve",
+        "delta","depot","depot","drift","dune","eagle","ember","epoch","fable","falcon",
+        "fence","field","fjord","flame","flare","fleet","flint","flora","flume","focal",
+        "forge","forte","frost","funnel","gable","glade","gleam","globe","gloom","grain",
+        "grand","grant","graph","gravel","grove","guide","guild","guile","haven","hawk",
+        "heath","hedge","herald","hinge","holly","honor","hyena","index","inlet","ivory",
+        "jade","jaguar","jewel","joint","joust","karma","kayak","kestrel","knoll","larch"
+    };
+
+    @SuppressWarnings("unchecked")
+    private void setRecoveryKey(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        if (!"ADMIN".equals(InputProcessor.getRole(req))) {
+            OutputProcessor.errorResponse(res, 403, "Forbidden", "ADMIN role required", req.getRequestURI());
+            return;
+        }
+        String userId = (String) input.get("id");
+        if (isBlank(userId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        java.util.Random rng = new java.util.Random();
+        String[] words = new String[5];
+        for (int i = 0; i < 5; i++) {
+            words[i] = WORD_LIST[rng.nextInt(WORD_LIST.length)];
+        }
+        String passphrase = String.join("-", words);
+        String keyHash = sha256hex(passphrase);
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement("UPDATE users SET recovery_key_hash = ? WHERE id = ?");
+            pstmt.setString(1, keyHash);
+            pstmt.setObject(2, java.util.UUID.fromString(userId));
+            pstmt.executeUpdate();
+        } finally {
+            if (pool != null) pool.cleanup(null, pstmt, conn);
+        }
+
+        JSONObject ctx = new JSONObject();
+        ctx.put("user_id", userId);
+        EventLog.log(InputProcessor.getEmail(req), "USER_RECOVERY_KEY_SET", ctx.toJSONString());
+
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("passphrase", passphrase);
+        OutputProcessor.send(res, 200, result);
+    }
+
+    private static String sha256hex(String input) throws Exception {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) sb.append('0'); sb.append(h); }
+        return sb.toString();
     }
 
     // -------------------------------------------------------------------------
