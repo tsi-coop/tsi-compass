@@ -671,10 +671,11 @@ public class Audit implements Action {
 
     @SuppressWarnings("unchecked")
     private JSONObject addEvidence(JSONObject input) throws Exception {
-        String fileName   = (String) input.get("file_name");
-        String fileData   = (String) input.get("file_data");
-        String uploadedBy = (String) input.get("uploaded_by");
-        String auditId    = (String) input.get("audit_id");
+        String fileName            = (String) input.get("file_name");
+        String fileData            = (String) input.get("file_data");
+        String uploadedBy          = (String) input.get("uploaded_by");
+        String auditId             = (String) input.get("audit_id");
+        String controlAttestationId = (String) input.get("control_attestation_id");
         if (isBlank(fileName) || isBlank(fileData))
             throw new IllegalArgumentException("file_name and file_data are required");
 
@@ -713,14 +714,15 @@ public class Audit implements Action {
             pool = new PoolDB();
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(
-                "INSERT INTO evidence_locker (file_name, file_path, sha256_checksum, timestamp_signature, uploaded_by, audit_id) " +
-                "VALUES (?, ?, ?, 'file-upload', ?::uuid, ?::uuid) RETURNING id"
+                "INSERT INTO evidence_locker (file_name, file_path, sha256_checksum, timestamp_signature, uploaded_by, audit_id, control_attestation_id) " +
+                "VALUES (?, ?, ?, 'file-upload', ?::uuid, ?::uuid, ?::uuid) RETURNING id"
             );
             pstmt.setString(1, safeName);
             pstmt.setString(2, dest.getAbsolutePath());
             pstmt.setString(3, checksum);
-            pstmt.setString(4, isBlank(uploadedBy) ? null : uploadedBy);
-            pstmt.setString(5, isBlank(auditId)    ? null : auditId);
+            pstmt.setString(4, isBlank(uploadedBy)             ? null : uploadedBy);
+            pstmt.setString(5, isBlank(auditId)                ? null : auditId);
+            pstmt.setString(6, isBlank(controlAttestationId)   ? null : controlAttestationId);
             rs = pstmt.executeQuery();
             rs.next();
             result.put("id", rs.getString("id"));

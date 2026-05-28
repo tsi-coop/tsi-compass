@@ -11,6 +11,13 @@ ENV JETTY_RUN=/tmp/jetty
 
 RUN java -jar "$JETTY_HOME/start.jar" --add-modules=http,jdbc,jndi,deploy
 
+RUN mkdir -p /var/lib/tsi-compass/exports/evidence \
+             /var/lib/tsi-compass/exports/policies \
+             /var/lib/tsi-compass/exports/incident_docs \
+             /var/lib/tsi-compass/exports/kb_docs \
+             /var/lib/tsi-compass/exports/campaign_docs \
+    && chown -R jetty:jetty /var/lib/tsi-compass
+
 # Switch to the 'jetty' user
 USER jetty
 

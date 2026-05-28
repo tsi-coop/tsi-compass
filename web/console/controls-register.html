@@ -193,11 +193,36 @@ tr:hover td{background:#fafcfd}
         </div>
         <div><label>Next Due Date</label><input id="attest-due" type="date"></div>
       </div>
-      <div class="form-row"><label>Evidence Link / File Reference</label><input id="attest-evidence" placeholder="e.g. EVD-042 or file URL"></div>
+      <div class="form-row"><label>Evidence File <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — PDF, image, or document)</span></label><input type="file" id="attest-evidence-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.txt,.csv"></div>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attest Modal -->
+<div class="modal-overlay" id="modal-attest" onclick="if(event.target===this)closeModal('modal-attest')">
+  <div class="modal">
+    <h2>Record Attestation</h2>
+    <input type="hidden" id="attest-control-id">
+    <div style="font-size:13px;color:var(--muted);margin:-12px 0 20px;font-weight:600" id="attest-control-label"></div>
+    <div class="form-row half">
+      <div><label>Attestation Status</label>
+        <select id="attest-modal-status">
+          <option value="">— Select status —</option>
+          <option value="COMPLIANT">Compliant</option>
+          <option value="NON_COMPLIANT">Non-Compliant</option>
+          <option value="PENDING">Pending Review</option>
+        </select>
+      </div>
+      <div><label>Next Due Date</label><input id="attest-modal-due" type="date"></div>
+    </div>
+    <div class="form-row"><label>Evidence File <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — PDF, image, or document)</span></label><input type="file" id="attest-modal-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.txt,.csv"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-attest')">Cancel</button>
+      <button class="btn primary" id="attest-modal-submit" onclick="submitAttest()">Record Attestation</button>
     </div>
   </div>
 </div>
@@ -250,6 +275,18 @@ function api(func, body, cb) {
   .catch(function(e){cb(e.message||'Network error',null);});
 }
 
+function apiAudit(func, body, cb) {
+  fetch('/api/v1/audit', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(Object.assign({_func:func}, body||{}))
+  }).then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}
+    return r.json();
+  }).then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message||'Network error',null);});
+}
+
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 var ATTEST_PILL = {
@@ -276,6 +313,7 @@ function renderControls(list) {
       '<td>'+esc(c.frequency)+'</td>'+
       '<td>'+pill+'</td>'+
       '<td><div class="row-actions">'+
+        '<button class="btn sm primary" onclick="openAttest(\''+c.id+'\')">Attest</button>'+
         '<button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+
         (isAdmin ? '<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteControl(\''+c.id+'\')">Delete</button>' : '')+
       '</div></td>'+
@@ -342,10 +380,56 @@ function openEdit(id) {
   setSelect('edit-type', c.type);
   setSelect('edit-freq', c.frequency);
   setSelect('edit-owner', c.owner_id||'');
-  document.getElementById('attest-status').value   = '';
-  document.getElementById('attest-due').value      = '';
-  document.getElementById('attest-evidence').value = '';
+  document.getElementById('attest-status').value = '';
+  document.getElementById('attest-due').value    = '';
+  var ef = document.getElementById('attest-evidence-file'); if(ef) ef.value = '';
   document.getElementById('modal-edit').classList.add('open');
+}
+
+function openAttest(id) {
+  var c = state.controls.find(function(x){return x.id===id;});
+  if(!c) return;
+  document.getElementById('attest-control-id').value   = c.id;
+  document.getElementById('attest-control-label').textContent = c.code + ' — ' + c.title;
+  document.getElementById('attest-modal-status').value = '';
+  document.getElementById('attest-modal-due').value    = '';
+  var f = document.getElementById('attest-modal-file'); if(f) f.value = '';
+  document.getElementById('modal-attest').classList.add('open');
+}
+
+function submitAttest() {
+  var id     = document.getElementById('attest-control-id').value;
+  var status = document.getElementById('attest-modal-status').value;
+  var due    = document.getElementById('attest-modal-due').value;
+  if(!status){alert('Please select an attestation status.');return;}
+  if(!due){alert('Next due date is required.');return;}
+  var btn = document.getElementById('attest-modal-submit');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  api('attest_control',{control_id:id,status:status,next_due_date:due},function(err,res){
+    if(err){btn.disabled=false;btn.textContent='Record Attestation';alert('Attestation failed: '+err);return;}
+    var fileInput = document.getElementById('attest-modal-file');
+    var file = fileInput && fileInput.files && fileInput.files[0];
+    if(file && res && res.id) {
+      btn.textContent = 'Uploading evidence…';
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var userId = localStorage.getItem('user_id')||null;
+        apiAudit('add_evidence',{file_name:file.name,file_data:ev.target.result,uploaded_by:userId,control_attestation_id:res.id},function(e2){
+          btn.disabled=false;btn.textContent='Record Attestation';
+          if(e2) alert('Attestation saved but evidence upload failed: '+e2);
+          closeModal('modal-attest');
+          showToast('Attestation recorded');
+          loadControls();
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      btn.disabled=false;btn.textContent='Record Attestation';
+      closeModal('modal-attest');
+      showToast('Attestation recorded');
+      loadControls();
+    }
+  });
 }
 
 function setSelect(id, val) {
@@ -387,20 +471,48 @@ function submitEdit() {
     owner_id: document.getElementById('edit-owner').value||null,
     frequency:document.getElementById('edit-freq').value
   };
+  var saveBtn = document.querySelector('#modal-edit .btn.primary');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
+  function resetBtn(){if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Changes';}}
+
   api('update_control', body, function(err){
-    if(err){alert('Error: '+err);return;}
+    if(err){resetBtn();alert('Error: '+err);return;}
     var attestStatus = document.getElementById('attest-status').value;
     if(attestStatus) {
       var due = document.getElementById('attest-due').value;
-      var evLink = document.getElementById('attest-evidence').value;
-      if(!due){alert('Next due date required for attestation.');return;}
-      api('attest_control',{control_id:id,status:attestStatus,next_due_date:due,evidence_file_link:evLink},function(e2){
-        if(e2){alert('Control saved but attestation failed: '+e2);}
-        closeModal('modal-edit');
-        showToast('Control updated');
-        loadControls();
+      if(!due){resetBtn();alert('Next due date required for attestation.');return;}
+      api('attest_control',{control_id:id,status:attestStatus,next_due_date:due},function(e2,res2){
+        if(e2){resetBtn();alert('Control saved but attestation failed: '+e2);return;}
+        var fileInput = document.getElementById('attest-evidence-file');
+        var file = fileInput && fileInput.files && fileInput.files[0];
+        if(file && res2 && res2.id) {
+          if(saveBtn) saveBtn.textContent='Uploading evidence…';
+          var reader = new FileReader();
+          reader.onload = function(ev) {
+            var userId = localStorage.getItem('user_id') || null;
+            apiAudit('add_evidence',{
+              file_name: file.name,
+              file_data: ev.target.result,
+              uploaded_by: userId,
+              control_attestation_id: res2.id
+            }, function(e3){
+              resetBtn();
+              if(e3) alert('Attestation saved but evidence upload failed: '+e3);
+              closeModal('modal-edit');
+              showToast('Control updated');
+              loadControls();
+            });
+          };
+          reader.readAsDataURL(file);
+        } else {
+          resetBtn();
+          closeModal('modal-edit');
+          showToast('Control updated');
+          loadControls();
+        }
       });
     } else {
+      resetBtn();
       closeModal('modal-edit');
       showToast('Control updated');
       loadControls();
