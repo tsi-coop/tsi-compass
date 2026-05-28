@@ -33,6 +33,7 @@ services:
       POSTGRES_DB: "${POSTGRES_DB:-tsi_compass}"
       POSTGRES_USER: "${POSTGRES_USER:-tsi_admin}"
       POSTGRES_PASSWD: "${POSTGRES_PASSWD:-secure_dev_password}"
+      TSI_COMPASS_ENV: "${TSI_COMPASS_ENV:-local}"
       TSI_EXPORT_PATH: "${TSI_EXPORT_PATH:-/var/lib/tsi-compass/exports/}"
       JWT_SECRET: "${JWT_SECRET:-tsi-compass-local-dev-secret-do-not-use-in-production}"
       DB_ENCRYPTION_KEY: "${DB_ENCRYPTION_KEY:-local-dev-enc-key-do-not-use-in-production}"

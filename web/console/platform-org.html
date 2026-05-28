@@ -412,7 +412,8 @@ function renderOrgs() {
       '<td><span class="pill neu">' + esc(typeLabel) + '</span></td>' +
       '<td>' + parent + '</td>' +
       '<td>' + deptCount + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditOrgModal(\'' + esc(org.id) + '\')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditOrgModal(\'' + esc(org.id) + '\')">Edit</button>' +
+      '<button class="tbl-action red" onclick="handleDeleteOrg(\'' + esc(org.id) + '\')">Delete</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -430,7 +431,8 @@ function renderDepts() {
       '<td><strong>' + esc(dept.name) + '</strong></td>' +
       '<td>' + esc(dept.org_name || '') + '</td>' +
       '<td>' + staff + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditDeptModal(\'' + esc(dept.id) + '\')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditDeptModal(\'' + esc(dept.id) + '\')">Edit</button>' +
+      '<button class="tbl-action red" onclick="handleDeleteDept(\'' + esc(dept.id) + '\')">Delete</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -449,7 +451,8 @@ function renderDesigs() {
     return '<tr>' +
       '<td><strong>' + esc(desig.title) + '</strong></td>' +
       '<td>' + kras + '</td>' +
-      '<td><button class="tbl-action" onclick="openEditDesigModal(\'' + esc(desig.id) + '\')">Edit</button></td>' +
+      '<td><button class="tbl-action" onclick="openEditDesigModal(\'' + esc(desig.id) + '\')">Edit</button>' +
+      '<button class="tbl-action red" onclick="handleDeleteDesig(\'' + esc(desig.id) + '\')">Delete</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -603,6 +606,39 @@ function handleEditDesig(e) {
     loadAll();
   });
 }
+
+window.handleDeleteOrg = function(id) {
+  var org = state.organizations.find(function(o) { return String(o.id) === String(id); });
+  if (!org) return;
+  if (!confirm('Delete location "' + org.name + '"? This cannot be undone.')) return;
+  api('delete_organization', { id: id }, function(err) {
+    if (err) { showToast('Error: ' + err, true); return; }
+    showToast('Location deleted.');
+    loadAll();
+  });
+};
+
+window.handleDeleteDept = function(id) {
+  var dept = state.departments.find(function(d) { return String(d.id) === String(id); });
+  if (!dept) return;
+  if (!confirm('Delete department "' + dept.name + '"? This cannot be undone.')) return;
+  api('delete_department', { id: id }, function(err) {
+    if (err) { showToast('Error: ' + err, true); return; }
+    showToast('Department deleted.');
+    loadAll();
+  });
+};
+
+window.handleDeleteDesig = function(id) {
+  var desig = state.designations.find(function(d) { return String(d.id) === String(id); });
+  if (!desig) return;
+  if (!confirm('Delete designation "' + desig.title + '"? This cannot be undone.')) return;
+  api('delete_designation', { id: id }, function(err) {
+    if (err) { showToast('Error: ' + err, true); return; }
+    showToast('Designation deleted.');
+    loadAll();
+  });
+};
 
 // Init
 (function() {

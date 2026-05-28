@@ -731,10 +731,3 @@ INSERT INTO compliance_regulators (id, name, description) VALUES
 ('c1100000-0000-0000-0000-000000000001', 'Central Bank / RBI', 'National banking and financial regulator overseeing financial cybersecurity directives.'),
 ('c1100000-0000-0000-0000-000000000002', 'DPA (Data Protection Authority)', 'Regulates corporate compliance under personal data protection guidelines.');
 
--- Seed default organization and departments
-INSERT INTO organizations (id, name, type) VALUES
-('a1000000-0000-0000-0000-000000000001', 'TSI Cooperative', 'HEAD_OFFICE');
-
-INSERT INTO departments (id, org_id, name) VALUES
-('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'Information Technology'),
-('b1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'Information Security');

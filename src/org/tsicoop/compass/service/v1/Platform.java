@@ -62,6 +62,9 @@ public class Platform implements Action {
                 case "update_organization":
                     updateOrganization(req, res, input);
                     break;
+                case "delete_organization":
+                    deleteOrganization(req, res, input);
+                    break;
                 case "list_departments":
                     OutputProcessor.send(res, 200, listDepartments());
                     break;
@@ -71,6 +74,9 @@ public class Platform implements Action {
                 case "update_department":
                     updateDepartment(req, res, input);
                     break;
+                case "delete_department":
+                    deleteDepartment(req, res, input);
+                    break;
                 case "list_designations":
                     OutputProcessor.send(res, 200, listDesignations());
                     break;
@@ -79,6 +85,9 @@ public class Platform implements Action {
                     break;
                 case "update_designation":
                     updateDesignation(req, res, input);
+                    break;
+                case "delete_designation":
+                    deleteDesignation(req, res, input);
                     break;
                 case "list_roles_summary":
                     OutputProcessor.send(res, 200, listRolesSummary());
@@ -1002,6 +1011,167 @@ public class Platform implements Action {
                     pstmt = null;
                 }
             }
+
+            conn.commit();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+
+        } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
+            throw e;
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteOrganization(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM organizations WHERE parent_id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            rs = pstmt.executeQuery();
+            rs.next();
+            long childCount = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            if (childCount > 0) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a location that has child locations", req.getRequestURI());
+                return;
+            }
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM departments WHERE org_id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            rs = pstmt.executeQuery();
+            rs.next();
+            long deptCount = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            if (deptCount > 0) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a location that has departments", req.getRequestURI());
+                return;
+            }
+
+            pstmt = conn.prepareStatement("DELETE FROM organizations WHERE id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            pstmt.executeUpdate();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteDepartment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE department_id = ? AND status = 'ACTIVE'");
+            pstmt.setObject(1, UUID.fromString(id));
+            rs = pstmt.executeQuery();
+            rs.next();
+            long userCount = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            if (userCount > 0) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a department with active users", req.getRequestURI());
+                return;
+            }
+
+            pstmt = conn.prepareStatement("DELETE FROM departments WHERE id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            pstmt.executeUpdate();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deleteDesignation(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE designation_id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            rs = pstmt.executeQuery();
+            rs.next();
+            long userCount = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            if (userCount > 0) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a designation that is assigned to users", req.getRequestURI());
+                return;
+            }
+
+            conn.setAutoCommit(false);
+
+            pstmt = conn.prepareStatement("DELETE FROM designation_kras WHERE designation_id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            pstmt.executeUpdate();
+            try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
+            pstmt = null;
+
+            pstmt = conn.prepareStatement("DELETE FROM designations WHERE id = ?");
+            pstmt.setObject(1, UUID.fromString(id));
+            pstmt.executeUpdate();
 
             conn.commit();
 

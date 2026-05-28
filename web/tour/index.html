@@ -73,7 +73,7 @@
     <div class="mark">TC</div>
     <div>
       <div class="brand-text">TSI Compass</div>
-      <div class="brand-sub">GRC Platform &mdash; Getting Started</div>
+      <div class="brand-sub">GRC Platform - Getting Started</div>
     </div>
   </div>
 </header>
@@ -94,7 +94,7 @@
     <table>
       <tbody>
 
-        <tr class="tour-row" onclick="window.location='/setup/'">
+        <tr class="tour-row" onclick="window.open('/setup/','_blank')">
           <td class="step-num">01</td>
           <td>
             <div class="step-title">Initial Setup</div>
@@ -103,24 +103,24 @@
           </td>
           <td style="padding:24px 16px"><span class="badge badge-infra">Infrastructure</span></td>
           <td style="padding:24px 28px;text-align:right">
-            <a href="/setup/" class="action-btn btn-ink" onclick="event.stopPropagation()">Start Setup</a>
+            <a href="/setup/" target="_blank" class="action-btn btn-ink" onclick="event.stopPropagation()">Start Setup</a>
           </td>
         </tr>
 
-        <tr class="tour-row" onclick="window.location='/console/dashboard.html'">
+        <tr class="tour-row" onclick="window.open('/console/dashboard.html','_blank')">
           <td class="step-num">02</td>
           <td>
             <div class="step-title">Console &amp; Dashboard</div>
             <div class="step-path">/console/dashboard.html</div>
-            <p class="step-desc">Log in to the GRC console and explore the executive dashboard — risk posture, compliance readiness, and module activity at a glance.</p>
+            <p class="step-desc">Log in to the GRC console and explore the executive dashboard - risk posture, compliance readiness, and module activity at a glance.</p>
           </td>
           <td style="padding:24px 16px"><span class="badge badge-platform">Platform</span></td>
           <td style="padding:24px 28px;text-align:right">
-            <a href="/console/dashboard.html" class="action-btn btn-teal" onclick="event.stopPropagation()">Open Console</a>
+            <a href="/console/dashboard.html" target="_blank" class="action-btn btn-teal" onclick="event.stopPropagation()">Open Console</a>
           </td>
         </tr>
 
-        <tr class="tour-row" onclick="window.location='/console/governance.html'">
+        <tr class="tour-row" onclick="window.open('/console/governance.html','_blank')">
           <td class="step-num">03</td>
           <td>
             <div class="step-title">GRC Configuration</div>
@@ -129,11 +129,11 @@
           </td>
           <td style="padding:24px 16px"><span class="badge badge-compliance">Compliance</span></td>
           <td style="padding:24px 28px;text-align:right">
-            <a href="/console/governance.html" class="action-btn btn-outline" onclick="event.stopPropagation()">Configure GRC</a>
+            <a href="/console/governance.html" target="_blank" class="action-btn btn-outline" onclick="event.stopPropagation()">Configure GRC</a>
           </td>
         </tr>
 
-        <tr class="tour-row" onclick="window.location='api.html'">
+        <tr class="tour-row" onclick="window.open('api.html','_blank')">
           <td class="step-num">04</td>
           <td>
             <div class="step-title">API Integration</div>
@@ -142,7 +142,7 @@
           </td>
           <td style="padding:24px 16px"><span class="badge badge-dev">Developer</span></td>
           <td style="padding:24px 28px;text-align:right">
-            <a href="api.html" class="action-btn btn-amber" onclick="event.stopPropagation()">View API Docs</a>
+            <a href="api.html" target="_blank" class="action-btn btn-amber" onclick="event.stopPropagation()">View API Docs</a>
           </td>
         </tr>
 
