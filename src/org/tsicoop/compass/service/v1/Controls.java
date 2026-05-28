@@ -144,11 +144,14 @@ public class Controls implements Action {
             "SELECT c.id::text, c.code, c.title, c.type, c.frequency, c.description, " +
             "c.owner_id::text, u.username AS owner_name, " +
             "ca.status AS attestation_status, ca.next_due_date::text, ca.attested_at::text, " +
+            "ca.id::text AS attestation_id, " +
+            "(SELECT el.id::text FROM evidence_locker el WHERE el.control_attestation_id = ca.id LIMIT 1) AS evidence_id, " +
+            "(SELECT el.file_name FROM evidence_locker el WHERE el.control_attestation_id = ca.id LIMIT 1) AS evidence_file_name, " +
             "STRING_AGG(DISTINCT f.name, ', ' ORDER BY f.name) AS frameworks " +
             "FROM controls c " +
             "LEFT JOIN users u ON u.id = c.owner_id " +
             "LEFT JOIN LATERAL (" +
-            "  SELECT control_id, status, next_due_date, attested_at FROM control_attestations " +
+            "  SELECT id, control_id, status, next_due_date, attested_at FROM control_attestations " +
             "  WHERE control_id = c.id ORDER BY attested_at DESC NULLS LAST LIMIT 1" +
             ") ca ON true " +
             "LEFT JOIN control_requirement_mappings crm ON crm.control_id = c.id " +
@@ -158,7 +161,7 @@ public class Controls implements Action {
         );
         if (!isBlank(frameworkId)) sql.append(" AND fr.framework_id = ?");
         if (!isBlank(search)) sql.append(" AND (c.code ILIKE ? OR c.title ILIKE ?)");
-        sql.append(" GROUP BY c.id, c.code, c.title, c.type, c.frequency, c.description, c.owner_id, u.username, ca.status, ca.next_due_date, ca.attested_at ORDER BY c.code");
+        sql.append(" GROUP BY c.id, c.code, c.title, c.type, c.frequency, c.description, c.owner_id, u.username, ca.status, ca.next_due_date, ca.attested_at, ca.id ORDER BY c.code");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray controls = new JSONArray();
@@ -182,6 +185,9 @@ public class Controls implements Action {
                 c.put("attestation_status", rs.getString("attestation_status"));
                 c.put("next_due_date",      rs.getString("next_due_date"));
                 c.put("attested_at",        rs.getString("attested_at"));
+                c.put("attestation_id",     rs.getString("attestation_id"));
+                c.put("evidence_id",        rs.getString("evidence_id"));
+                c.put("evidence_file_name", rs.getString("evidence_file_name"));
                 c.put("frameworks",         rs.getString("frameworks"));
                 controls.add(c);
             }
