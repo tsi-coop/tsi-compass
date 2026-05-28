@@ -125,6 +125,28 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
         <button class="export-btn" id="ebtn-vendors" onclick="doExport('vendors')">&#8595; Export CSV</button>
       </div>
 
+      <div class="export-card" style="border-top:3px solid var(--teal)">
+        <div class="export-icon">&#128196;</div>
+        <h3>Monthly Activity Report</h3>
+        <p>Full activity summary across all modules — risks, controls, incidents, operations, and audit — exported as a PDF.</p>
+        <div class="export-filter" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label>Month</label>
+            <select id="ef-pdf-month">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div>
+            <label>Year</label>
+            <select id="ef-pdf-year"></select>
+          </div>
+        </div>
+        <button class="export-btn" id="ebtn-monthly-pdf" onclick="downloadMonthlyReport()">&#8595; Download PDF</button>
+      </div>
+
     </div>
   </main>
 </div>
@@ -197,11 +219,55 @@ function doExport(type){
   .catch(function(){if(btn){btn.disabled=false;btn.innerHTML='&#8595; Export CSV';}showToast('Export failed',true);});
 }
 
+function downloadMonthlyReport() {
+  var month = parseInt(document.getElementById('ef-pdf-month').value);
+  var year  = parseInt(document.getElementById('ef-pdf-year').value);
+  var btn   = document.getElementById('ebtn-monthly-pdf');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  fetch('/api/v1/reports', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify({_func:'generate_monthly_report', month:month, year:year})
+  })
+  .then(function(r){
+    if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';}
+    return r.json();
+  })
+  .then(function(d){
+    btn.disabled = false; btn.innerHTML = '&#8595; Download PDF';
+    if(!d||!d.success){showToast('Generation failed',true);return;}
+    var binary = atob(d.file_data);
+    var bytes  = new Uint8Array(binary.length);
+    for(var i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes],{type:'application/pdf'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = d.file_name; a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);}, 1000);
+    showToast('Report downloaded');
+  })
+  .catch(function(){
+    btn.disabled = false; btn.innerHTML = '&#8595; Download PDF';
+    showToast('Generation failed', true);
+  });
+}
+
 (function(){
   var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  // Populate year select: current year and 2 years back
+  var yrSel = document.getElementById('ef-pdf-year');
+  var now   = new Date();
+  for(var y = now.getFullYear(); y >= now.getFullYear()-2; y--) {
+    var o = document.createElement('option'); o.value=y; o.textContent=y; yrSel.appendChild(o);
+  }
+  // Default month to previous month
+  var prevMonth = now.getMonth(); // getMonth() is 0-based, so this gives previous month (1-based)
+  if(prevMonth === 0) prevMonth = 12;
+  document.getElementById('ef-pdf-month').value = String(prevMonth);
 })();
 </script>
 </body>
