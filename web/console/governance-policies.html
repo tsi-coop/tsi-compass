@@ -359,7 +359,7 @@ function renderPolicies() {
   try { perms = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
   var govLevel  = perms['governance'] || 'NONE';
   var canWrite  = govLevel === 'WRITE' || govLevel === 'ADMIN';
-  var canApprove = govLevel === 'ADMIN';
+  var canApprove = (localStorage.getItem('role') === 'ADMIN');
 
   tbody.innerHTML = state.policies.map(function(p){
     var actions = '';

@@ -355,6 +355,17 @@ public class InterceptingFilter implements Filter {
                 }
             }
 
+            // --- Delete operations are ADMIN-only ---
+            if (ADMIN_URI_PATH.equalsIgnoreCase(apiCategory)
+                    && func != null && func.toLowerCase().startsWith("delete_")) {
+                String role = InputProcessor.getRole(req);
+                if (!"ADMIN".equals(role)) {
+                    OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                        "Only administrators can perform delete operations.", uri);
+                    return;
+                }
+            }
+
             // --- Instantiate and execute Servlet ---
             Action action = ((Action) Class.forName(classname).getConstructor().newInstance());
 

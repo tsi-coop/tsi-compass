@@ -89,7 +89,6 @@ tr:last-child td{border-bottom:none}
     <nav class="nav">
       <a href="dashboard.html">Executive Dashboard</a>
       <a href="platform.html">Platform &amp; Access</a>
-      <a href="platform-org.html" class="subnav">Org Structure</a>
       <a href="platform-users.html" class="subnav">User Management</a>
       <a href="platform-roles.html" class="subnav active">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
@@ -153,7 +152,7 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="matrix-wrap">
         <table class="matrix">
-          <thead>
+          <thead id="matrix-thead">
             <tr>
               <th class="row-head">Module</th>
               <th>Admin</th>
@@ -239,15 +238,36 @@ if (!TOKEN) { window.location.replace('../index.html'); }
 // State cache
 var state = { roles: [], permissions: [] };
 
-// Role metadata
+// Role metadata (labels and descriptions only — pills are computed dynamically)
 var ROLE_META = {
-  ADMIN:               { label: 'Administrator',      desc: 'Full platform access; manages users, org structure, and all modules',                                      pill: '<span class="pill good">Full Admin</span>' },
-  RISK_OWNER:          { label: 'Risk Owner',          desc: 'Manages risk register and vulnerability tracking; write access to controls',                               pill: '<span class="pill info">Read + Write</span>' },
-  COMPLIANCE_OFFICER:  { label: 'Compliance Officer',  desc: 'Admin access to governance and controls; manages policies and compliance calendar',                        pill: '<span class="pill info">Read + Write</span>' },
-  INTERNAL_AUDITOR:    { label: 'Internal Auditor',    desc: 'Admin access to audit and evidence; read/write across compliance modules',                                 pill: '<span class="pill info">Read + Write</span>' },
-  IT_STAFF:            { label: 'IT Staff',            desc: 'Scoped to IT operations, incidents, and helpdesk; no GRC module access',                                   pill: '<span class="pill watch">Scoped Access</span>' },
-  USER:                { label: 'User',                desc: 'Read access to dashboard modules; can raise helpdesk tickets',                                             pill: '<span class="pill neu">Read Only</span>' }
+  ADMIN:       { label: 'Administrator', desc: 'Full platform access; manages users, org structure, and all modules' },
+  GRC_OFFICER: { label: 'GRC Officer',   desc: 'Manages governance, risk, controls and compliance across all GRC modules' },
+  IT_STAFF:    { label: 'IT Staff',      desc: 'Manages IT operations, incidents and helpdesk; no GRC module access' }
 };
+
+// Return display label for a role key
+function roleLabel(role) {
+  var meta = ROLE_META[role];
+  if (meta) return meta.label;
+  return role.split('_').map(function(w) { return w.charAt(0) + w.slice(1).toLowerCase(); }).join(' ');
+}
+
+// Compute access-level pill from actual permission data
+function computeAccessLevel(role) {
+  var rolePerm = {};
+  state.permissions.forEach(function(p) {
+    if (p.role === role) rolePerm[p.module] = p.permission_level;
+  });
+  var vals = Object.keys(rolePerm).map(function(k) { return rolePerm[k]; });
+  if (vals.indexOf('ADMIN') !== -1) {
+    return rolePerm['platform'] === 'ADMIN'
+      ? '<span class="pill good">Full Admin</span>'
+      : '<span class="pill info">Scoped Admin</span>';
+  }
+  if (vals.indexOf('WRITE') !== -1) return '<span class="pill info">Read + Write</span>';
+  if (vals.indexOf('READ')  !== -1) return '<span class="pill neu">Read Only</span>';
+  return '<span class="pill neu">No Access</span>';
+}
 
 // Module metadata (ordered)
 var MODULES = [
@@ -261,9 +281,6 @@ var MODULES = [
   { key: 'reports',     label: 'Reports & Exports' },
   { key: 'helpdesk',    label: 'Helpdesk' }
 ];
-
-// Role column order for matrix
-var ROLE_ORDER = ['ADMIN', 'RISK_OWNER', 'COMPLIANCE_OFFICER', 'INTERNAL_AUDITOR', 'IT_STAFF', 'USER'];
 
 // API helper
 function api(func, body, cb) {
@@ -307,12 +324,12 @@ function renderRoles() {
   }
   var html = '';
   state.roles.forEach(function(r) {
-    var meta = ROLE_META[r.role] || { label: r.role, desc: '', pill: '<span class="pill neu">Unknown</span>' };
+    var meta = ROLE_META[r.role] || { label: roleLabel(r.role), desc: '' };
     html += '<tr>';
     html += '<td><strong>' + meta.label + '</strong></td>';
     html += '<td style="color:var(--muted);font-size:12px">' + meta.desc + '</td>';
     html += '<td>' + (r.user_count != null ? r.user_count : '—') + '</td>';
-    html += '<td>' + meta.pill + '</td>';
+    html += '<td>' + computeAccessLevel(r.role) + '</td>';
     html += '<td><button class="tbl-action" onclick="openEditPermissions(\'' + r.role + '\')">Edit Permissions</button></td>';
     html += '</tr>';
   });
@@ -321,11 +338,20 @@ function renderRoles() {
 
 // Render permission matrix
 function renderMatrix() {
+  var thead = document.getElementById('matrix-thead');
   var tbody = document.getElementById('matrix-tbody');
+  var roles = state.roles.map(function(r) { return r.role; });
+
   if (!state.permissions.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No permissions data.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + (roles.length + 1) + '" style="text-align:center;color:var(--muted);padding:24px">No permissions data.</td></tr>';
     return;
   }
+
+  // Render column headers from live roles list
+  var headHtml = '<tr><th class="row-head">Module</th>';
+  roles.forEach(function(role) { headHtml += '<th>' + roleLabel(role) + '</th>'; });
+  headHtml += '</tr>';
+  thead.innerHTML = headHtml;
 
   // Build lookup: perms[role][module] = permission_level
   var perms = {};
@@ -337,7 +363,7 @@ function renderMatrix() {
   var html = '';
   MODULES.forEach(function(mod) {
     html += '<tr><td class="row-head">' + mod.label + '</td>';
-    ROLE_ORDER.forEach(function(role) {
+    roles.forEach(function(role) {
       var level = (perms[role] && perms[role][mod.key]) ? perms[role][mod.key] : 'NONE';
       var cls = level.toLowerCase();
       var lbl = level.charAt(0) + level.slice(1).toLowerCase();
@@ -350,8 +376,7 @@ function renderMatrix() {
 
 // Open Edit Permissions modal for a specific role
 function openEditPermissions(role) {
-  var meta = ROLE_META[role] || { label: role };
-  document.getElementById('ep-title').textContent = 'Edit Permissions — ' + meta.label;
+  document.getElementById('ep-title').textContent = 'Edit Permissions — ' + roleLabel(role);
   document.getElementById('ep-role').value = role;
 
   // Build lookup for this role from cached permissions
@@ -409,26 +434,34 @@ function submitAddRole(e) {
   showToast('Custom roles are not supported in this version.');
 }
 
-// Load roles summary
+// Coordinate: render only when both API calls have returned
+var _loadPending = 0;
+function _onLoadComplete() {
+  if (_loadPending === 0) { renderRoles(); renderMatrix(); }
+}
+
 function loadRoles() {
+  _loadPending++;
   api('list_roles_summary', {}, function(err, data) {
+    _loadPending--;
     if (err) { showToast(err, true); return; }
     state.roles = data.roles || [];
-    renderRoles();
+    _onLoadComplete();
   });
 }
 
-// Load permission matrix
 function loadPermissions() {
+  _loadPending++;
   api('get_role_permissions', {}, function(err, data) {
+    _loadPending--;
     if (err) { showToast(err, true); return; }
     state.permissions = data.permissions || [];
-    renderMatrix();
+    _onLoadComplete();
   });
 }
 
-// Init
 function loadAll() {
+  _loadPending = 0;
   loadRoles();
   loadPermissions();
 }

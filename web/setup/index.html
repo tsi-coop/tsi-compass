@@ -64,15 +64,9 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
   <div id="state-form">
     <div class="card">
       <h2>Welcome to TSI Compass</h2>
-      <p class="sub">Set up your organisation to get started. This creates your Head Office and the first administrator account.</p>
+      <p class="sub">Create your administrator account to get started.</p>
 
       <form onsubmit="submitSetup();return false;">
-        <div class="field" id="f-org-name">
-          <label>Organisation Name</label>
-          <input type="text" id="org-name" placeholder="e.g. Acme Financial Services Ltd" autocomplete="organization">
-          <div class="err-msg">Organisation name is required.</div>
-        </div>
-
         <div class="field" id="f-admin-name">
           <label>Admin Name</label>
           <input type="text" id="admin-name" placeholder="e.g. Priya Mendis" autocomplete="name">
@@ -163,7 +157,6 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
   }
 
   window.submitSetup = function() {
-    var orgName  = document.getElementById('org-name').value.trim();
     var aName    = document.getElementById('admin-name').value.trim();
     var email    = document.getElementById('admin-email').value.trim();
     var pwd      = document.getElementById('admin-pwd').value;
@@ -171,7 +164,6 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
     var emailRe  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     var ok = true;
-    fieldErr('org-name',    !orgName);   if (!orgName)   ok = false;
     fieldErr('admin-name',  !aName);     if (!aName)     ok = false;
     var emailBad = !email || !emailRe.test(email);
     fieldErr('admin-email', emailBad);   if (emailBad)   ok = false;
@@ -187,7 +179,6 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 
     post({
       _func: 'complete_setup',
-      org_name:       orgName,
       admin_name:     aName,
       admin_email:    email,
       admin_password: pwd

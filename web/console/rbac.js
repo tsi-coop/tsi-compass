@@ -12,7 +12,6 @@
   // Maps every page filename to its GRC module key in role_permissions
   var PAGE_MODULE = {
     'platform.html':              'platform',
-    'platform-org.html':          'platform',
     'platform-users.html':        'platform',
     'platform-roles.html':        'platform',
     'platform-audit.html':        'platform',

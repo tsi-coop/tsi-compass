@@ -11,7 +11,7 @@ import org.tsicoop.compass.framework.PoolDB;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.ResultSet; // used by checkSetup
 
 public class Setup implements Action {
 
@@ -73,12 +73,11 @@ public class Setup implements Action {
 
     @SuppressWarnings("unchecked")
     private void completeSetup(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String orgName = (String) input.get("org_name");
-        String adminName = (String) input.get("admin_name");
-        String adminEmail = (String) input.get("admin_email");
+        String adminName     = (String) input.get("admin_name");
+        String adminEmail    = (String) input.get("admin_email");
         String adminPassword = (String) input.get("admin_password");
 
-        if (isBlank(orgName) || isBlank(adminName) || isBlank(adminEmail) || isBlank(adminPassword)) {
+        if (isBlank(adminName) || isBlank(adminEmail) || isBlank(adminPassword)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "Required fields are missing", req.getRequestURI());
             return;
         }
@@ -95,28 +94,11 @@ public class Setup implements Action {
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
-        ResultSet rs = null;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            conn.setAutoCommit(false);
-
-            pstmt = conn.prepareStatement(
-                "INSERT INTO organizations (name, type, parent_id) VALUES (?, 'HEAD_OFFICE', NULL) RETURNING id::text"
-            );
-            pstmt.setString(1, orgName);
-            rs = pstmt.executeQuery();
-            if (!rs.next()) {
-                conn.rollback();
-                OutputProcessor.errorResponse(res, 500, "Internal Error", "Failed to create organisation", req.getRequestURI());
-                return;
-            }
-            String orgId = rs.getString(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
 
             String passwordHash = new PasswordHasher().hashPassword(adminPassword);
-
             pstmt = conn.prepareStatement(
                 "INSERT INTO users (email, password_hash, username, role, status) VALUES (?, ?, ?, 'ADMIN', 'ACTIVE')"
             );
@@ -125,20 +107,21 @@ public class Setup implements Action {
             pstmt.setString(3, adminName);
             pstmt.executeUpdate();
 
-            conn.commit();
-
             JSONObject result = new JSONObject();
             result.put("success", true);
             result.put("message", "Setup completed successfully");
-            result.put("org_id", orgId);
             OutputProcessor.send(res, 200, result);
 
         } catch (Exception e) {
-            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
-            throw e;
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unique") || msg.contains("duplicate")) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "A user with that email already exists", req.getRequestURI());
+            } else {
+                throw e;
+            }
         } finally {
             if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
+                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
             }
         }
     }

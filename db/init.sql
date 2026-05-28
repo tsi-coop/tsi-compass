@@ -6,43 +6,12 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- MODULE 1: CORE PLATFORM & ACCESS CONTROL
 -- ==========================================
 
-CREATE TABLE organizations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('HEAD_OFFICE', 'REGIONAL_OFFICE', 'BRANCH', 'DEPARTMENT')),
-    parent_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE departments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE designations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE designation_kras (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    designation_id UUID REFERENCES designations(id) ON DELETE CASCADE,
-    kra_title VARCHAR(255) NOT NULL,
-    responsibility_description TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     username VARCHAR(100) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('ADMIN', 'RISK_OWNER', 'COMPLIANCE_OFFICER', 'INTERNAL_AUDITOR', 'IT_STAFF', 'USER')),
-    designation_id UUID REFERENCES designations(id) ON DELETE SET NULL,
-    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('ADMIN', 'GRC_OFFICER', 'IT_STAFF')),
     status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED', 'PENDING')),
     recovery_key_hash VARCHAR(64),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -290,7 +259,6 @@ CREATE TABLE audits (
     title VARCHAR(255) NOT NULL,
     scope TEXT NOT NULL,
     framework_id UUID REFERENCES frameworks(id) ON DELETE SET NULL,
-    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
     lead_auditor_id UUID REFERENCES users(id) ON DELETE SET NULL,
     scheduled_start DATE NOT NULL,
     scheduled_end DATE NOT NULL,
@@ -587,60 +555,33 @@ CREATE TABLE role_permissions (
 
 -- Seed default permission matrix
 INSERT INTO role_permissions (role, module, permission_level) VALUES
-('ADMIN',               'platform',   'ADMIN'),
-('ADMIN',               'governance', 'ADMIN'),
-('ADMIN',               'risks',      'ADMIN'),
-('ADMIN',               'controls',   'ADMIN'),
-('ADMIN',               'evidence',   'ADMIN'),
-('ADMIN',               'operations', 'ADMIN'),
-('ADMIN',               'incidents',  'ADMIN'),
-('ADMIN',               'reports',    'ADMIN'),
-('ADMIN',               'helpdesk',   'ADMIN'),
-('RISK_OWNER',          'platform',   'NONE'),
-('RISK_OWNER',          'governance', 'READ'),
-('RISK_OWNER',          'risks',      'ADMIN'),
-('RISK_OWNER',          'controls',   'WRITE'),
-('RISK_OWNER',          'evidence',   'READ'),
-('RISK_OWNER',          'operations', 'READ'),
-('RISK_OWNER',          'incidents',  'READ'),
-('RISK_OWNER',          'reports',    'WRITE'),
-('RISK_OWNER',          'helpdesk',   'NONE'),
-('COMPLIANCE_OFFICER',  'platform',   'READ'),
-('COMPLIANCE_OFFICER',  'governance', 'ADMIN'),
-('COMPLIANCE_OFFICER',  'risks',      'WRITE'),
-('COMPLIANCE_OFFICER',  'controls',   'ADMIN'),
-('COMPLIANCE_OFFICER',  'evidence',   'WRITE'),
-('COMPLIANCE_OFFICER',  'operations', 'READ'),
-('COMPLIANCE_OFFICER',  'incidents',  'READ'),
-('COMPLIANCE_OFFICER',  'reports',    'WRITE'),
-('COMPLIANCE_OFFICER',  'helpdesk',   'READ'),
-('INTERNAL_AUDITOR',    'platform',   'READ'),
-('INTERNAL_AUDITOR',    'governance', 'READ'),
-('INTERNAL_AUDITOR',    'risks',      'READ'),
-('INTERNAL_AUDITOR',    'controls',   'WRITE'),
-('INTERNAL_AUDITOR',    'evidence',   'ADMIN'),
-('INTERNAL_AUDITOR',    'operations', 'READ'),
-('INTERNAL_AUDITOR',    'incidents',  'WRITE'),
-('INTERNAL_AUDITOR',    'reports',    'WRITE'),
-('INTERNAL_AUDITOR',    'helpdesk',   'READ'),
-('IT_STAFF',            'platform',   'NONE'),
-('IT_STAFF',            'governance', 'NONE'),
-('IT_STAFF',            'risks',      'NONE'),
-('IT_STAFF',            'controls',   'NONE'),
-('IT_STAFF',            'evidence',   'NONE'),
-('IT_STAFF',            'operations', 'WRITE'),
-('IT_STAFF',            'incidents',  'WRITE'),
-('IT_STAFF',            'reports',    'NONE'),
-('IT_STAFF',            'helpdesk',   'ADMIN'),
-('USER',                'platform',   'NONE'),
-('USER',                'governance', 'READ'),
-('USER',                'risks',      'READ'),
-('USER',                'controls',   'READ'),
-('USER',                'evidence',   'NONE'),
-('USER',                'operations', 'NONE'),
-('USER',                'incidents',  'READ'),
-('USER',                'reports',    'READ'),
-('USER',                'helpdesk',   'ADMIN');
+('ADMIN',        'platform',   'ADMIN'),
+('ADMIN',        'governance', 'ADMIN'),
+('ADMIN',        'risks',      'ADMIN'),
+('ADMIN',        'controls',   'ADMIN'),
+('ADMIN',        'evidence',   'ADMIN'),
+('ADMIN',        'operations', 'ADMIN'),
+('ADMIN',        'incidents',  'ADMIN'),
+('ADMIN',        'reports',    'ADMIN'),
+('ADMIN',        'helpdesk',   'ADMIN'),
+('GRC_OFFICER',  'platform',   'NONE'),
+('GRC_OFFICER',  'governance', 'WRITE'),
+('GRC_OFFICER',  'risks',      'WRITE'),
+('GRC_OFFICER',  'controls',   'WRITE'),
+('GRC_OFFICER',  'evidence',   'WRITE'),
+('GRC_OFFICER',  'operations', 'READ'),
+('GRC_OFFICER',  'incidents',  'WRITE'),
+('GRC_OFFICER',  'reports',    'WRITE'),
+('GRC_OFFICER',  'helpdesk',   'READ'),
+('IT_STAFF',     'platform',   'NONE'),
+('IT_STAFF',     'governance', 'NONE'),
+('IT_STAFF',     'risks',      'NONE'),
+('IT_STAFF',     'controls',   'NONE'),
+('IT_STAFF',     'evidence',   'NONE'),
+('IT_STAFF',     'operations', 'WRITE'),
+('IT_STAFF',     'incidents',  'WRITE'),
+('IT_STAFF',     'reports',    'NONE'),
+('IT_STAFF',     'helpdesk',   'WRITE');
 
 -- ==========================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
@@ -658,22 +599,6 @@ CREATE INDEX idx_incidents_severity ON incidents(severity);
 -- ==========================================
 -- SEED DATA
 -- ==========================================
-
--- Seed Roles & Designations
-INSERT INTO designations (id, title) VALUES
-('d1000000-0000-0000-0000-000000000001', 'Chief Information Officer'),
-('d1000000-0000-0000-0000-000000000002', 'Risk Manager'),
-('d1000000-0000-0000-0000-000000000003', 'Lead Auditor'),
-('d1000000-0000-0000-0000-000000000004', 'Compliance Officer'),
-('d1000000-0000-0000-0000-000000000005', 'IT Support Specialist');
-
--- Seed KRAs for designations
-INSERT INTO designation_kras (designation_id, kra_title, responsibility_description) VALUES
-('d1000000-0000-0000-0000-000000000001', 'Governance Steering', 'Oversee the IT Strategy Steering Committee and align IT risk goals with business values.'),
-('d1000000-0000-0000-0000-000000000002', 'Risk Mitigation & Register', 'Regularly update the Enterprise Risk Register, oversee VAPT scans, and assign remediation workflows.'),
-('d1000000-0000-0000-0000-000000000003', 'Audit Readiness', 'Lead the internal and external audit lifecycles and track observation closures.'),
-('d1000000-0000-0000-0000-000000000004', 'Controls Management', 'Map organizational policies to standards (e.g. ISO 27001) and verify control attestations.'),
-('d1000000-0000-0000-0000-000000000005', 'Change & Operations Controls', 'Verify compliance document gates during the Change Request lifecycle and manage helpdesk resolutions.');
 
 -- Seed Committees
 INSERT INTO committees (id, name, description) VALUES

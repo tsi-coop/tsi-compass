@@ -87,7 +87,6 @@ tr:last-child td{border-bottom:none}
     <nav class="nav">
       <a href="dashboard.html">Executive Dashboard</a>
       <a href="platform.html">Platform &amp; Access</a>
-      <a href="platform-org.html" class="subnav">Org Structure</a>
       <a href="platform-users.html" class="subnav active">User Management</a>
       <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
@@ -149,17 +148,11 @@ tr:last-child td{border-bottom:none}
         <button class="btn sm" onclick="openProvisionModal()">+ Provision User</button>
       </div>
       <div class="filter-bar">
-        <select id="f-dept">
-          <option value="">All Departments</option>
-        </select>
         <select id="f-role">
           <option value="">All Roles</option>
           <option value="ADMIN">Administrator</option>
-          <option value="RISK_OWNER">Risk Owner</option>
-          <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
-          <option value="INTERNAL_AUDITOR">Internal Auditor</option>
+          <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
-          <option value="USER">Standard User</option>
         </select>
         <select id="f-status">
           <option value="">All Statuses</option>
@@ -170,10 +163,10 @@ tr:last-child td{border-bottom:none}
       </div>
       <table>
         <thead>
-          <tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Recovery Key</th><th></th></tr>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Recovery Key</th><th></th></tr>
         </thead>
         <tbody id="users-tbody">
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
         </tbody>
       </table>
     </div>
@@ -188,23 +181,13 @@ tr:last-child td{border-bottom:none}
     <form id="form-provision">
       <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="pu-name" placeholder="Full name" required></div>
       <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="pu-email" type="email" placeholder="user@tsicoop.org" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Role</label>
-          <select class="form-select" id="pu-role" required>
-            <option value="">Select role…</option>
-            <option value="ADMIN">Administrator</option>
-            <option value="RISK_OWNER">Risk Owner</option>
-            <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
-            <option value="INTERNAL_AUDITOR">Internal Auditor</option>
-            <option value="IT_STAFF">IT Staff</option>
-            <option value="USER">Standard User</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select" id="pu-dept" required>
-            <option value="">Loading…</option>
-          </select>
-        </div>
+      <div class="form-field"><label class="form-label">Role</label>
+        <select class="form-select" id="pu-role" required>
+          <option value="">Select role…</option>
+          <option value="ADMIN">Administrator</option>
+          <option value="GRC_OFFICER">GRC Officer</option>
+          <option value="IT_STAFF">IT Staff</option>
+        </select>
       </div>
       <div class="form-field"><label class="form-label">Initial Password</label><input class="form-input" id="pu-password" type="password" placeholder="Min. 10 characters" required></div>
       <div class="modal-footer">
@@ -222,22 +205,12 @@ tr:last-child td{border-bottom:none}
     <form id="form-edit-user">
       <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="eu-name" required></div>
       <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="eu-email" type="email" required></div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Role</label>
-          <select class="form-select" id="eu-role">
-            <option value="ADMIN">Administrator</option>
-            <option value="RISK_OWNER">Risk Owner</option>
-            <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
-            <option value="INTERNAL_AUDITOR">Internal Auditor</option>
-            <option value="IT_STAFF">IT Staff</option>
-            <option value="USER">Standard User</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-label">Department</label>
-          <select class="form-select" id="eu-dept">
-            <option value="">Loading…</option>
-          </select>
-        </div>
+      <div class="form-field"><label class="form-label">Role</label>
+        <select class="form-select" id="eu-role">
+          <option value="ADMIN">Administrator</option>
+          <option value="GRC_OFFICER">GRC Officer</option>
+          <option value="IT_STAFF">IT Staff</option>
+        </select>
       </div>
       <div class="form-field"><label class="form-label">Account Status</label>
         <select class="form-select" id="eu-status">
@@ -335,17 +308,14 @@ tr:last-child td{border-bottom:none}
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = '../index.html';
 
-var state = { users: [], departments: [] };
+var state = { users: [] };
 var editId = null, deactivateId = null;
 var searchTimer = null;
 
 var ROLES = {
-  ADMIN: 'Administrator',
-  RISK_OWNER: 'Risk Owner',
-  COMPLIANCE_OFFICER: 'Compliance Officer',
-  INTERNAL_AUDITOR: 'Internal Auditor',
-  IT_STAFF: 'IT Staff',
-  USER: 'Standard User'
+  ADMIN:       'Administrator',
+  GRC_OFFICER: 'GRC Officer',
+  IT_STAFF:    'IT Staff'
 };
 
 function api(func, body, cb) {
@@ -413,56 +383,12 @@ function initials(name) {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-function populateDeptSelect(selectId, selectedId) {
-  var sel = document.getElementById(selectId);
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Select department…</option>';
-  state.departments.forEach(function(d) {
-    var opt = document.createElement('option');
-    opt.value = d.id;
-    opt.textContent = d.name;
-    if (selectedId && String(d.id) === String(selectedId)) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-
-function loadDepts(cb) {
-  api('list_departments', {}, function(err, data) {
-    if (err) {
-      showToast('Failed to load departments: ' + err, true);
-      if (cb) cb();
-      return;
-    }
-    state.departments = data.departments || [];
-
-    // Populate filter dropdown
-    var fDept = document.getElementById('f-dept');
-    if (fDept) {
-      fDept.innerHTML = '<option value="">All Departments</option>';
-      state.departments.forEach(function(d) {
-        var opt = document.createElement('option');
-        opt.value = d.id;
-        opt.textContent = d.name;
-        fDept.appendChild(opt);
-      });
-    }
-
-    // Populate provision and edit dept selects
-    populateDeptSelect('pu-dept', null);
-    populateDeptSelect('eu-dept', null);
-
-    if (cb) cb();
-  });
-}
-
 function loadUsers() {
-  var dept = document.getElementById('f-dept').value || null;
   var role = document.getElementById('f-role').value || null;
   var status = document.getElementById('f-status').value || null;
   var search = document.getElementById('f-search').value.trim() || null;
 
   var params = {};
-  if (dept) params.department_id = dept;
   if (role) params.role = role;
   if (status) params.status = status;
   if (search) params.search = search;
@@ -474,7 +400,7 @@ function loadUsers() {
     if (err) {
       showToast('Failed to load users: ' + err, true);
       document.getElementById('users-tbody').innerHTML =
-        '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">Error loading users.</td></tr>';
+        '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error loading users.</td></tr>';
       return;
     }
     state.users = data.users || [];
@@ -497,22 +423,25 @@ function renderUsers(users) {
   // Render main table (all users)
   var tbody = document.getElementById('users-tbody');
   var isAdmin = (localStorage.getItem('role') === 'ADMIN');
+  var activeAdminCount = users.filter(function(u) { return u.role === 'ADMIN' && u.status === 'ACTIVE'; }).length;
   if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No users found.</td></tr>';
   } else {
     tbody.innerHTML = users.map(function(u) {
       var name = esc(u.username || u.email);
       var ini = initials(u.username || u.email);
       var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
       var roleLabel = esc(ROLES[u.role] || u.role || '—');
-      var deptLabel = esc(u.department_name || '—');
       var keyCell = isAdmin
         ? '<button class="tbl-action" onclick="openSetKeyModal(\'' + esc(u.id) + '\',\'' + esc(u.username || u.email) + '\')">Set Key</button>'
         : '<span style="color:var(--muted);font-size:11px">—</span>';
+      var isSoleAdmin = (u.role === 'ADMIN' && u.status === 'ACTIVE' && activeAdminCount <= 1);
       var actions = '';
       if (u.status === 'SUSPENDED') {
         actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
           '<button class="tbl-action" style="color:var(--green)" onclick="activateUser(' + u.id + ')">Activate</button>';
+      } else if (isSoleAdmin) {
+        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>';
       } else {
         actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
           '<button class="tbl-action red" onclick="openDeactivateModal(' + u.id + ')">Deactivate</button>';
@@ -521,7 +450,6 @@ function renderUsers(users) {
         '<td><div class="avatar-cell"><div class="avatar" style="background:' + avatarBg + '">' + esc(ini) + '</div><strong>' + name + '</strong></div></td>' +
         '<td style="color:var(--muted)">' + esc(u.email) + '</td>' +
         '<td>' + roleLabel + '</td>' +
-        '<td>' + deptLabel + '</td>' +
         '<td>' + statusPill(u.status) + '</td>' +
         '<td>' + keyCell + '</td>' +
         '<td>' + actions + '</td>' +
@@ -554,9 +482,8 @@ window.openEditModal = function(id) {
   editId = id;
   document.getElementById('eu-name').value = user.username || '';
   document.getElementById('eu-email').value = user.email || '';
-  document.getElementById('eu-role').value = user.role || 'USER';
+  document.getElementById('eu-role').value = user.role || 'IT_STAFF';
   document.getElementById('eu-status').value = user.status || 'ACTIVE';
-  populateDeptSelect('eu-dept', user.department_id);
   openModal('modal-edit-user');
 };
 
@@ -581,7 +508,6 @@ window.activateUser = function(id) {
 
 
 window.openProvisionModal = function() {
-  populateDeptSelect('pu-dept', null);
   document.getElementById('form-provision').reset();
   openModal('modal-provision-user');
 };
@@ -601,8 +527,7 @@ document.getElementById('form-provision').addEventListener('submit', function(e)
     username: username,
     email: document.getElementById('pu-email').value.trim(),
     password: document.getElementById('pu-password').value,
-    role: document.getElementById('pu-role').value,
-    department_id: document.getElementById('pu-dept').value
+    role: document.getElementById('pu-role').value
   }, function(err) {
     if (btn) { btn.textContent = orig; btn.disabled = false; }
     if (err) { showToast('Failed to provision user: ' + err, true); return; }
@@ -624,7 +549,6 @@ document.getElementById('form-edit-user').addEventListener('submit', function(e)
     username: document.getElementById('eu-name').value.trim(),
     email: document.getElementById('eu-email').value.trim(),
     role: document.getElementById('eu-role').value,
-    department_id: document.getElementById('eu-dept').value,
     status: document.getElementById('eu-status').value
   }, function(err) {
     if (btn) { btn.textContent = orig; btn.disabled = false; }
@@ -711,7 +635,6 @@ window.copyPassphrase = function() {
 };
 
 // Filter change handlers
-document.getElementById('f-dept').addEventListener('change', loadUsers);
 document.getElementById('f-role').addEventListener('change', loadUsers);
 document.getElementById('f-status').addEventListener('change', loadUsers);
 document.getElementById('f-search').addEventListener('input', function() {
@@ -732,7 +655,7 @@ document.getElementById('f-search').addEventListener('input', function() {
     var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
     av.textContent = i || 'U';
   }
-  loadDepts(loadUsers);
+  loadUsers();
 })();
 </script>
 </body>

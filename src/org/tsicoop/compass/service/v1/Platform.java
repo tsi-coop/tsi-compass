@@ -53,42 +53,6 @@ public class Platform implements Action {
                 case "set_recovery_key":
                     setRecoveryKey(req, res, input);
                     break;
-                case "list_organizations":
-                    OutputProcessor.send(res, 200, listOrganizations());
-                    break;
-                case "add_organization":
-                    addOrganization(req, res, input);
-                    break;
-                case "update_organization":
-                    updateOrganization(req, res, input);
-                    break;
-                case "delete_organization":
-                    deleteOrganization(req, res, input);
-                    break;
-                case "list_departments":
-                    OutputProcessor.send(res, 200, listDepartments());
-                    break;
-                case "add_department":
-                    addDepartment(req, res, input);
-                    break;
-                case "update_department":
-                    updateDepartment(req, res, input);
-                    break;
-                case "delete_department":
-                    deleteDepartment(req, res, input);
-                    break;
-                case "list_designations":
-                    OutputProcessor.send(res, 200, listDesignations());
-                    break;
-                case "add_designation":
-                    addDesignation(req, res, input);
-                    break;
-                case "update_designation":
-                    updateDesignation(req, res, input);
-                    break;
-                case "delete_designation":
-                    deleteDesignation(req, res, input);
-                    break;
                 case "list_roles_summary":
                     OutputProcessor.send(res, 200, listRolesSummary());
                     break;
@@ -127,20 +91,6 @@ public class Platform implements Action {
             pool = new PoolDB();
             conn = pool.getConnection();
 
-            // org_count
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM organizations");
-            rs = pstmt.executeQuery();
-            result.put("org_count", rs.next() ? rs.getLong(1) : 0L);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            // dept_count
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM departments");
-            rs = pstmt.executeQuery();
-            result.put("dept_count", rs.next() ? rs.getLong(1) : 0L);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
             // user counts by status
             pstmt = conn.prepareStatement(
                 "SELECT status, COUNT(*) FROM users GROUP BY status"
@@ -176,25 +126,19 @@ public class Platform implements Action {
 
     @SuppressWarnings("unchecked")
     private JSONObject listUsers(JSONObject input) throws Exception {
-        String departmentId = (String) input.get("department_id");
-        String role = (String) input.get("role");
+        String role   = (String) input.get("role");
         String status = (String) input.get("status");
         String search = (String) input.get("search");
 
         StringBuilder sql = new StringBuilder(
-            "SELECT u.id::text, u.email, u.username, u.role, u.status, " +
-            "u.department_id::text, d.name AS department_name, u.created_at::text " +
-            "FROM users u " +
-            "LEFT JOIN departments d ON d.id = u.department_id " +
-            "WHERE 1=1"
+            "SELECT id::text, email, username, role, status, created_at::text FROM users WHERE 1=1"
         );
 
-        if (!isBlank(departmentId)) sql.append(" AND u.department_id = ?");
-        if (!isBlank(role))         sql.append(" AND u.role = ?");
-        if (!isBlank(status))       sql.append(" AND u.status = ?");
-        if (!isBlank(search))       sql.append(" AND (u.username ILIKE ? OR u.email ILIKE ?)");
+        if (!isBlank(role))   sql.append(" AND role = ?");
+        if (!isBlank(status)) sql.append(" AND status = ?");
+        if (!isBlank(search)) sql.append(" AND (username ILIKE ? OR email ILIKE ?)");
 
-        sql.append(" ORDER BY u.created_at DESC");
+        sql.append(" ORDER BY created_at DESC");
 
         PoolDB pool = null;
         Connection conn = null;
@@ -208,9 +152,8 @@ public class Platform implements Action {
             pstmt = conn.prepareStatement(sql.toString());
 
             int idx = 1;
-            if (!isBlank(departmentId)) pstmt.setObject(idx++, UUID.fromString(departmentId));
-            if (!isBlank(role))         pstmt.setString(idx++, role);
-            if (!isBlank(status))       pstmt.setString(idx++, status);
+            if (!isBlank(role))   pstmt.setString(idx++, role);
+            if (!isBlank(status)) pstmt.setString(idx++, status);
             if (!isBlank(search)) {
                 String like = "%" + search + "%";
                 pstmt.setString(idx++, like);
@@ -220,14 +163,12 @@ public class Platform implements Action {
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject u = new JSONObject();
-                u.put("id",              rs.getString(1));
-                u.put("email",           rs.getString(2));
-                u.put("username",        rs.getString(3));
-                u.put("role",            rs.getString(4));
-                u.put("status",          rs.getString(5));
-                u.put("department_id",   rs.getString(6));
-                u.put("department_name", rs.getString(7));
-                u.put("created_at",      rs.getString(8));
+                u.put("id",         rs.getString(1));
+                u.put("email",      rs.getString(2));
+                u.put("username",   rs.getString(3));
+                u.put("role",       rs.getString(4));
+                u.put("status",     rs.getString(5));
+                u.put("created_at", rs.getString(6));
                 users.add(u);
             }
         } finally {
@@ -244,14 +185,13 @@ public class Platform implements Action {
 
     @SuppressWarnings("unchecked")
     private void provisionUser(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String username     = (String) input.get("username");
-        String email        = (String) input.get("email");
-        String password     = (String) input.get("password");
-        String role         = (String) input.get("role");
-        String departmentId = (String) input.get("department_id");
+        String username = (String) input.get("username");
+        String email    = (String) input.get("email");
+        String password = (String) input.get("password");
+        String role     = (String) input.get("role");
 
-        if (isBlank(username) || isBlank(email) || isBlank(password) || isBlank(role) || isBlank(departmentId)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "username, email, password, role and department are required", req.getRequestURI());
+        if (isBlank(username) || isBlank(email) || isBlank(password) || isBlank(role)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "username, email, password and role are required", req.getRequestURI());
             return;
         }
         if (password.length() < 10) {
@@ -270,16 +210,14 @@ public class Platform implements Action {
             pool = new PoolDB();
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(
-                "INSERT INTO users (email, password_hash, username, role, department_id, status) " +
-                "VALUES (?, ?, ?, ?, ?, 'ACTIVE') RETURNING id::text"
+                "INSERT INTO users (email, password_hash, username, role, status) " +
+                "VALUES (?, ?, ?, ?, 'ACTIVE') RETURNING id::text"
             );
             int idx = 1;
             pstmt.setString(idx++, email.toLowerCase().trim());
             pstmt.setString(idx++, passwordHash);
             pstmt.setString(idx++, username);
             pstmt.setString(idx++, role);
-            if (isBlank(departmentId)) pstmt.setNull(idx++, java.sql.Types.OTHER);
-            else pstmt.setObject(idx++, UUID.fromString(departmentId));
 
             rs = pstmt.executeQuery();
             if (!rs.next()) {
@@ -317,12 +255,11 @@ public class Platform implements Action {
 
     @SuppressWarnings("unchecked")
     private void updateUser(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id           = (String) input.get("id");
-        String username     = (String) input.get("username");
-        String email        = (String) input.get("email");
-        String role         = (String) input.get("role");
-        String departmentId = (String) input.get("department_id");
-        String status       = (String) input.get("status");
+        String id       = (String) input.get("id");
+        String username = (String) input.get("username");
+        String email    = (String) input.get("email");
+        String role     = (String) input.get("role");
+        String status   = (String) input.get("status");
 
         if (isBlank(id)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
@@ -346,11 +283,6 @@ public class Platform implements Action {
         if (!isBlank(role)) {
             sql.append(first ? " " : ", ").append("role = ?");
             params.add(role);
-            first = false;
-        }
-        if (input.containsKey("department_id")) {
-            sql.append(first ? " " : ", ").append("department_id = ?");
-            params.add(departmentId); // may be null/blank — handled below
             first = false;
         }
         if (!isBlank(status)) {
@@ -377,13 +309,7 @@ public class Platform implements Action {
 
             int idx = 1;
             for (int i = 0; i < params.size(); i++) {
-                // The department_id slot needs special UUID handling
-                if (input.containsKey("department_id") && params.get(i) == departmentId) {
-                    if (isBlank(departmentId)) pstmt.setNull(idx++, java.sql.Types.OTHER);
-                    else pstmt.setObject(idx++, UUID.fromString(departmentId));
-                } else {
-                    pstmt.setString(idx++, (String) params.get(i));
-                }
+                pstmt.setString(idx++, (String) params.get(i));
             }
             pstmt.setObject(idx++, UUID.fromString(id));
 
@@ -396,11 +322,10 @@ public class Platform implements Action {
 
             JSONObject ctx = new JSONObject();
             ctx.put("user_id", id);
-            if (!isBlank(username))     ctx.put("username", username);
-            if (!isBlank(email))        ctx.put("email", email.toLowerCase().trim());
-            if (!isBlank(role))         ctx.put("role", role);
-            if (!isBlank(status))       ctx.put("status", status);
-            if (!isBlank(departmentId)) ctx.put("department_id", departmentId);
+            if (!isBlank(username)) ctx.put("username", username);
+            if (!isBlank(email))    ctx.put("email", email.toLowerCase().trim());
+            if (!isBlank(role))     ctx.put("role", role);
+            if (!isBlank(status))   ctx.put("status", status);
             EventLog.log(InputProcessor.getEmail(req), "USER_UPDATED", ctx.toJSONString());
 
         } catch (Exception e) {
@@ -430,10 +355,38 @@ public class Platform implements Action {
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            // Guard: cannot deactivate the last active admin
+            if (!"ACTIVE".equalsIgnoreCase(status)) {
+                pstmt = conn.prepareStatement("SELECT role FROM users WHERE id = ?");
+                pstmt.setObject(1, UUID.fromString(id));
+                rs = pstmt.executeQuery();
+                String targetRole = rs.next() ? rs.getString(1) : null;
+                try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+                rs = null; pstmt = null;
+
+                if ("ADMIN".equals(targetRole)) {
+                    pstmt = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'"
+                    );
+                    rs = pstmt.executeQuery();
+                    long adminCount = rs.next() ? rs.getLong(1) : 0;
+                    try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+                    rs = null; pstmt = null;
+
+                    if (adminCount <= 1) {
+                        OutputProcessor.errorResponse(res, 409, "Conflict",
+                            "Cannot deactivate the only active administrator", req.getRequestURI());
+                        return;
+                    }
+                }
+            }
+
             pstmt = conn.prepareStatement("UPDATE users SET status = ? WHERE id = ?");
             pstmt.setString(1, status);
             pstmt.setObject(2, UUID.fromString(id));
@@ -450,7 +403,7 @@ public class Platform implements Action {
 
         } finally {
             if (pool != null) {
-                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
             }
         }
     }
@@ -561,634 +514,8 @@ public class Platform implements Action {
     }
 
     // -------------------------------------------------------------------------
-    // Organizations
+    // Roles & Permissions (section moved up; org/dept/designation removed)
     // -------------------------------------------------------------------------
-
-    @SuppressWarnings("unchecked")
-    private JSONObject listOrganizations() throws Exception {
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        JSONArray organizations = new JSONArray();
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "SELECT o.id::text, o.name, o.type, o.parent_id::text, p.name AS parent_name, " +
-                "  (SELECT COUNT(*) FROM departments d WHERE d.org_id = o.id) AS dept_count " +
-                "FROM organizations o " +
-                "LEFT JOIN organizations p ON p.id = o.parent_id " +
-                "ORDER BY o.name"
-            );
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                JSONObject org = new JSONObject();
-                org.put("id",          rs.getString(1));
-                org.put("name",        rs.getString(2));
-                org.put("type",        rs.getString(3));
-                org.put("parent_id",   rs.getString(4));
-                org.put("parent_name", rs.getString(5));
-                org.put("dept_count",  rs.getLong(6));
-                organizations.add(org);
-            }
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-
-        JSONObject result = new JSONObject();
-        result.put("success", true);
-        result.put("organizations", organizations);
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addOrganization(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String name     = (String) input.get("name");
-        String type     = (String) input.get("type");
-        String parentId = (String) input.get("parent_id");
-
-        if (isBlank(name) || isBlank(type)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "name and type are required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "INSERT INTO organizations (name, type, parent_id) VALUES (?, ?, ?) RETURNING id::text"
-            );
-            int idx = 1;
-            pstmt.setString(idx++, name);
-            pstmt.setString(idx++, type);
-            if (isBlank(parentId)) pstmt.setNull(idx++, java.sql.Types.OTHER);
-            else pstmt.setObject(idx++, UUID.fromString(parentId));
-
-            rs = pstmt.executeQuery();
-            if (!rs.next()) {
-                OutputProcessor.errorResponse(res, 500, "Internal Error", "Failed to create organization", req.getRequestURI());
-                return;
-            }
-            String newId = rs.getString(1);
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            result.put("id", newId);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void updateOrganization(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id       = (String) input.get("id");
-        String name     = (String) input.get("name");
-        String type     = (String) input.get("type");
-        String parentId = (String) input.get("parent_id");
-
-        if (isBlank(id)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
-            return;
-        }
-
-        StringBuilder sql = new StringBuilder("UPDATE organizations SET");
-        boolean first = true;
-
-        if (!isBlank(name)) { sql.append(first ? " " : ", ").append("name = ?"); first = false; }
-        if (!isBlank(type)) { sql.append(first ? " " : ", ").append("type = ?"); first = false; }
-        if (input.containsKey("parent_id")) { sql.append(first ? " " : ", ").append("parent_id = ?"); first = false; }
-
-        if (first) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
-            return;
-        }
-
-        sql.append(" WHERE id = ?");
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
-
-            int idx = 1;
-            if (!isBlank(name))                pstmt.setString(idx++, name);
-            if (!isBlank(type))                pstmt.setString(idx++, type);
-            if (input.containsKey("parent_id")) {
-                if (isBlank(parentId)) pstmt.setNull(idx++, java.sql.Types.OTHER);
-                else pstmt.setObject(idx++, UUID.fromString(parentId));
-            }
-            pstmt.setObject(idx++, UUID.fromString(id));
-
-            pstmt.executeUpdate();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Departments
-    // -------------------------------------------------------------------------
-
-    @SuppressWarnings("unchecked")
-    private JSONObject listDepartments() throws Exception {
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        JSONArray departments = new JSONArray();
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "SELECT d.id::text, d.name, d.org_id::text, o.name AS org_name, " +
-                "  (SELECT COUNT(*) FROM users u WHERE u.department_id = d.id AND u.status = 'ACTIVE') AS user_count " +
-                "FROM departments d " +
-                "JOIN organizations o ON o.id = d.org_id " +
-                "ORDER BY o.name, d.name"
-            );
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                JSONObject dept = new JSONObject();
-                dept.put("id",         rs.getString(1));
-                dept.put("name",       rs.getString(2));
-                dept.put("org_id",     rs.getString(3));
-                dept.put("org_name",   rs.getString(4));
-                dept.put("user_count", rs.getLong(5));
-                departments.add(dept);
-            }
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-
-        JSONObject result = new JSONObject();
-        result.put("success", true);
-        result.put("departments", departments);
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addDepartment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String name  = (String) input.get("name");
-        String orgId = (String) input.get("org_id");
-
-        if (isBlank(name) || isBlank(orgId)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "name and org_id are required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "INSERT INTO departments (name, org_id) VALUES (?, ?) RETURNING id::text"
-            );
-            pstmt.setString(1, name);
-            pstmt.setObject(2, UUID.fromString(orgId));
-
-            rs = pstmt.executeQuery();
-            if (!rs.next()) {
-                OutputProcessor.errorResponse(res, 500, "Internal Error", "Failed to create department", req.getRequestURI());
-                return;
-            }
-            String newId = rs.getString(1);
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            result.put("id", newId);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void updateDepartment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id    = (String) input.get("id");
-        String name  = (String) input.get("name");
-        String orgId = (String) input.get("org_id");
-
-        if (isBlank(id)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
-            return;
-        }
-
-        StringBuilder sql = new StringBuilder("UPDATE departments SET");
-        boolean first = true;
-
-        if (!isBlank(name))  { sql.append(first ? " " : ", ").append("name = ?");   first = false; }
-        if (!isBlank(orgId)) { sql.append(first ? " " : ", ").append("org_id = ?"); first = false; }
-
-        if (first) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
-            return;
-        }
-
-        sql.append(" WHERE id = ?");
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
-
-            int idx = 1;
-            if (!isBlank(name))  pstmt.setString(idx++, name);
-            if (!isBlank(orgId)) pstmt.setObject(idx++, UUID.fromString(orgId));
-            pstmt.setObject(idx++, UUID.fromString(id));
-
-            pstmt.executeUpdate();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Designations
-    // -------------------------------------------------------------------------
-
-    @SuppressWarnings("unchecked")
-    private JSONObject listDesignations() throws Exception {
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        JSONArray designations = new JSONArray();
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "SELECT des.id::text, des.title, " +
-                "  STRING_AGG(k.kra_title, ', ' ORDER BY k.created_at) AS kra_titles " +
-                "FROM designations des " +
-                "LEFT JOIN designation_kras k ON k.designation_id = des.id " +
-                "GROUP BY des.id, des.title " +
-                "ORDER BY des.title"
-            );
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                JSONObject des = new JSONObject();
-                des.put("id",         rs.getString(1));
-                des.put("title",      rs.getString(2));
-                des.put("kra_titles", rs.getString(3));
-                designations.add(des);
-            }
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-
-        JSONObject result = new JSONObject();
-        result.put("success", true);
-        result.put("designations", designations);
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addDesignation(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String title = (String) input.get("title");
-        String kras  = (String) input.get("kras");
-
-        if (isBlank(title)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "title is required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            conn.setAutoCommit(false);
-
-            pstmt = conn.prepareStatement(
-                "INSERT INTO designations (title) VALUES (?) RETURNING id::text"
-            );
-            pstmt.setString(1, title);
-            rs = pstmt.executeQuery();
-            if (!rs.next()) {
-                conn.rollback();
-                OutputProcessor.errorResponse(res, 500, "Internal Error", "Failed to create designation", req.getRequestURI());
-                return;
-            }
-            String newId = rs.getString(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            if (!isBlank(kras)) {
-                String[] kraTitles = kras.split(",");
-                for (String kraTitle : kraTitles) {
-                    String trimmed = kraTitle.trim();
-                    if (trimmed.isEmpty()) continue;
-                    pstmt = conn.prepareStatement(
-                        "INSERT INTO designation_kras (designation_id, kra_title, responsibility_description) VALUES (?, ?, ?)"
-                    );
-                    pstmt.setObject(1, UUID.fromString(newId));
-                    pstmt.setString(2, trimmed);
-                    pstmt.setString(3, "");
-                    pstmt.executeUpdate();
-                    try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
-                    pstmt = null;
-                }
-            }
-
-            conn.commit();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            result.put("id", newId);
-            OutputProcessor.send(res, 200, result);
-
-        } catch (Exception e) {
-            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
-            throw e;
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void updateDesignation(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id    = (String) input.get("id");
-        String title = (String) input.get("title");
-        String kras  = (String) input.get("kras");
-
-        if (isBlank(id) || isBlank(title)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id and title are required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            conn.setAutoCommit(false);
-
-            // Update title
-            pstmt = conn.prepareStatement("UPDATE designations SET title = ? WHERE id = ?");
-            pstmt.setString(1, title);
-            pstmt.setObject(2, UUID.fromString(id));
-            pstmt.executeUpdate();
-            try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
-            pstmt = null;
-
-            // Delete existing KRAs
-            pstmt = conn.prepareStatement("DELETE FROM designation_kras WHERE designation_id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            pstmt.executeUpdate();
-            try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
-            pstmt = null;
-
-            // Re-insert KRAs
-            if (!isBlank(kras)) {
-                String[] kraTitles = kras.split(",");
-                for (String kraTitle : kraTitles) {
-                    String trimmed = kraTitle.trim();
-                    if (trimmed.isEmpty()) continue;
-                    pstmt = conn.prepareStatement(
-                        "INSERT INTO designation_kras (designation_id, kra_title, responsibility_description) VALUES (?, ?, ?)"
-                    );
-                    pstmt.setObject(1, UUID.fromString(id));
-                    pstmt.setString(2, trimmed);
-                    pstmt.setString(3, "");
-                    pstmt.executeUpdate();
-                    try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
-                    pstmt = null;
-                }
-            }
-
-            conn.commit();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } catch (Exception e) {
-            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
-            throw e;
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void deleteOrganization(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id = (String) input.get("id");
-        if (isBlank(id)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM organizations WHERE parent_id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            rs = pstmt.executeQuery();
-            rs.next();
-            long childCount = rs.getLong(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            if (childCount > 0) {
-                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a location that has child locations", req.getRequestURI());
-                return;
-            }
-
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM departments WHERE org_id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            rs = pstmt.executeQuery();
-            rs.next();
-            long deptCount = rs.getLong(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            if (deptCount > 0) {
-                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a location that has departments", req.getRequestURI());
-                return;
-            }
-
-            pstmt = conn.prepareStatement("DELETE FROM organizations WHERE id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            pstmt.executeUpdate();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void deleteDepartment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id = (String) input.get("id");
-        if (isBlank(id)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE department_id = ? AND status = 'ACTIVE'");
-            pstmt.setObject(1, UUID.fromString(id));
-            rs = pstmt.executeQuery();
-            rs.next();
-            long userCount = rs.getLong(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            if (userCount > 0) {
-                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a department with active users", req.getRequestURI());
-                return;
-            }
-
-            pstmt = conn.prepareStatement("DELETE FROM departments WHERE id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            pstmt.executeUpdate();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void deleteDesignation(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String id = (String) input.get("id");
-        if (isBlank(id)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
-            return;
-        }
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-
-            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE designation_id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            rs = pstmt.executeQuery();
-            rs.next();
-            long userCount = rs.getLong(1);
-            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
-            rs = null; pstmt = null;
-
-            if (userCount > 0) {
-                OutputProcessor.errorResponse(res, 409, "Conflict", "Cannot delete a designation that is assigned to users", req.getRequestURI());
-                return;
-            }
-
-            conn.setAutoCommit(false);
-
-            pstmt = conn.prepareStatement("DELETE FROM designation_kras WHERE designation_id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            pstmt.executeUpdate();
-            try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
-            pstmt = null;
-
-            pstmt = conn.prepareStatement("DELETE FROM designations WHERE id = ?");
-            pstmt.setObject(1, UUID.fromString(id));
-            pstmt.executeUpdate();
-
-            conn.commit();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            OutputProcessor.send(res, 200, result);
-
-        } catch (Exception e) {
-            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
-            throw e;
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -1207,8 +534,7 @@ public class Platform implements Action {
     };
 
     private static final String[] ROLES = {
-        "ADMIN", "RISK_OWNER", "COMPLIANCE_OFFICER",
-        "INTERNAL_AUDITOR", "IT_STAFF", "USER"
+        "ADMIN", "GRC_OFFICER", "IT_STAFF"
     };
 
     @SuppressWarnings("unchecked")
