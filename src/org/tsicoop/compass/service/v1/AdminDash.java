@@ -243,8 +243,6 @@ public class AdminDash implements Action {
 
             r.put("active_users",   getSimpleCount(conn, pool, "SELECT COUNT(*) FROM users WHERE status = 'ACTIVE'"));
             r.put("pending_users",  getSimpleCount(conn, pool, "SELECT COUNT(*) FROM users WHERE status = 'PENDING'"));
-            r.put("org_count",      getSimpleCount(conn, pool, "SELECT COUNT(*) FROM organizations"));
-            r.put("dept_count",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM departments"));
 
             r.put("open_risks",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM risks WHERE status != 'RETIRED'"));
             r.put("high_risks",     getSimpleCount(conn, pool, "SELECT COUNT(*) FROM risks WHERE inherent_risk_score >= 15 AND status != 'RETIRED'"));

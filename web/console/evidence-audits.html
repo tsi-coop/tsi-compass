@@ -91,8 +91,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <input id="f-search" type="search" placeholder="Search audits…" oninput="applyFilters()">
       </div>
       <table>
-        <thead><tr><th>Title</th><th>Framework</th><th>Department</th><th>Lead Auditor</th><th>Scheduled</th><th>Observations</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="aud-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Framework</th><th>Lead Auditor</th><th>Scheduled</th><th>Observations</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="aud-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </main>
@@ -105,11 +105,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Scope</label><textarea id="add-scope" required></textarea></div>
     <div class="form-row half">
       <div><label>Framework</label><select id="add-fw"><option value="">— None —</option></select></div>
-      <div><label>Department</label><select id="add-dept"><option value="">— None —</option></select></div>
-    </div>
-    <div class="form-row half">
       <div><label>Lead Auditor</label><select id="add-auditor"><option value="">— Select —</option></select></div>
-      <div></div>
     </div>
     <div class="form-row half">
       <div><label>Start Date</label><input id="add-start" type="date" required></div>
@@ -148,7 +144,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={audits:[],staff:[],frameworks:[],departments:[]};
+var state={audits:[],staff:[],frameworks:[]};
 
 function api(func,body,cb){
   fetch('/api/v1/audit',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -163,12 +159,11 @@ var STATUS_PILL={SCHEDULED:'<span class="pill neu">Scheduled</span>',IN_PROGRESS
 function renderAudits(list){
   var body=document.getElementById('aud-body');
   var cnt=document.getElementById('aud-count');if(cnt)cnt.textContent=list.length+' audit'+(list.length!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="8" class="empty">No audits found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No audits found.</td></tr>';return;}
   body.innerHTML=list.map(function(a){
     return '<tr>'+
       '<td><strong>'+esc(a.title)+'</strong></td>'+
       '<td>'+esc(a.framework_name||'—')+'</td>'+
-      '<td>'+esc(a.department_name||'—')+'</td>'+
       '<td>'+esc(a.lead_auditor_name||'—')+'</td>'+
       '<td>'+esc(a.scheduled_start||'—')+' → '+esc(a.scheduled_end||'—')+'</td>'+
       '<td><a href="evidence-findings.html" style="color:var(--teal);font-size:12px">'+esc(a.observation_count||0)+' findings</a></td>'+
@@ -203,11 +198,6 @@ function loadAll(){
     var sel=document.getElementById('add-fw');
     state.frameworks.forEach(function(f){var o=document.createElement('option');o.value=f.id;o.textContent=f.name;sel.appendChild(o);});
   });
-  api('list_departments_dd',{},function(err,d){
-    if(err)return;state.departments=d.departments||[];
-    var sel=document.getElementById('add-dept');
-    state.departments.forEach(function(f){var o=document.createElement('option');o.value=f.id;o.textContent=f.name;sel.appendChild(o);});
-  });
 }
 
 function openAdd(){
@@ -235,7 +225,6 @@ function submitAdd(){
   var end=document.getElementById('add-end').value;
   if(!title||!scope||!start||!end){alert('Title, scope, and dates are required.');return;}
   api('add_audit',{title:title,scope:scope,framework_id:document.getElementById('add-fw').value||null,
-    department_id:document.getElementById('add-dept').value||null,
     lead_auditor_id:document.getElementById('add-auditor').value||null,
     scheduled_start:start,scheduled_end:end},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Audit scheduled');loadAll();

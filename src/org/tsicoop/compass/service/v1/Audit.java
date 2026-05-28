@@ -93,7 +93,7 @@ public class Audit implements Action {
                     OutputProcessor.send(res, 200, listFrameworksDD());
                     break;
                 case "list_departments_dd":
-                    OutputProcessor.send(res, 200, listDepartmentsDD());
+                    OutputProcessor.send(res, 200, new org.json.simple.JSONObject());
                     break;
                 case "list_controls_dd":
                     OutputProcessor.send(res, 200, listControlsDD());
@@ -341,13 +341,12 @@ public class Audit implements Action {
                 "SELECT a.id, a.title, a.scope, a.status, " +
                 "TO_CHAR(a.scheduled_start, 'YYYY-MM-DD') AS scheduled_start, " +
                 "TO_CHAR(a.scheduled_end, 'YYYY-MM-DD') AS scheduled_end, " +
-                "f.name AS framework_name, d.name AS department_name, " +
+                "f.name AS framework_name, " +
                 "u.username AS lead_auditor_name, " +
                 "(SELECT COUNT(*) FROM audit_observations WHERE audit_id = a.id) AS observation_count, " +
                 "(SELECT COUNT(*) FROM evidence_locker WHERE audit_id = a.id) AS evidence_count " +
                 "FROM audits a " +
                 "LEFT JOIN frameworks f ON f.id = a.framework_id " +
-                "LEFT JOIN departments d ON d.id = a.department_id " +
                 "LEFT JOIN users u ON u.id = a.lead_auditor_id" +
                 where + " ORDER BY a.scheduled_start DESC";
             pstmt = conn.prepareStatement(sql);
@@ -364,7 +363,6 @@ public class Audit implements Action {
                 row.put("scheduled_start",   rs.getString("scheduled_start"));
                 row.put("scheduled_end",     rs.getString("scheduled_end"));
                 row.put("framework_name",    rs.getString("framework_name"));
-                row.put("department_name",   rs.getString("department_name"));
                 row.put("lead_auditor_name", rs.getString("lead_auditor_name"));
                 row.put("observation_count", rs.getLong("observation_count"));
                 row.put("evidence_count",    rs.getLong("evidence_count"));
@@ -385,7 +383,6 @@ public class Audit implements Action {
         String title        = (String) input.get("title");
         String scope        = (String) input.get("scope");
         String frameworkId  = (String) input.get("framework_id");
-        String departmentId = (String) input.get("department_id");
         String leadAuditor  = (String) input.get("lead_auditor_id");
         String startDate    = (String) input.get("scheduled_start");
         String endDate      = (String) input.get("scheduled_end");
@@ -401,16 +398,15 @@ public class Audit implements Action {
             pool = new PoolDB();
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(
-                "INSERT INTO audits (title, scope, framework_id, department_id, lead_auditor_id, scheduled_start, scheduled_end) " +
-                "VALUES (?, ?, ?::uuid, ?::uuid, ?::uuid, ?::date, ?::date) RETURNING id"
+                "INSERT INTO audits (title, scope, framework_id, lead_auditor_id, scheduled_start, scheduled_end) " +
+                "VALUES (?, ?, ?::uuid, ?::uuid, ?::date, ?::date) RETURNING id"
             );
             pstmt.setString(1, title);
             pstmt.setString(2, scope);
-            pstmt.setString(3, isBlank(frameworkId)  ? null : frameworkId);
-            pstmt.setString(4, isBlank(departmentId) ? null : departmentId);
-            pstmt.setString(5, isBlank(leadAuditor)  ? null : leadAuditor);
-            pstmt.setString(6, startDate);
-            pstmt.setString(7, endDate);
+            pstmt.setString(3, isBlank(frameworkId) ? null : frameworkId);
+            pstmt.setString(4, isBlank(leadAuditor) ? null : leadAuditor);
+            pstmt.setString(5, startDate);
+            pstmt.setString(6, endDate);
             rs = pstmt.executeQuery();
             rs.next();
             result.put("id", rs.getString("id"));
@@ -440,7 +436,6 @@ public class Audit implements Action {
                 "title           = COALESCE(?, title), " +
                 "scope           = COALESCE(?, scope), " +
                 "framework_id    = COALESCE(?::uuid, framework_id), " +
-                "department_id   = COALESCE(?::uuid, department_id), " +
                 "lead_auditor_id = COALESCE(?::uuid, lead_auditor_id), " +
                 "scheduled_start = COALESCE(?::date, scheduled_start), " +
                 "scheduled_end   = COALESCE(?::date, scheduled_end), " +
@@ -450,12 +445,11 @@ public class Audit implements Action {
             pstmt.setString(1, (String) input.get("title"));
             pstmt.setString(2, (String) input.get("scope"));
             pstmt.setString(3, (String) input.get("framework_id"));
-            pstmt.setString(4, (String) input.get("department_id"));
-            pstmt.setString(5, (String) input.get("lead_auditor_id"));
-            pstmt.setString(6, (String) input.get("scheduled_start"));
-            pstmt.setString(7, (String) input.get("scheduled_end"));
-            pstmt.setString(8, (String) input.get("status"));
-            pstmt.setString(9, id);
+            pstmt.setString(4, (String) input.get("lead_auditor_id"));
+            pstmt.setString(5, (String) input.get("scheduled_start"));
+            pstmt.setString(6, (String) input.get("scheduled_end"));
+            pstmt.setString(7, (String) input.get("status"));
+            pstmt.setString(8, id);
             pstmt.executeUpdate();
         } finally {
             if (pool != null) {
@@ -948,35 +942,6 @@ public class Audit implements Action {
         }
         result.put("success",    true);
         result.put("frameworks", list);
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private JSONObject listDepartmentsDD() throws Exception {
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        JSONObject result = new JSONObject();
-        JSONArray list = new JSONArray();
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement("SELECT id, name FROM departments ORDER BY name");
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                JSONObject row = new JSONObject();
-                row.put("id",   rs.getString("id"));
-                row.put("name", rs.getString("name"));
-                list.add(row);
-            }
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-        result.put("success",     true);
-        result.put("departments", list);
         return result;
     }
 
