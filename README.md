@@ -46,10 +46,7 @@ git clone https://github.com/tsi-coop/tsi-compass.git
 cd tsi-compass
 docker compose up -d
 ```
-
-The app starts on **http://localhost:8085**.
-
-On first run, navigate to **http://localhost:8085/setup/** to create your organisation and the first administrator account.
+Once the installation is complete, head to **http://localhost:8085/tour** for an guided introduction to the platform. It walks you through each module and is the best starting point before exploring the console.
 
 ### Environment variables
 

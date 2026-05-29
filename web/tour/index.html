@@ -63,7 +63,12 @@
         .banner-desc { font-size: 13px; color: var(--muted); }
         .banner-version { text-align: right; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
         .version-val { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: var(--teal); display: block; margin-top: 2px; }
-        @media(max-width:700px){main{padding:20px}header{padding:20px}.tour-row td{padding:16px 16px}.step-num{font-size:20px;width:40px}.action-btn{padding:6px 12px}.footer-banner{flex-direction:column}}
+        .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 28px; }
+        .video-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+        .video-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+        .video-embed { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid var(--line); }
+        .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        @media(max-width:700px){main{padding:20px}header{padding:20px}.tour-row td{padding:16px 16px}.step-num{font-size:20px;width:40px}.action-btn{padding:6px 12px}.footer-banner{flex-direction:column}.video-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -79,6 +84,33 @@
 </header>
 
 <main>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Watch First</h2>
+      <div class="dots">
+        <div class="dot dot-green"></div>
+        <div class="dot dot-green"></div>
+        <div class="dot dot-pulse"></div>
+      </div>
+    </div>
+    <div class="video-grid">
+      <div>
+        <div class="video-label">Part 1</div>
+        <div class="video-title">Installation Walkthrough</div>
+        <div class="video-embed">
+          <iframe src="https://www.youtube.com/embed/WRR5JjrhSmY" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+      <div>
+        <div class="video-label">Part 2</div>
+        <div class="video-title">Functional Walkthrough</div>
+        <div class="video-embed">
+          <iframe src="https://www.youtube.com/embed/bVPx1KHzx0w" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-head">
@@ -99,7 +131,7 @@
           <td>
             <div class="step-title">Initial Setup</div>
             <div class="step-path">/setup/</div>
-            <p class="step-desc">Configure your organization structure, create departments, define designations, and provision the first admin account.</p>
+            <p class="step-desc">Configure your organization and provision the first admin account.</p>
           </td>
           <td style="padding:24px 16px"><span class="badge badge-infra">Infrastructure</span></td>
           <td style="padding:24px 28px;text-align:right">
