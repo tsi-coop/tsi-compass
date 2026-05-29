@@ -28,6 +28,15 @@ TSI Compass is a self-hosted Governance, Risk & Compliance (GRC) tool built for 
 
 ---
 
+## Video Demos
+
+| Demo | Link |
+|------|------|
+| **Installation Walkthrough** | [https://youtu.be/WRR5JjrhSmY](https://youtu.be/WRR5JjrhSmY) |
+| **Functional Walkthrough** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
+
+---
+
 ## Quick start
 
 **Prerequisites:** Docker and Docker Compose.
