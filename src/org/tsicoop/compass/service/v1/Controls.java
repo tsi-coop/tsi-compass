@@ -312,8 +312,8 @@ public class Controls implements Action {
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement(
-                "INSERT INTO exceptions (policy_id,control_id,requested_by,reason,compensating_controls,expiry_date) " +
-                "VALUES (?::uuid,?::uuid,?::uuid,?,?,?::date) RETURNING id::text"
+                "INSERT INTO exceptions (policy_id,control_id,requested_by,reason,compensating_controls,expiry_date,status) " +
+                "VALUES (?::uuid,?::uuid,?::uuid,?,?,?::date,'APPROVED') RETURNING id::text"
             );
             String polId  = (String) input.get("policy_id");
             String ctlId  = (String) input.get("control_id");

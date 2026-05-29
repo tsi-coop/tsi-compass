@@ -108,7 +108,7 @@ tr:hover td{background:#fafcfd}
       <div>
         <div class="eyebrow">Compliance &amp; Controls</div>
         <h1>Exception Register</h1>
-        <p class="subtitle">Policy and control exceptions with business justifications, compensating controls, and approval workflow.</p>
+        <p class="subtitle">Policy and control exceptions with business justifications and compensating controls.</p>
       </div>
     </div>
 
@@ -130,9 +130,9 @@ tr:hover td{background:#fafcfd}
       <table>
         <thead><tr>
           <th>Policy</th><th>Control</th><th>Reason</th><th>Requested By</th>
-          <th>Expiry</th><th>Status</th><th>Actions</th>
+          <th>Expiry</th>
         </tr></thead>
-        <tbody id="exc-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        <tbody id="exc-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </main>
@@ -159,25 +159,6 @@ tr:hover td{background:#fafcfd}
   </div>
 </div>
 
-<!-- Review Modal -->
-<div class="modal-overlay" id="modal-review">
-  <div class="modal">
-    <h2>Review Exception</h2>
-    <input type="hidden" id="review-id">
-    <div id="review-detail" style="background:#f3f7f8;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7"></div>
-    <div class="form-row"><label>Your Decision</label>
-      <select id="review-status">
-        <option value="APPROVED">Approve</option>
-        <option value="REJECTED">Reject</option>
-      </select>
-    </div>
-    <div class="form-row"><label>Approver</label><select id="review-approver"><option value="">— Select —</option></select></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal('modal-review')">Cancel</button>
-      <button class="btn primary" onclick="submitReview()">Submit Decision</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast">Saved successfully</div>
 <script src="rbac.js"></script>
@@ -213,20 +194,14 @@ function renderExceptions(list) {
   var body = document.getElementById('exc-body');
   var cnt  = document.getElementById('exc-count');
   if(cnt) cnt.textContent = list.length+' exception'+(list.length!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No exceptions found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="5" class="empty">No exceptions found.</td></tr>';return;}
   body.innerHTML = list.map(function(e){
-    var canReview = e.status==='PENDING';
     return '<tr>'+
       '<td>'+esc(e.policy_title||'—')+'</td>'+
       '<td>'+esc(e.control_code||'—')+'</td>'+
       '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(e.reason)+'">'+esc(e.reason)+'</td>'+
       '<td>'+esc(e.requester_name||'—')+'</td>'+
       '<td>'+esc(e.expiry_date||'—')+'</td>'+
-      '<td>'+(STATUS_PILL[e.status]||esc(e.status))+'</td>'+
-      '<td><div class="row-actions">'+
-        (canReview?'<button class="btn sm primary" onclick="openReview(\''+e.id+'\')">Review</button>':'')+
-        (isAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteException(\''+e.id+'\')">Delete</button>':'')+
-      '</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -265,10 +240,8 @@ function loadAll() {
   api('list_staff',{},function(err,d){
     if(err)return;
     state.staff=d.staff||[];
-    ['add-requester','review-approver'].forEach(function(id){
-      var sel=document.getElementById(id);
-      state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
-    });
+    var sel=document.getElementById('add-requester');
+    state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
   });
 }
 
@@ -278,18 +251,6 @@ function openAdd() {
   document.getElementById('modal-add').classList.add('open');
 }
 
-function openReview(id) {
-  var ex = state.exceptions.find(function(x){return x.id===id;});
-  if(!ex) return;
-  document.getElementById('review-id').value = id;
-  document.getElementById('review-detail').innerHTML =
-    '<strong>Policy:</strong> '+esc(ex.policy_title||'—')+'<br>'+
-    '<strong>Reason:</strong> '+esc(ex.reason)+'<br>'+
-    '<strong>Compensating Controls:</strong> '+esc(ex.compensating_controls||'—')+'<br>'+
-    '<strong>Expiry:</strong> '+esc(ex.expiry_date||'—');
-  document.getElementById('review-approver').selectedIndex=0;
-  document.getElementById('modal-review').classList.add('open');
-}
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
@@ -310,15 +271,6 @@ function submitAdd() {
   });
 }
 
-function submitReview() {
-  var id      = document.getElementById('review-id').value;
-  var status  = document.getElementById('review-status').value;
-  var approver= document.getElementById('review-approver').value||null;
-  api('update_exception_status',{id:id,status:status,approver_id:approver},function(err){
-    if(err){alert('Error: '+err);return;}
-    closeModal('modal-review');showToast('Exception '+status.toLowerCase());loadAll();
-  });
-}
 
 function deleteException(id) {
   if (!confirm('Delete this exception? This cannot be undone.')) return;
