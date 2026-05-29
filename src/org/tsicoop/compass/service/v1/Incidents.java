@@ -10,15 +10,28 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.security.MessageDigest;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import com.lowagie.text.Document;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 
 public class Incidents implements Action {
 
@@ -56,6 +69,7 @@ public class Incidents implements Action {
                 case "add_campaign_document":   addDocument(req, res, input, "campaign");                                         break;
                 case "list_campaign_documents": OutputProcessor.send(res, 200, listDocuments(input, "campaign"));                 break;
                 case "get_campaign_document":   OutputProcessor.send(res, 200, getDocument(input, "campaign"));                   break;
+                case "generate_rca_report":     generateRcaReport(req, res, input);                                               break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -464,6 +478,145 @@ public class Incidents implements Action {
             return result;
         } finally { if (pool != null) pool.cleanup(rs, p, conn); }
     }
+
+    @SuppressWarnings("unchecked")
+    private void generateRcaReport(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT title, description, severity, status, " +
+                "rca_timeline, rca_business_impact, rca_root_cause, rca_preventative_actions, " +
+                "TO_CHAR(created_at, 'DD Mon YYYY') AS reported_on, " +
+                "TO_CHAR(resolved_at, 'DD Mon YYYY') AS resolved_on " +
+                "FROM incidents WHERE id = ?::uuid"
+            );
+            p.setString(1, id); rs = p.executeQuery();
+            if (!rs.next()) { OutputProcessor.errorResponse(res, 404, "Not Found", "Incident not found", req.getRequestURI()); return; }
+            String title      = coalesce(rs.getString("title"),                     "Untitled Incident");
+            String desc       = coalesce(rs.getString("description"),               "Not recorded.");
+            String severity   = coalesce(rs.getString("severity"),                  "—");
+            String status     = coalesce(rs.getString("status"),                    "—");
+            String timeline   = coalesce(rs.getString("rca_timeline"),              "Not recorded.");
+            String impact     = coalesce(rs.getString("rca_business_impact"),       "Not recorded.");
+            String rootCause  = coalesce(rs.getString("rca_root_cause"),            "Not recorded.");
+            String prevention = coalesce(rs.getString("rca_preventative_actions"), "Not recorded.");
+            String reportedOn = coalesce(rs.getString("reported_on"),               "—");
+            String resolvedOn = coalesce(rs.getString("resolved_on"),               "Pending");
+            byte[] pdf = buildRcaPdf(title, desc, severity, status, timeline, impact, rootCause, prevention, reportedOn, resolvedOn);
+            String safeTitle = title.replaceAll("[^a-zA-Z0-9 ]", "").trim().replaceAll("\\s+", "-").toLowerCase();
+            if (safeTitle.length() > 40) safeTitle = safeTitle.substring(0, 40);
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("file_name", "rca-" + safeTitle + ".pdf");
+            result.put("file_data", Base64.getEncoder().encodeToString(pdf));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    private byte[] buildRcaPdf(String title, String desc, String severity, String status,
+            String timeline, String impact, String rootCause, String prevention,
+            String reportedOn, String resolvedOn) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 45, 45, 55, 55);
+        PdfWriter.getInstance(doc, baos);
+        doc.open();
+
+        Color TEAL  = new Color(0, 106, 103);
+        Color INK   = new Color(23, 32, 51);
+        Color MUTED = new Color(96, 112, 134);
+        Color LINE  = new Color(217, 226, 236);
+        Color WASH  = new Color(243, 247, 248);
+        Color WHITE = Color.WHITE;
+
+        Font fTitle    = new Font(Font.HELVETICA, 20, Font.BOLD,   WHITE);
+        Font fSub      = new Font(Font.HELVETICA,  9, Font.NORMAL, new Color(180, 220, 218));
+        Font fGen      = new Font(Font.HELVETICA,  7, Font.NORMAL, new Color(150, 200, 198));
+        Font fSec      = new Font(Font.HELVETICA, 10, Font.BOLD,   TEAL);
+        Font fLbl      = new Font(Font.HELVETICA,  7, Font.BOLD,   MUTED);
+        Font fVal      = new Font(Font.HELVETICA,  9, Font.NORMAL, INK);
+        Font fBody     = new Font(Font.HELVETICA,  9, Font.NORMAL, INK);
+        Font fIncTitle = new Font(Font.HELVETICA, 12, Font.BOLD,   INK);
+        Font fFoot     = new Font(Font.HELVETICA,  7, Font.ITALIC, MUTED);
+
+        // ── Header banner ──
+        PdfPTable banner = new PdfPTable(2);
+        banner.setWidthPercentage(100); banner.setWidths(new float[]{1.6f, 1f}); banner.setSpacingAfter(20);
+        PdfPCell bLeft = new PdfPCell(); bLeft.setBackgroundColor(TEAL); bLeft.setBorder(Rectangle.NO_BORDER); bLeft.setPadding(16);
+        bLeft.addElement(new Paragraph("TSI Compass", fTitle));
+        bLeft.addElement(new Paragraph("Incident Root Cause Analysis", fSub));
+        banner.addCell(bLeft);
+        PdfPCell bRight = new PdfPCell(); bRight.setBackgroundColor(TEAL); bRight.setBorder(Rectangle.NO_BORDER); bRight.setPadding(16);
+        bRight.setHorizontalAlignment(Element.ALIGN_RIGHT); bRight.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        Paragraph pType = new Paragraph("RCA REPORT", new Font(Font.HELVETICA, 13, Font.BOLD, WHITE)); pType.setAlignment(Element.ALIGN_RIGHT); bRight.addElement(pType);
+        Paragraph pGen = new Paragraph("Generated: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy")), fGen); pGen.setAlignment(Element.ALIGN_RIGHT); bRight.addElement(pGen);
+        banner.addCell(bRight);
+        doc.add(banner);
+
+        // ── Incident title block ──
+        PdfPTable titleBox = new PdfPTable(1); titleBox.setWidthPercentage(100); titleBox.setSpacingAfter(14);
+        PdfPCell titleCell = new PdfPCell(); titleCell.setPadding(12); titleCell.setBackgroundColor(WASH); titleCell.setBorderColor(LINE);
+        Paragraph incLbl = new Paragraph("INCIDENT", fLbl); incLbl.setSpacingAfter(3); titleCell.addElement(incLbl);
+        titleCell.addElement(new Paragraph(title, fIncTitle));
+        titleBox.addCell(titleCell);
+        doc.add(titleBox);
+
+        // ── Details row ──
+        rcaSectionTitle(doc, "DETAILS", fSec);
+        PdfPTable detRow = new PdfPTable(4); detRow.setWidthPercentage(100); detRow.setWidths(new float[]{1f,1f,1f,1f}); detRow.setSpacingAfter(14);
+        rcaMetric(detRow, "SEVERITY", severity,   fLbl, fVal, WASH, LINE);
+        rcaMetric(detRow, "STATUS",   status,     fLbl, fVal, WASH, LINE);
+        rcaMetric(detRow, "REPORTED", reportedOn, fLbl, fVal, WASH, LINE);
+        rcaMetric(detRow, "RESOLVED", resolvedOn, fLbl, fVal, WASH, LINE);
+        doc.add(detRow);
+
+        // ── Description ──
+        rcaSectionTitle(doc, "DESCRIPTION", fSec);
+        rcaTextBlock(doc, desc, fBody, WASH, LINE);
+
+        // ── Root Cause Analysis ──
+        rcaSectionTitle(doc, "ROOT CAUSE ANALYSIS", fSec);
+        rcaSubSection(doc, "Timeline of Events",    timeline,   fLbl, fBody, WASH, LINE);
+        rcaSubSection(doc, "Business Impact",       impact,     fLbl, fBody, WASH, LINE);
+        rcaSubSection(doc, "Root Cause",            rootCause,  fLbl, fBody, WASH, LINE);
+        rcaSubSection(doc, "Preventative Actions",  prevention, fLbl, fBody, WASH, LINE);
+
+        // ── Footer ──
+        Paragraph footer = new Paragraph(
+            "Generated automatically by TSI Compass GRC Platform. Data reflects system state at time of generation.", fFoot);
+        footer.setSpacingBefore(18); doc.add(footer);
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+    private void rcaSectionTitle(Document doc, String text, Font font) throws Exception {
+        Paragraph p = new Paragraph(text, font); p.setSpacingBefore(12); p.setSpacingAfter(4); doc.add(p);
+    }
+
+    private void rcaMetric(PdfPTable table, String label, String value, Font fLbl, Font fVal, Color wash, Color line) {
+        PdfPCell cell = new PdfPCell(); cell.setPadding(10); cell.setBackgroundColor(wash); cell.setBorderColor(line);
+        Paragraph lp = new Paragraph(label, fLbl); lp.setSpacingAfter(3); cell.addElement(lp);
+        cell.addElement(new Paragraph(value, fVal));
+        table.addCell(cell);
+    }
+
+    private void rcaTextBlock(Document doc, String text, Font font, Color wash, Color line) throws Exception {
+        PdfPTable box = new PdfPTable(1); box.setWidthPercentage(100); box.setSpacingAfter(10);
+        PdfPCell cell = new PdfPCell(); cell.setPadding(10); cell.setBackgroundColor(wash); cell.setBorderColor(line);
+        cell.addElement(new Paragraph(text, font));
+        box.addCell(cell);
+        doc.add(box);
+    }
+
+    private void rcaSubSection(Document doc, String heading, String text, Font fHead, Font fBody, Color wash, Color line) throws Exception {
+        Paragraph h = new Paragraph(heading, fHead); h.setSpacingBefore(8); h.setSpacingAfter(3); doc.add(h);
+        rcaTextBlock(doc, text, fBody, wash, line);
+    }
+
+    private String coalesce(String val, String fallback) { return isBlank(val) ? fallback : val; }
 
     private String strVal(JSONObject obj, String key) { Object v = obj.get(key); return v == null ? null : v.toString().trim(); }
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }

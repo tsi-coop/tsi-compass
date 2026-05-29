@@ -85,7 +85,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="section-card">
       <div class="section-head"><h2>Incidents</h2><span id="inc-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
       <div class="filter-bar">
-        <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>OPEN</option><option>INVESTIGATING</option><option>CONTAINED</option><option>RESOLVED</option><option>CLOSED</option></select>
+        <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>NEW</option><option>INVESTIGATING</option><option>CONTAINED</option><option>RESOLVED</option><option>CLOSED</option></select>
         <select id="f-severity" onchange="applyFilters()"><option value="">All Severities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
         <input id="f-search" type="search" placeholder="Search incidents…" oninput="applyFilters()">
       </div>
@@ -118,7 +118,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <h2>Update Incident</h2>
     <input type="hidden" id="edit-id">
     <div class="form-row half">
-      <div><label>Status</label><select id="edit-status"><option>OPEN</option><option>INVESTIGATING</option><option>CONTAINED</option><option>RESOLVED</option><option>CLOSED</option></select></div>
+      <div><label>Status</label><select id="edit-status"><option>NEW</option><option>INVESTIGATING</option><option>CONTAINED</option><option>RESOLVED</option><option>CLOSED</option></select></div>
       <div><label>Severity</label><select id="edit-severity"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></div>
     </div>
     <div class="section-label">Root Cause Analysis</div>
@@ -165,7 +165,7 @@ function api(func,body,cb){
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-var SPILL={OPEN:'<span class="pill risk">Open</span>',INVESTIGATING:'<span class="pill watch">Investigating</span>',CONTAINED:'<span class="pill info">Contained</span>',RESOLVED:'<span class="pill good">Resolved</span>',CLOSED:'<span class="pill neu">Closed</span>'};
+var SPILL={NEW:'<span class="pill risk">New</span>',INVESTIGATING:'<span class="pill watch">Investigating</span>',CONTAINED:'<span class="pill info">Contained</span>',RESOLVED:'<span class="pill good">Resolved</span>',CLOSED:'<span class="pill neu">Closed</span>'};
 var SEVPILL={CRITICAL:'<span class="pill risk">Critical</span>',HIGH:'<span class="pill watch">High</span>',MEDIUM:'<span class="pill info">Medium</span>',LOW:'<span class="pill good">Low</span>'};
 
 function renderIncidents(list){
@@ -181,7 +181,7 @@ function renderIncidents(list){
       '<td>'+(hasRCA?'<span class="pill good">Yes</span>':'<span class="pill neu">No</span>')+'</td>'+
       '<td>'+esc((i.created_at||'').substring(0,10))+'</td>'+
       '<td>'+esc((i.resolved_at||'—').substring(0,10))+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+i.id+'\')">Update</button><button class="btn sm" onclick="openDocs(\''+i.id+'\',\''+esc(i.title)+'\')">&#128206; Attach</button></div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+i.id+'\')">Update</button><button class="btn sm" onclick="downloadRca(\''+i.id+'\',\''+esc(i.title)+'\')" style="color:var(--teal);border-color:var(--teal)">&#128196; RCA Report</button><button class="btn sm" onclick="openDocs(\''+i.id+'\',\''+esc(i.title)+'\')">&#128206; Attach</button></div></td>'+
     '</tr>';
   }).join('');
 }
@@ -281,6 +281,18 @@ function uploadDoc() {
     });
   };
   reader.readAsDataURL(file);
+}
+function downloadRca(id) {
+  api('generate_rca_report', {id: id}, function(err, d) {
+    if (err) { alert('Error generating RCA report: ' + err); return; }
+    var binary = atob(d.file_data);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes], {type: 'application/pdf'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = d.file_name || 'rca-report.pdf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
 }
 function downloadDoc(id, fname) {
   api('get_incident_document', {id: id}, function(err, d) {
