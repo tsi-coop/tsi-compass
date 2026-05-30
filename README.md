@@ -1,8 +1,8 @@
 # TSI Compass
 
-**The beginner's open source GRC platform.**
+**The beginner's open source IT GRC platform.**
 
-TSI Compass is a self-hosted Governance, Risk & Compliance (GRC) tool built for organisations that are new to structured compliance practice. It covers the full GRC lifecycle: policies, risk registers, controls, audits, incidents, and reporting, behind a clean web console with an immutable audit trail on every action.
+TSI Compass is a self-hosted IT Governance, Risk & Compliance (GRC) tool built for organisations that are new to structured compliance practice. It covers the full IT GRC lifecycle: policies, risk registers, controls, audits, incidents, and reporting, behind a clean web console with an immutable audit trail on every action.
 
 ---
 
