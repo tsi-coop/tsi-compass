@@ -30,7 +30,7 @@ TSI Compass is a self-hosted Governance, Risk & Compliance (GRC) tool built for 
 
 ## Soft Launch
 
-Read the launch post: [TSI Compass — The Beginner's Open Source GRC Platform](https://techadvisory.substack.com/p/tsi-compass-the-beginners-open-source)
+Read the launch post: [TSI Compass - The Beginner's Open Source GRC Platform](https://techadvisory.substack.com/p/tsi-compass-the-beginners-open-source)
 
 ---
 
