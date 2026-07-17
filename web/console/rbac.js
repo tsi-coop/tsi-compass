@@ -27,6 +27,7 @@
     'controls-register.html':     'controls',
     'controls-frameworks.html':   'controls',
     'controls-exceptions.html':   'controls',
+    'data-register.html':         'data',
     'evidence.html':              'evidence',
     'evidence-audits.html':       'evidence',
     'evidence-findings.html':     'evidence',

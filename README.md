@@ -16,6 +16,7 @@ TSI Compass is a self-hosted IT Governance, Risk & Compliance (GRC) tool built f
 | **Compliance & Controls** | Controls register, framework mappings (ISO 27001, SOC 2, etc.), and exception management |
 | **Audit & Evidence** | Audit scheduling, findings, and an evidence locker |
 | **IT Operations** | Asset inventory, change management, vendor register, and help desk |
+| **Data Register** | Self-declared data discovery and classification register, with optional links to IT assets and vendors |
 | **Incidents** | Incident register, knowledge base, and staff training records |
 | **Reports** | Exportable compliance and risk summary reports |
 
@@ -40,6 +41,17 @@ Read the launch post: [TSI Compass - The Beginner's Open Source GRC Platform](ht
 |------|------|
 | **Installation Walkthrough** | [https://youtu.be/WRR5JjrhSmY](https://youtu.be/WRR5JjrhSmY) |
 | **Functional Walkthrough** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
+
+---
+
+## Changelog
+
+### v0.2
+
+- **Data Register module** - new self-declared data discovery and classification register (`data_assets` table), tracking what data exists, where it lives, its category and sensitivity, and a `DISCOVERED` → `CLASSIFIED` → `REVIEWED` review workflow. Entries can optionally link to an existing IT asset or vendor instead of re-entering ownership details.
+- Added a **Data Register** console page and nav entry (positioned after IT Operations, since records commonly link to assets/vendors managed there).
+- New `data` module added to the RBAC permission matrix (`ADMIN`: full access, `GRC_OFFICER`: read/write, `IT_STAFF`: no access).
+- Schema split: `db/init.sql` renamed to `db/01_init.sql`; Data Register tables and seed permissions now live in their own `db/02_data_register.sql`, applied after the base schema.
 
 ---
 
@@ -78,7 +90,8 @@ All secrets have safe local defaults. Override them for any non-local deployment
 ```
 tsi-compass/
 ├── db/
-│   └── init.sql                  # Full schema (tables, triggers, seed data)
+│   ├── 01_init.sql                # Full schema (tables, triggers, seed data)
+│   └── 02_data_register.sql      # Data Register module schema (applied after 01_init.sql)
 ├── src/
 │   └── org/tsicoop/compass/
 │       ├── framework/            # Servlet filter, routing, JWT, DB pool, helpers

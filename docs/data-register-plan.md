@@ -16,9 +16,9 @@ A new **Data Register** module: one table, one service class, one console page, 
 
 **Classification** — a category (what kind of data) and a sensitivity level (how sensitive), plus a lightweight review workflow (`DISCOVERED` → `CLASSIFIED` → `REVIEWED`) so partially-filled-in records are visible as still needing work — this is the "simple" part standing in for a real discovery scan.
 
-## Database — `db/init.sql`
+## Database — `db/02_data_register.sql`
 
-Add a new section after Module 6 (IT Operations), since it references `assets`, `vendors`, and `users`:
+Added as its own numbered init script (runs after `01_init.sql`, since it references `assets`, `vendors`, and `users`) rather than folded into the main schema file:
 
 ```sql
 CREATE TABLE data_assets (
@@ -43,7 +43,7 @@ CREATE INDEX idx_data_assets_sensitivity ON data_assets(sensitivity);
 CREATE INDEX idx_data_assets_category ON data_assets(category);
 ```
 
-`role_permissions` — add a `data` module row per role, next to the existing `INSERT INTO role_permissions` block (~db/init.sql:557):
+`role_permissions` — add a `data` module row per role, as a separate `INSERT INTO role_permissions` statement in `02_data_register.sql` (after the base seed insert in `01_init.sql`):
 ```sql
 ('ADMIN',       'data', 'ADMIN'),
 ('GRC_OFFICER', 'data', 'WRITE'),
@@ -96,7 +96,7 @@ Add to `PAGE_MODULE` in `web/console/rbac.js` (~line 26-29, next to the controls
 
 ## Verification
 
-- `docker compose up -d` (or rebuild if already running) to apply the new `init.sql` on a fresh DB volume — note this schema change only applies on first init, so a fresh volume or a manual `ALTER`/migration is needed if testing against an existing running DB
+- `docker compose up -d` (or rebuild if already running) to apply `02_data_register.sql` on a fresh DB volume — note Postgres only runs `/docker-entrypoint-initdb.d` scripts on first init, so a fresh volume or a manual `ALTER`/migration is needed if testing against an existing running DB
 - Log in as ADMIN, confirm "Data Register" nav item appears; log in as (or switch role to) `IT_STAFF`, confirm it's hidden per the `NONE` permission
 - Add a data asset linked to an existing asset and an existing vendor, confirm the joins render owner/asset/vendor names in the list
 - Use the "Classify" action to move a record `DISCOVERED → CLASSIFIED → REVIEWED`, confirm `reviewed_by`/`last_reviewed_at` populate only on the final transition

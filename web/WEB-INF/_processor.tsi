@@ -22,6 +22,7 @@
 /api/v1/reports=org.tsicoop.compass.service.v1.Reports
 /api/v1/job=org.tsicoop.compass.service.v1.Job
 /api/v1/ropa=org.tsicoop.compass.service.v1.Ropa
+/api/v1/data=org.tsicoop.compass.service.v1.DataRegister
 
 
 

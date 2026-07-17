@@ -24,7 +24,7 @@ services:
 
   jetty_app:
     # To serve from a pre-built image instead: comment out 'build' and uncomment 'image' below.
-    #build: .
+    # build: .
     image: "${IMAGE_NAME:-tsicoop/tsi-compass:latest}"
     container_name: tsi_compass_server
     restart: unless-stopped
