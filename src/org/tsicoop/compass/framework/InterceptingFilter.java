@@ -48,6 +48,7 @@ public class InterceptingFilter implements Filter {
     private static final Set<String> ADMIN_NOAUTH_FUNCS = new HashSet<>(Arrays.asList(
             "reset_password",
             "login",
+            "register",
             "verify_recovery_key",
             "reset_password_via_recovery"
     ));
@@ -64,6 +65,7 @@ public class InterceptingFilter implements Filter {
         SERVICE_MODULE_MAP.put("incidents",   "incidents");
         SERVICE_MODULE_MAP.put("reports",     "reports");
         SERVICE_MODULE_MAP.put("apikey",      "platform");
+        SERVICE_MODULE_MAP.put("selfservice", "selfservice");
     }
 
     // role:module -> permission_level, with expiry timestamp (5-minute TTL)

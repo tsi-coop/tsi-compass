@@ -243,7 +243,8 @@ var state = { roles: [], permissions: [] };
 var ROLE_META = {
   ADMIN:       { label: 'Administrator', desc: 'Full platform access; manages users, org structure, and all modules' },
   GRC_OFFICER: { label: 'GRC Officer',   desc: 'Manages governance, risk, controls and compliance across all GRC modules' },
-  IT_STAFF:    { label: 'IT Staff',      desc: 'Manages IT operations, incidents and helpdesk; no GRC module access' }
+  IT_STAFF:    { label: 'IT Staff',      desc: 'Manages IT operations, incidents and helpdesk; no GRC module access' },
+  USER:        { label: 'Employee (Self-Service)', desc: 'Self-registered org employee; submits tickets/changes and completes attestations/training through the self-service portal only' }
 };
 
 // Return display label for a role key
@@ -280,7 +281,8 @@ var MODULES = [
   { key: 'operations',  label: 'IT Operations' },
   { key: 'incidents',   label: 'Incidents & Awareness' },
   { key: 'reports',     label: 'Reports & Exports' },
-  { key: 'helpdesk',    label: 'Helpdesk' }
+  { key: 'helpdesk',    label: 'Helpdesk' },
+  { key: 'selfservice', label: 'Self-Service Portal' }
 ];
 
 // API helper

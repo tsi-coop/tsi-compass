@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – New Change Request</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--red:#b42318;--green:#27794f}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800}.mark{width:32px;height:32px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0}
+.nav{display:flex;gap:2px}.nav a{padding:9px 14px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:700}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal)}
+.user{display:flex;align-items:center;gap:10px}
+.user-name{font-size:12.5px;font-weight:700}
+.signout{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2}
+.main{padding:32px;max-width:640px;margin:0 auto}
+.page-header{margin-bottom:24px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row textarea{width:100%;height:38px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:110px;padding:8px 10px;resize:vertical}
+.foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.msg{font-size:12.5px;font-weight:600;margin-bottom:14px;padding:10px 12px;border-radius:7px;display:none}
+.msg.err{background:#fef2f2;border:1px solid #fde8e8;color:var(--red)}
+.msg.ok{background:#eaf7ef;border:1px solid #c8ecd6;color:var(--green)}
+@media(max-width:820px){.nav{display:none}.main{padding:20px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <nav class="nav">
+    <a href="index.html">My Requests</a>
+    <a href="new-ticket.html">New Ticket</a>
+    <a href="new-change.html" class="active">New Change</a>
+    <a href="policies.html">Policies</a>
+    <a href="training.html">Training</a>
+  </nav>
+  <div class="user">
+    <span class="user-name" id="user-name">—</span>
+    <a href="../index.html" class="signout" onclick="localStorage.clear();return true;">Sign Out</a>
+  </div>
+</header>
+<main class="main">
+  <div class="page-header">
+    <div class="eyebrow">Self-Service Portal</div>
+    <h1>New Change Request</h1>
+    <p class="subtitle">Request an IT change. It will enter the standard change-management workflow for review.</p>
+  </div>
+  <div class="card">
+    <div class="msg err" id="err-box"></div>
+    <div class="msg ok" id="ok-box"></div>
+    <form id="change-form" onsubmit="submitChange(event)">
+      <div class="form-row"><label>Title</label><input id="c-title" required></div>
+      <div class="form-row"><label>Description</label><textarea id="c-desc" required></textarea></div>
+      <div class="foot">
+        <a class="btn" href="index.html">Cancel</a>
+        <button type="submit" class="btn primary" id="submit-btn">Submit Change Request</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+function api(func, body, cb) {
+  fetch('/api/v1/admin/selfservice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(Object.assign({ _func: func }, body || {}))
+  })
+  .then(function(r) {
+    if (r.status === 401) { localStorage.removeItem('token'); window.location.href = '../index.html'; return; }
+    return r.json();
+  })
+  .then(function(d) { if (!d) return; if (!d.success) cb(d.message || 'Error', null); else cb(null, d); })
+  .catch(function(e) { cb(e.message || 'Network error', null); });
+}
+
+function submitChange(e) {
+  e.preventDefault();
+  var errBox = document.getElementById('err-box'), okBox = document.getElementById('ok-box');
+  errBox.style.display = 'none'; okBox.style.display = 'none';
+  var title = document.getElementById('c-title').value.trim();
+  var desc  = document.getElementById('c-desc').value.trim();
+  if (!title || !desc) { errBox.textContent = 'Title and description are required.'; errBox.style.display = 'block'; return; }
+
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  api('create_change_request', { title: title, description: desc }, function(err) {
+    btn.disabled = false; btn.textContent = 'Submit Change Request';
+    if (err) { errBox.textContent = err; errBox.style.display = 'block'; return; }
+    okBox.textContent = 'Change request submitted. Redirecting to My Requests…';
+    okBox.style.display = 'block';
+    setTimeout(function() { window.location.href = 'index.html'; }, 900);
+  });
+}
+
+(function() {
+  var n = localStorage.getItem('username') || 'User';
+  var nm = document.getElementById('user-name');
+  if (nm) nm.textContent = n;
+})();
+</script>
+</body>
+</html>

@@ -59,6 +59,9 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 
     <button type="submit" class="btn" id="login-btn">Sign In</button>
   </form>
+  <div style="text-align:center;margin-top:18px;font-size:12px;color:var(--muted)">
+    Employee? <a href="selfservice/register.html" style="color:var(--teal);font-weight:700">Request access</a>
+  </div>
 </div>
 
 <script>
@@ -93,7 +96,7 @@ function handleLogin(event) {
       localStorage.setItem('username',    res.body.username);
       localStorage.setItem('role',        res.body.role);
       localStorage.setItem('permissions', JSON.stringify(res.body.permissions || {}));
-      window.location.href = 'console/dashboard.html';
+      window.location.href = (res.body.role === 'USER') ? 'selfservice/index.html' : 'console/dashboard.html';
     } else {
       var msg = (res.body && res.body.message) ? res.body.message : 'Sign in failed. Please try again.';
       errBox.textContent = msg;

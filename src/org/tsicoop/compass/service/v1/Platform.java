@@ -530,11 +530,11 @@ public class Platform implements Action {
 
     private static final String[] MODULES = {
         "platform", "governance", "risks", "controls",
-        "evidence", "operations", "incidents", "reports", "helpdesk"
+        "evidence", "operations", "incidents", "reports", "helpdesk", "selfservice"
     };
 
     private static final String[] ROLES = {
-        "ADMIN", "GRC_OFFICER", "IT_STAFF"
+        "ADMIN", "GRC_OFFICER", "IT_STAFF", "USER"
     };
 
     @SuppressWarnings("unchecked")

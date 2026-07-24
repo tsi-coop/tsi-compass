@@ -240,17 +240,18 @@ public class InputProcessor {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         PoolDB pool = null;
-        String sql = "SELECT id FROM operators WHERE email_hmac = " + DbEncryption.HMAC;
+        String sql = "SELECT id FROM users WHERE email = ?";
 
         authToken = (JSONObject) req.getAttribute(InputProcessor.AUTH_TOKEN);
         if(authToken == null) return null;
         email = (String) authToken.get("email");
+        if(email == null) return null;
 
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(sql);
-            DbEncryption.bindHmac(pstmt, 1, email);
+            pstmt.setString(1, email.toLowerCase().trim());
             rs = pstmt.executeQuery();
             if (rs.next()) {
                 loginUserId = UUID.fromString(rs.getString("id"));
@@ -258,7 +259,7 @@ public class InputProcessor {
         }catch(Exception e){
             e.printStackTrace();
         }finally{
-            pool.cleanup(rs,pstmt,conn);
+            if (pool != null) pool.cleanup(rs,pstmt,conn);
         }
         return loginUserId;
     }

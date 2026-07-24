@@ -154,10 +154,12 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
+          <option value="USER">Employee (Self-Service)</option>
         </select>
         <select id="f-status">
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
+          <option value="PENDING">Pending</option>
           <option value="SUSPENDED">Inactive</option>
         </select>
         <input id="f-search" type="search" placeholder="Search by name or email…" style="flex:1;min-width:200px">
@@ -211,6 +213,7 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
+          <option value="USER">Employee (Self-Service)</option>
         </select>
       </div>
       <div class="form-field"><label class="form-label">Account Status</label>
@@ -316,7 +319,8 @@ var searchTimer = null;
 var ROLES = {
   ADMIN:       'Administrator',
   GRC_OFFICER: 'GRC Officer',
-  IT_STAFF:    'IT Staff'
+  IT_STAFF:    'IT Staff',
+  USER:        'Employee (Self-Service)'
 };
 
 function api(func, body, cb) {
@@ -439,13 +443,13 @@ function renderUsers(users) {
       var isSoleAdmin = (u.role === 'ADMIN' && u.status === 'ACTIVE' && activeAdminCount <= 1);
       var actions = '';
       if (u.status === 'SUSPENDED') {
-        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
-          '<button class="tbl-action" style="color:var(--green)" onclick="activateUser(' + u.id + ')">Activate</button>';
+        actions = '<button class="tbl-action" onclick="openEditModal(\'' + esc(u.id) + '\')">Edit</button>' +
+          '<button class="tbl-action" style="color:var(--green)" onclick="activateUser(\'' + esc(u.id) + '\')">Activate</button>';
       } else if (isSoleAdmin) {
-        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>';
+        actions = '<button class="tbl-action" onclick="openEditModal(\'' + esc(u.id) + '\')">Edit</button>';
       } else {
-        actions = '<button class="tbl-action" onclick="openEditModal(' + u.id + ')">Edit</button>' +
-          '<button class="tbl-action red" onclick="openDeactivateModal(' + u.id + ')">Deactivate</button>';
+        actions = '<button class="tbl-action" onclick="openEditModal(\'' + esc(u.id) + '\')">Edit</button>' +
+          '<button class="tbl-action red" onclick="openDeactivateModal(\'' + esc(u.id) + '\')">Deactivate</button>';
       }
       return '<tr>' +
         '<td><div class="avatar-cell"><div class="avatar" style="background:' + avatarBg + '">' + esc(ini) + '</div><strong>' + name + '</strong></div></td>' +
