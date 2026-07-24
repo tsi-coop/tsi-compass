@@ -75,8 +75,13 @@ public class SelfService implements Action {
             p.setObject(4, selfId);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
-            if (rs.next()) result.put("id", rs.getString(1));
+            String newId = null;
+            if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             OutputProcessor.send(res, 200, result);
+            if (newId != null) {
+                Notification.emit("TICKET_CREATED", "helpdesk", "New helpdesk ticket",
+                    "\"" + title + "\" was submitted", "operations-helpdesk.html", UUID.fromString(newId));
+            }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
@@ -124,8 +129,13 @@ public class SelfService implements Action {
             p.setString(1, title); p.setString(2, desc); p.setObject(3, selfId);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
-            if (rs.next()) result.put("id", rs.getString(1));
+            String newId = null;
+            if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             OutputProcessor.send(res, 200, result);
+            if (newId != null) {
+                Notification.emit("CHANGE_REQUEST_CREATED", "operations", "New change request",
+                    "\"" + title + "\" was submitted", "operations-changes.html", UUID.fromString(newId));
+            }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
@@ -217,15 +227,35 @@ public class SelfService implements Action {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "policy_id required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        boolean acknowledged = false;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement(
                 "INSERT INTO policy_attestations (policy_id, user_id) VALUES (?::uuid, ?) ON CONFLICT (policy_id, user_id) DO NOTHING"
             );
             p.setString(1, policyId); p.setObject(2, selfId);
-            p.executeUpdate();
+            acknowledged = p.executeUpdate() > 0;
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+
+        if (acknowledged) {
+            String policyTitle = getPolicyTitle(policyId);
+            String name = InputProcessor.getName(req);
+            Notification.emit("POLICY_AFFIRMED", "governance", "Policy affirmed",
+                (isBlank(name) ? "An employee" : name) + " acknowledged \"" + (isBlank(policyTitle) ? "a policy" : policyTitle) + "\"",
+                "governance-attestations.html", UUID.fromString(policyId));
+        }
+    }
+
+    private String getPolicyTitle(String policyId) throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title FROM policies WHERE id = ?::uuid");
+            p.setString(1, policyId);
+            rs = p.executeQuery();
+            return rs.next() ? rs.getString(1) : null;
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
     // -------------------------------------------------------------------------

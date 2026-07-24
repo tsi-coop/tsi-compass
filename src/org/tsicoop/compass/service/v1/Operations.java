@@ -153,14 +153,52 @@ public class Operations implements Action {
     private void updateChange(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
         String id = (String) input.get("id");
         if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        String newStatus = (String) input.get("status");
+        String newStage  = (String) input.get("stage");
+
+        JSONObject before = getChangeSnapshot(id);
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement("UPDATE change_requests SET status=COALESCE(?,status), stage=COALESCE(?,stage) WHERE id=?");
-            p.setString(1, (String) input.get("status")); p.setString(2, (String) input.get("stage"));
+            p.setString(1, newStatus); p.setString(2, newStage);
             p.setObject(3, UUID.fromString(id)); p.executeUpdate();
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+
+        if (before != null) {
+            String requesterId = (String) before.get("requester_id");
+            String title       = (String) before.get("title");
+            String oldStatus   = (String) before.get("status");
+            String oldStage    = (String) before.get("stage");
+            String finalStatus = isBlank(newStatus) ? oldStatus : newStatus;
+            String finalStage  = isBlank(newStage)  ? oldStage  : newStage;
+            boolean changed = !java.util.Objects.equals(finalStatus, oldStatus) || !java.util.Objects.equals(finalStage, oldStage);
+            if (changed && requesterId != null) {
+                Notification.emitToUser("CHANGE_REQUEST_UPDATED", title,
+                    "\"" + title + "\" is now " + finalStatus + (isBlank(finalStage) ? "" : " (" + finalStage + ")"),
+                    "index.html", UUID.fromString(id), UUID.fromString(requesterId));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getChangeSnapshot(String id) throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title, status, stage, requester_id::text FROM change_requests WHERE id = ?");
+            p.setObject(1, UUID.fromString(id));
+            rs = p.executeQuery();
+            if (!rs.next()) return null;
+            JSONObject snap = new JSONObject();
+            snap.put("title", rs.getString("title"));
+            snap.put("status", rs.getString("status"));
+            snap.put("stage", rs.getString("stage"));
+            snap.put("requester_id", rs.getString("requester_id"));
+            return snap;
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
     @SuppressWarnings("unchecked")

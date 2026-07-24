@@ -243,15 +243,38 @@ public class Incidents implements Action {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "name, scheduled_start, scheduled_end required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        String newId = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement("INSERT INTO awareness_campaigns (name,description,scheduled_start,scheduled_end) VALUES (?,?,?::date,?::date) RETURNING id::text");
             p.setString(1,name); p.setString(2,(String)input.get("description")); p.setString(3,start); p.setString(4,end);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
-            if (rs.next()) result.put("id", rs.getString(1));
+            if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+
+        if (newId != null) {
+            enrollAllEmployees(newId);
+            Notification.emitToRole("TRAINING_ASSIGNED", "USER", "New training assigned",
+                "\"" + name + "\" awareness training has been assigned to you", "training.html", UUID.fromString(newId));
+        }
+    }
+
+    // Awareness campaigns are org-wide: every active employee is auto-enrolled
+    // when a campaign is created (there's no per-employee assignment step).
+    private void enrollAllEmployees(String campaignId) throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO campaign_enrollments (campaign_id, user_id) " +
+                "SELECT ?::uuid, id FROM users WHERE role = 'USER' AND status = 'ACTIVE' " +
+                "ON CONFLICT (campaign_id, user_id) DO NOTHING"
+            );
+            p.setString(1, campaignId);
+            p.executeUpdate();
+        } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
     }
 
     @SuppressWarnings("unchecked")

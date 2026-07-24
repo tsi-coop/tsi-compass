@@ -13,6 +13,7 @@ import org.tsicoop.compass.framework.PoolDB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.UUID;
 
 public class User implements Action {
 
@@ -145,9 +146,14 @@ public class User implements Action {
 
             JSONObject result = new JSONObject();
             result.put("success", true);
-            if (rs.next()) result.put("id", rs.getString(1));
+            String newId = null;
+            if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             result.put("message", "Registration submitted. An administrator will review and approve your account.");
             OutputProcessor.send(res, 200, result);
+            if (newId != null) {
+                Notification.emit("USER_REGISTRATION", "platform", "New user registration",
+                    name + " (" + email + ") is awaiting approval", "platform-users.html", UUID.fromString(newId));
+            }
 
         } catch (Exception e) {
             String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";

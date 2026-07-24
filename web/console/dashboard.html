@@ -24,6 +24,8 @@ a{color:inherit;text-decoration:none}
 h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
 .subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
 .btn{height:34px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer}
+#refresh-btn{position:fixed;top:16px;right:68px;z-index:1000;width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--line);cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--ink)}
+#refresh-btn:hover{border-color:#b2d8d7;color:var(--teal)}
 .btn:hover{border-color:#b2d8d7;color:var(--teal)}
 .grid{display:grid;gap:16px}
 .col4{grid-template-columns:repeat(4,1fr)}
@@ -110,8 +112,10 @@ tbody tr:last-child td{border-bottom:none}
         <h1>Executive Dashboard</h1>
         <p class="subtitle" id="exec-updated">Platform health, risk posture, policy status, and control readiness at a glance.</p>
       </div>
-      <div><button class="btn" onclick="refreshAll()">&#8635; Refresh</button></div>
     </div>
+    <button id="refresh-btn" type="button" onclick="refreshAll()" aria-label="Refresh" title="Refresh">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    </button>
 
     <!-- Metric cards -->
     <div class="grid col4 mb">
@@ -271,6 +275,7 @@ tbody tr:last-child td{border-bottom:none}
 </div>
 
 <script src="rbac.js"></script>
+<script src="notifications.js"></script>
 <script>
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) { window.location.replace('../index.html'); }

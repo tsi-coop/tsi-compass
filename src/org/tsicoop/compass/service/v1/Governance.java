@@ -748,9 +748,14 @@ public class Governance implements Action {
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
+        String policyTitle = null;
+        String previousStatus = null;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            String[] before = getTitleAndStatus(conn, id);
+            if (before != null) { policyTitle = before[0]; previousStatus = before[1]; }
 
             String approverId = null;
             if ("PUBLISHED".equals(status)) {
@@ -780,6 +785,28 @@ public class Governance implements Action {
             OutputProcessor.send(res, 200, result);
         } finally {
             if (pool != null) try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+        }
+
+        if ("PUBLISHED".equals(status) && !"PUBLISHED".equals(previousStatus) && policyTitle != null) {
+            Notification.emitToRole("POLICY_PUBLISHED", "USER", "New policy published",
+                "\"" + policyTitle + "\" was published and needs your acknowledgement",
+                "policies.html", UUID.fromString(id));
+        }
+    }
+
+    private String[] getTitleAndStatus(Connection conn, String id) {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = conn.prepareStatement("SELECT title, status FROM policies WHERE id = ?::uuid");
+            pstmt.setObject(1, UUID.fromString(id));
+            rs = pstmt.executeQuery();
+            return rs.next() ? new String[]{ rs.getString(1), rs.getString(2) } : null;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
         }
     }
 

@@ -87,3 +87,8 @@ Auth pattern for the three logged-in pages matches console pages: `localStorage`
 6. Log in as `IT_STAFF`/`ADMIN` and confirm both new records appear in `operations-helpdesk.html` / `operations-changes.html` with the correct requester name, and can be triaged (status/stage updates) exactly as any other record.
 7. As `ADMIN`/`GRC_OFFICER`, publish a policy and enroll the test `USER` in an awareness campaign via the existing console flows; log back in as the `USER` and confirm `policies.html` shows the pending policy (acknowledge it, confirm it moves to the acknowledged list and a `policy_attestations` row appears) and `training.html` shows the assigned training (mark it complete, confirm `campaign_enrollments.status` flips to `COMPLETED`).
 8. Confirm `USER` role gets a 403 hitting `/api/v1/ops` or `/api/v1/governance` directly (module permission `NONE`), and that `list_my_tickets`/`list_my_changes`/`list_my_attestations`/`list_my_trainings` for one `USER` never return another user's records (test with two `USER` accounts).
+
+
+- We need to introduce notifications for admins when there is a new user registration, ticket, change request, affirmation etc. The notifications should lead to the corresponding page in the console.
+- We should be able to whitelabel the name of the system. Check how it is implemented in TSI DPDP CMS. We need to do the same thing.
+- In the login page instead of 'The beginner's open source GRC platform', we should say something 'One stop GRC and ITSM platform'
