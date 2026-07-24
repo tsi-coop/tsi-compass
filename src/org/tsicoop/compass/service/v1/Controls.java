@@ -350,7 +350,7 @@ public class Controls implements Action {
         JSONArray staff = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' ORDER BY username");
+            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' AND role != 'USER' ORDER BY username");
             rs = p.executeQuery();
             while (rs.next()) { JSONObject s=new JSONObject(); s.put("id",rs.getString(1)); s.put("username",rs.getString(2)); staff.add(s); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }

@@ -409,15 +409,47 @@ public class Operations implements Action {
     private void updateTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
         String id = (String) input.get("id");
         if (isBlank(id)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "id required", req.getRequestURI()); return; }
+        String newStatus = (String) input.get("status");
+
+        JSONObject before = getTicketSnapshot(id);
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), assigned_to=COALESCE(?::uuid,assigned_to) WHERE id=?");
-            p.setString(1,(String)input.get("status")); p.setString(2,(String)input.get("priority"));
+            p.setString(1, newStatus); p.setString(2,(String)input.get("priority"));
             String at=(String)input.get("assigned_to"); p.setString(3, isBlank(at)?null:at);
             p.setObject(4, UUID.fromString(id)); p.executeUpdate();
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+
+        if (before != null && !isBlank(newStatus)) {
+            String createdBy = (String) before.get("created_by");
+            String title     = (String) before.get("title");
+            String oldStatus = (String) before.get("status");
+            if (createdBy != null && !newStatus.equals(oldStatus)) {
+                Notification.emitToUser("TICKET_UPDATED", title,
+                    "\"" + title + "\" is now " + newStatus,
+                    "index.html", UUID.fromString(id), UUID.fromString(createdBy));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getTicketSnapshot(String id) throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title, status, created_by::text FROM helpdesk_tickets WHERE id = ?");
+            p.setObject(1, UUID.fromString(id));
+            rs = p.executeQuery();
+            if (!rs.next()) return null;
+            JSONObject snap = new JSONObject();
+            snap.put("title", rs.getString("title"));
+            snap.put("status", rs.getString("status"));
+            snap.put("created_by", rs.getString("created_by"));
+            return snap;
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
     @SuppressWarnings("unchecked")
@@ -426,7 +458,7 @@ public class Operations implements Action {
         JSONArray staff = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' ORDER BY username");
+            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' AND role != 'USER' ORDER BY username");
             rs = p.executeQuery();
             while (rs.next()) { JSONObject s=new JSONObject(); s.put("id",rs.getString(1)); s.put("username",rs.getString(2)); staff.add(s); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
