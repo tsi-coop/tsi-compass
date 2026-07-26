@@ -31,7 +31,7 @@ TSI Compass is a beginner-friendly, self-hosted IT GRC platform built right on t
 
 ## Soft Launch
 
-Read the launch post: [TSI Compass - The Beginner's Open Source GRC Platform](https://techadvisory.substack.com/p/tsi-compass-the-beginners-open-source)
+Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM Platform](https://techadvisory.substack.com/p/tsi-compass-the-beginners-open-source)
 
 ---
 
