@@ -37,6 +37,7 @@ public class Operations implements Action {
                 case "list_tickets":       OutputProcessor.send(res, 200, listTickets(input));    break;
                 case "add_ticket":         addTicket(req, res, input);                            break;
                 case "update_ticket":      updateTicket(req, res, input);                         break;
+                case "escalate_ticket":    escalateTicket(req, res, input);                       break;
                 case "list_staff":         OutputProcessor.send(res, 200, listStaff());           break;
                 case "delete_change":      deleteChange(req, res, input);                         break;
                 case "delete_asset":       deleteAsset(req, res, input);                          break;
@@ -503,11 +504,13 @@ public class Operations implements Action {
 
             String dataSql =
                 "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, " +
-                "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text " +
+                "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text, " +
+                "inc.id::text AS incident_id " +
                 "FROM helpdesk_tickets ht " +
                 "LEFT JOIN assets a ON a.id = ht.asset_id " +
                 "LEFT JOIN users cb ON cb.id = ht.created_by " +
-                "LEFT JOIN users at ON at.id = ht.assigned_to" + where +
+                "LEFT JOIN users at ON at.id = ht.assigned_to " +
+                "LEFT JOIN incidents inc ON inc.ticket_escalation_id = ht.id" + where +
                 " ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, ht.created_at DESC LIMIT ? OFFSET ?";
             p = conn.prepareStatement(dataSql); idx = 1;
             if (!isBlank(status))   p.setString(idx++, status);
@@ -527,6 +530,7 @@ public class Operations implements Action {
                 t.put("created_by_name",  rs.getString("created_by_name"));
                 t.put("assigned_to_name", rs.getString("assigned_to_name"));
                 t.put("assigned_to",      rs.getString("assigned_to"));
+                t.put("incident_id",      rs.getString("incident_id"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -588,6 +592,66 @@ public class Operations implements Action {
                     "index.html", UUID.fromString(id), UUID.fromString(createdBy));
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void escalateTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String ticketId = (String) input.get("ticket_id");
+        if (isBlank(ticketId)) { OutputProcessor.errorResponse(res, 400, "Bad Request", "ticket_id required", req.getRequestURI()); return; }
+
+        JSONObject ticket = getTicketDetail(ticketId);
+        if (ticket == null) { OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found", req.getRequestURI()); return; }
+        String title       = (String) ticket.get("title");
+        String description = (String) ticket.get("description");
+        String priority     = (String) ticket.get("priority");
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        String newIncidentId = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            try {
+                p = conn.prepareStatement(
+                    "INSERT INTO incidents (title, description, severity, ticket_escalation_id) VALUES (?,?,?,?::uuid) RETURNING id::text"
+                );
+                p.setString(1, title);
+                p.setString(2, description + "\n\n(Escalated from Helpdesk Ticket)");
+                p.setString(3, isBlank(priority) ? "MEDIUM" : priority);
+                p.setString(4, ticketId);
+                rs = p.executeQuery();
+                if (rs.next()) newIncidentId = rs.getString(1);
+            } catch (SQLException e) {
+                if ("23505".equals(e.getSQLState())) {
+                    OutputProcessor.errorResponse(res, 409, "Conflict", "This ticket has already been escalated to an incident", req.getRequestURI());
+                    return;
+                }
+                throw e;
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("incident_id", newIncidentId);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+
+        if (newIncidentId != null) {
+            Notification.emit("TICKET_ESCALATED", "incidents", "Ticket escalated to incident",
+                "\"" + title + "\" was escalated from a helpdesk ticket to a security incident",
+                "incidents-register.html", UUID.fromString(newIncidentId));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getTicketDetail(String id) throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT title, description, priority FROM helpdesk_tickets WHERE id = ?::uuid");
+            p.setString(1, id);
+            rs = p.executeQuery();
+            if (!rs.next()) return null;
+            JSONObject t = new JSONObject();
+            t.put("title", rs.getString("title"));
+            t.put("description", rs.getString("description"));
+            t.put("priority", rs.getString("priority"));
+            return t;
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
     @SuppressWarnings("unchecked")

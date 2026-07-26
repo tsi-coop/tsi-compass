@@ -190,7 +190,9 @@ function renderTickets(list,total){
       '<td>'+esc(t.assigned_to_name||'Unassigned')+'</td>'+
       '<td>'+esc(t.asset_name||'—')+'</td>'+
       '<td>'+esc((t.created_at||'').substring(0,10))+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+t.id+'\')">Detail</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteTicket(\''+t.id+'\',\''+esc(t.title)+'\')">Delete</button>':'')+'</div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+t.id+'\')">Detail</button>'+
+        (t.incident_id?'<a class="btn sm" style="color:var(--red);border-color:#fde8e8" href="incidents-register.html?q='+encodeURIComponent(t.title)+'">View Incident</a>':'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="escalateTicket(\''+t.id+'\',\''+esc(t.title)+'\')">Escalate</button>')+
+        (isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteTicket(\''+t.id+'\',\''+esc(t.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -349,6 +351,13 @@ function deleteTicket(id,title){
   if(!confirm('Delete ticket "'+title+'"? This cannot be undone.'))return;
   api('delete_ticket',{id:id},function(err){
     if(err){alert('Error: '+err);return;}showToast('Ticket deleted');loadAll();
+  });
+}
+
+function escalateTicket(id,title){
+  if(!confirm('Escalate "'+title+'" to a security incident? This creates a new incident linked back to this ticket.'))return;
+  api('escalate_ticket',{ticket_id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Escalated to incident');loadTickets(state.page);
   });
 }
 

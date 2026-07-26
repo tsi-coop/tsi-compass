@@ -189,7 +189,7 @@ function renderIncidents(list,total){
   body.innerHTML=list.map(function(i){
     var hasRCA=!!(i.rca_root_cause||i.rca_preventative_actions);
     return '<tr>'+
-      '<td><strong>'+esc(i.title)+'</strong>'+(i.description?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(i.description.substring(0,80))+(i.description.length>80?'…':'')+'</div>':'')+'</td>'+
+      '<td><strong>'+esc(i.title)+'</strong>'+(i.ticket_escalation_id?' <span class="pill neu">From Helpdesk</span>':'')+(i.description?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(i.description.substring(0,80))+(i.description.length>80?'…':'')+'</div>':'')+'</td>'+
       '<td>'+(SEVPILL[i.severity]||esc(i.severity||'—'))+'</td>'+
       '<td>'+(SPILL[i.status]||esc(i.status||'—'))+'</td>'+
       '<td>'+(hasRCA?'<span class="pill good">Yes</span>':'<span class="pill neu">No</span>')+'</td>'+
@@ -370,6 +370,8 @@ document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListen
   var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  var qParam=new URLSearchParams(window.location.search).get('q');
+  if(qParam)document.getElementById('f-search').value=qParam;
   loadAll();
 })();
 </script>

@@ -161,7 +161,7 @@ public class Incidents implements Action {
             StringBuilder dataSql = new StringBuilder(
                 "SELECT id::text, title, description, severity, status, " +
                 "rca_timeline, rca_business_impact, rca_root_cause, rca_preventative_actions, " +
-                "created_at::text, resolved_at::text FROM incidents"
+                "created_at::text, resolved_at::text, ticket_escalation_id::text FROM incidents"
             );
             dataSql.append(where);
             dataSql.append(" ORDER BY CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, created_at DESC");
@@ -186,6 +186,7 @@ public class Incidents implements Action {
                 inc.put("rca_preventative_actions", rs.getString("rca_preventative_actions"));
                 inc.put("created_at",             rs.getString("created_at"));
                 inc.put("resolved_at",            rs.getString("resolved_at"));
+                inc.put("ticket_escalation_id",    rs.getString("ticket_escalation_id"));
                 list.add(inc);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
