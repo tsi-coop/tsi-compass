@@ -130,15 +130,20 @@ public class Platform implements Action {
         String status = (String) input.get("status");
         String search = (String) input.get("search");
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT id::text, email, username, role, status, created_at::text FROM users WHERE 1=1"
-        );
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
 
-        if (!isBlank(role))   sql.append(" AND role = ?");
-        if (!isBlank(status)) sql.append(" AND status = ?");
-        if (!isBlank(search)) sql.append(" AND (username ILIKE ? OR email ILIKE ?)");
-
-        sql.append(" ORDER BY created_at DESC");
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(role))   where.append(" AND role = ?");
+        if (!isBlank(status)) where.append(" AND status = ?");
+        if (!isBlank(search)) where.append(" AND (username ILIKE ? OR email ILIKE ?)");
 
         PoolDB pool = null;
         Connection conn = null;
@@ -146,11 +151,13 @@ public class Platform implements Action {
         ResultSet rs = null;
 
         JSONArray users = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
 
+            String countSql = "SELECT COUNT(*) FROM users" + where;
+            pstmt = conn.prepareStatement(countSql);
             int idx = 1;
             if (!isBlank(role))   pstmt.setString(idx++, role);
             if (!isBlank(status)) pstmt.setString(idx++, status);
@@ -159,6 +166,25 @@ public class Platform implements Action {
                 pstmt.setString(idx++, like);
                 pstmt.setString(idx++, like);
             }
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            String dataSql =
+                "SELECT id::text, email, username, role, status, created_at::text FROM users" + where +
+                " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+            pstmt = conn.prepareStatement(dataSql);
+            idx = 1;
+            if (!isBlank(role))   pstmt.setString(idx++, role);
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) {
+                String like = "%" + search + "%";
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+            }
+            pstmt.setLong(idx++, limit);
+            pstmt.setLong(idx++, offset);
 
             rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -180,6 +206,10 @@ public class Platform implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("users", users);
+        result.put("total_count", total);
+        result.put("page", page);
+        result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 

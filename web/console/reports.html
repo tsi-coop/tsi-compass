@@ -180,7 +180,7 @@ function getFilters(type){
   if(type==='observations'&&document.getElementById('ef-obs-priority').value)p.priority=document.getElementById('ef-obs-priority').value;
   if(type==='incidents'&&document.getElementById('ef-inc-severity').value)p.severity=document.getElementById('ef-inc-severity').value;
   if(type==='assets'&&document.getElementById('ef-ast-crit').value)p.criticality=document.getElementById('ef-ast-crit').value;
-  if(type==='vendors'&&document.getElementById('ef-vnd-filter').value==='review_due')p.review_due='true';
+  if(type==='vendors'&&document.getElementById('ef-vnd-filter').value==='review_due')p.due='1';
   return p;
 }
 
@@ -207,7 +207,7 @@ function doExport(type){
   var cfg=EXPORT_MAP[type];if(!cfg)return;
   var btn=document.getElementById('ebtn-'+type);
   if(btn){btn.disabled=true;btn.textContent='Exporting…';}
-  var body=Object.assign({_func:cfg.func},getFilters(type));
+  var body=Object.assign({_func:cfg.func,export:true},getFilters(type));
   fetch('/api/v1/'+cfg.service,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},body:JSON.stringify(body)})
   .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';}return r.json();})
   .then(function(d){

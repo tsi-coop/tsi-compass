@@ -49,6 +49,12 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
@@ -112,12 +118,16 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div class="filter-bar">
         <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option><option>PII</option><option>FINANCIAL</option><option>HEALTH</option><option>EMPLOYEE</option><option>INTELLECTUAL_PROPERTY</option><option>PUBLIC</option><option>OTHER</option></select>
         <select id="f-sens" onchange="applyFilters()"><option value="">All Sensitivities</option><option>PUBLIC</option><option>INTERNAL</option><option>CONFIDENTIAL</option><option>RESTRICTED</option></select>
-        <input id="f-search" type="search" placeholder="Search data assets…" oninput="applyFilters()">
+        <input id="f-search" type="search" placeholder="Search data assets…" oninput="onSearchInput()">
       </div>
       <table>
         <thead><tr><th>Name</th><th>Type</th><th>Category</th><th>Sensitivity</th><th>Owner</th><th>Linked</th><th>Status</th><th>Last Reviewed</th><th>Actions</th></tr></thead>
         <tbody id="da-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
       </table>
+      <div class="pagination">
+        <span id="page-info">—</span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -207,7 +217,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={dataAssets:[],staff:[],assets:[],vendors:[]};
+var state={dataAssets:[],staff:[],assets:[],vendors:[],page:1,pageSize:20};
+var _searchDebounce=null;
 
 function api(func,body,cb){
   fetch('/api/v1/data',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -221,9 +232,10 @@ function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
 var SENS_PILL={PUBLIC:'<span class="pill neu">Public</span>',INTERNAL:'<span class="pill info">Internal</span>',CONFIDENTIAL:'<span class="pill watch">Confidential</span>',RESTRICTED:'<span class="pill risk">Restricted</span>'};
 var STATUS_PILL={DISCOVERED:'<span class="pill watch">Discovered</span>',CLASSIFIED:'<span class="pill info">Classified</span>',REVIEWED:'<span class="pill good">Reviewed</span>'};
 
-function renderDataAssets(list){
+function renderDataAssets(list,total){
   var body=document.getElementById('da-body');
-  var cnt=document.getElementById('da-count');if(cnt)cnt.textContent=list.length+' data asset'+(list.length!==1?'s':'');
+  var n=(total!=null?total:list.length);
+  var cnt=document.getElementById('da-count');if(cnt)cnt.textContent=n+' data asset'+(n!==1?'s':'');
   if(!list.length){body.innerHTML='<tr><td colspan="9" class="empty">No data assets found.</td></tr>';return;}
   body.innerHTML=list.map(function(d){
     var linked=d.linked_asset_name?esc(d.linked_asset_name):(d.linked_vendor_name?esc(d.linked_vendor_name):'-');
@@ -245,17 +257,63 @@ function renderDataAssets(list){
   }).join('');
 }
 
-function applyFilters(){
+function renderPagination(data){
+  var total=data.total_count||0;
+  var page=data.page||1;
+  var pageSize=data.page_size||state.pageSize;
+  var totalPages=data.total_pages||Math.ceil(total/pageSize)||1;
+  var from=total===0?0:(page-1)*pageSize+1;
+  var to=Math.min(page*pageSize,total);
+  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' data asset'+(total!==1?'s':'');
+  var btnsEl=document.getElementById('page-btns');
+  btnsEl.innerHTML='';
+  if(totalPages<=1)return;
+  buildPageList(page,totalPages).forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='page-btn'+(p===page?' active':'');
+    btn.textContent=p==='…'?'…':String(p);
+    if(p==='…'){btn.disabled=true;}
+    else{(function(pg){btn.onclick=function(){loadDataAssets(pg);};})(p);}
+    btnsEl.appendChild(btn);
+  });
+}
+
+function buildPageList(current,total){
+  if(total<=7){var arr=[];for(var i=1;i<=total;i++)arr.push(i);return arr;}
+  var set=[1,total,current];
+  if(current-1>1)set.push(current-1);
+  if(current+1<total)set.push(current+1);
+  if(current-2>1)set.push(current-2);
+  if(current+2<total)set.push(current+2);
+  var unique=set.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+  var result=[];
+  for(var j=0;j<unique.length;j++){
+    if(j>0&&unique[j]-unique[j-1]>1)result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0,9);
+}
+
+function loadDataAssets(page){
+  state.page=page||1;
+  var body={page:state.page,limit:state.pageSize};
   var catVal=document.getElementById('f-cat').value;
   var sensVal=document.getElementById('f-sens').value;
-  var srVal=document.getElementById('f-search').value.toLowerCase();
-  var list=state.dataAssets.filter(function(d){
-    if(catVal&&d.category!==catVal)return false;
-    if(sensVal&&d.sensitivity!==sensVal)return false;
-    if(srVal&&!(d.name||'').toLowerCase().includes(srVal))return false;
-    return true;
+  var srVal=document.getElementById('f-search').value.trim();
+  if(catVal)body.category=catVal;
+  if(sensVal)body.sensitivity=sensVal;
+  if(srVal)body.search=srVal;
+  api('list_data_assets',body,function(err,d){
+    if(err)return;
+    state.dataAssets=d.data_assets||[];
+    renderDataAssets(state.dataAssets,d.total_count);
+    renderPagination(d);
   });
-  renderDataAssets(list);
+}
+function applyFilters(){loadDataAssets(1);}
+function onSearchInput(){
+  clearTimeout(_searchDebounce);
+  _searchDebounce=setTimeout(function(){loadDataAssets(1);},300);
 }
 
 function loadMetrics(){
@@ -269,7 +327,7 @@ function loadMetrics(){
 }
 
 function loadAll(){
-  api('list_data_assets',{},function(err,d){if(err)return;state.dataAssets=d.data_assets||[];applyFilters();});
+  loadDataAssets(1);
   api('list_staff',{},function(err,d){
     if(err)return;state.staff=d.staff||[];
     ['add-owner','edit-owner'].forEach(function(id){

@@ -43,6 +43,12 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
@@ -83,12 +89,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div class="filter-bar">
         <select id="f-due" onchange="applyFilters()"><option value="">All Vendors</option><option value="1">Review Due (90 days)</option></select>
         <select id="f-qs" onchange="applyFilters()"><option value="">All Questionnaire Statuses</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
-        <input id="f-search" type="search" placeholder="Search vendors…" oninput="applyFilters()">
+        <input id="f-search" type="search" placeholder="Search vendors…" oninput="onSearchInput()">
       </div>
       <table>
         <thead><tr><th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th></tr></thead>
         <tbody id="vnd-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
+      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -151,7 +158,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={vendors:[]};
+var state={vendors:[],page:1,pageSize:20};
+var _searchDebounce=null;
 
 function api(func,body,cb){
   fetch('/api/v1/ops',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -170,9 +178,10 @@ function riskColor(score){
   return'var(--green)';
 }
 
-function renderVendors(list){
+function renderVendors(list,total){
   var body=document.getElementById('vnd-body');
-  var cnt=document.getElementById('vnd-count');if(cnt)cnt.textContent=list.length+' vendor'+(list.length!==1?'s':'');
+  var n=(total!=null?total:list.length);
+  var cnt=document.getElementById('vnd-count');if(cnt)cnt.textContent=n+' vendor'+(n!==1?'s':'');
   if(!list.length){body.innerHTML='<tr><td colspan="6" class="empty">No vendors found.</td></tr>';return;}
   body.innerHTML=list.map(function(v){
     var duePill=v.review_due?'<span class="pill watch">Due</span>':'<span class="pill neu">OK</span>';
@@ -187,21 +196,67 @@ function renderVendors(list){
   }).join('');
 }
 
-function applyFilters(){
+function renderPagination(data){
+  var total=data.total_count||0;
+  var page=data.page||1;
+  var pageSize=data.page_size||state.pageSize;
+  var totalPages=data.total_pages||Math.ceil(total/pageSize)||1;
+  var from=total===0?0:(page-1)*pageSize+1;
+  var to=Math.min(page*pageSize,total);
+  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' vendor'+(total!==1?'s':'');
+  var btnsEl=document.getElementById('page-btns');
+  btnsEl.innerHTML='';
+  if(totalPages<=1)return;
+  buildPageList(page,totalPages).forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='page-btn'+(p===page?' active':'');
+    btn.textContent=p==='…'?'…':String(p);
+    if(p==='…'){btn.disabled=true;}
+    else{(function(pg){btn.onclick=function(){loadVendors(pg);};})(p);}
+    btnsEl.appendChild(btn);
+  });
+}
+
+function buildPageList(current,total){
+  if(total<=7){var arr=[];for(var i=1;i<=total;i++)arr.push(i);return arr;}
+  var set=[1,total,current];
+  if(current-1>1)set.push(current-1);
+  if(current+1<total)set.push(current+1);
+  if(current-2>1)set.push(current-2);
+  if(current+2<total)set.push(current+2);
+  var unique=set.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+  var result=[];
+  for(var j=0;j<unique.length;j++){
+    if(j>0&&unique[j]-unique[j-1]>1)result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0,9);
+}
+
+function loadVendors(page){
+  state.page=page||1;
+  var body={page:state.page,limit:state.pageSize};
   var dueVal=document.getElementById('f-due').value;
   var qsVal=document.getElementById('f-qs').value;
-  var srVal=document.getElementById('f-search').value.toLowerCase();
-  var list=state.vendors.filter(function(v){
-    if(dueVal==='1'&&!v.review_due)return false;
-    if(qsVal&&v.security_questionnaire_status!==qsVal)return false;
-    if(srVal&&!(v.name||'').toLowerCase().includes(srVal))return false;
-    return true;
+  var srVal=document.getElementById('f-search').value.trim();
+  if(dueVal==='1')body.due='1';
+  if(qsVal)body.questionnaire_status=qsVal;
+  if(srVal)body.search=srVal;
+  api('list_vendors',body,function(err,d){
+    if(err)return;
+    state.vendors=d.vendors||[];
+    renderVendors(state.vendors,d.total_count);
+    renderPagination(d);
   });
-  renderVendors(list);
+}
+function applyFilters(){loadVendors(1);}
+function onSearchInput(){
+  clearTimeout(_searchDebounce);
+  _searchDebounce=setTimeout(function(){loadVendors(1);},300);
 }
 
 function loadAll(){
-  api('list_vendors',{},function(err,d){if(err)return;state.vendors=d.vendors||[];applyFilters();});
+  loadVendors(1);
 }
 
 function openAdd(){['add-name','add-agreement','add-expiry','add-risk'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}

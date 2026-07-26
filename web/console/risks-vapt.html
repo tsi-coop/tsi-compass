@@ -63,6 +63,12 @@ tr:hover td{background:#fafcfd}
 .stripe-red{border-top:4px solid var(--red)}.stripe-amber{border-top:4px solid var(--amber)}
 .stripe-green{border-top:4px solid var(--green)}.stripe-blue{border-top:4px solid var(--blue)}
 .empty-row td{text-align:center;color:var(--muted);padding:28px}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
@@ -186,6 +192,10 @@ tr:hover td{background:#fafcfd}
           <tr class="empty-row"><td colspan="9">Loading…</td></tr>
         </tbody>
       </table>
+      <div class="pagination">
+        <span id="page-info">—</span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
     </div>
 
     <div class="section-card">
@@ -354,7 +364,7 @@ tr:hover td{background:#fafcfd}
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = '../index.html';
 
-var state = { vulns: [], engagements: [], staff: [] };
+var state = { vulns: [], engagements: [], staff: [], page: 1 };
 var filterDebounce;
 var isAdmin = false;
 
@@ -409,9 +419,10 @@ var TYPE_LABEL = {
   FULL_VAPT:'Full VAPT',VULNERABILITY_SCAN:'Vulnerability Scan'
 };
 
-function renderVulns(list) {
+function renderVulns(list, total) {
   var tbody = document.getElementById('vuln-tbody');
-  document.getElementById('findings-count').textContent = list.length + ' finding' + (list.length===1?'':'s');
+  var n = (total != null ? total : list.length);
+  document.getElementById('findings-count').textContent = n + ' finding' + (n===1?'':'s');
   if (!list.length) {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No findings match the current filters.</td></tr>';
     return;
@@ -498,24 +509,67 @@ function populateStaffSelects(current) {
   });
 }
 
-function applyFilters() {
+function buildPageList(current, total) {
+  if (total <= 7) { var arr = []; for (var i = 1; i <= total; i++) arr.push(i); return arr; }
+  var set = [1, total, current];
+  if (current - 1 > 1) set.push(current - 1);
+  if (current + 1 < total) set.push(current + 1);
+  if (current - 2 > 1) set.push(current - 2);
+  if (current + 2 < total) set.push(current + 2);
+  var unique = set.filter(function(v, i, a) { return a.indexOf(v) === i; }).sort(function(a, b) { return a - b; });
+  var result = [];
+  for (var j = 0; j < unique.length; j++) {
+    if (j > 0 && unique[j] - unique[j - 1] > 1) result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0, 9);
+}
+
+function renderPagination(data) {
+  var total = data.total_count || 0;
+  var page = data.page || 1;
+  var pageSize = data.page_size || 20;
+  var totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
+  var from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  var to = Math.min(page * pageSize, total);
+  document.getElementById('page-info').textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' finding' + (total !== 1 ? 's' : '');
+  var btnsEl = document.getElementById('page-btns');
+  btnsEl.innerHTML = '';
+  if (totalPages <= 1) return;
+  buildPageList(page, totalPages).forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'page-btn' + (p === page ? ' active' : '');
+    btn.textContent = p === '…' ? '…' : String(p);
+    if (p === '…') { btn.disabled = true; }
+    else { (function(pg) { btn.onclick = function() { loadVulns(pg); }; })(p); }
+    btnsEl.appendChild(btn);
+  });
+}
+
+function loadVulns(page) {
+  state.page = page || 1;
+  var body = { page: state.page, limit: 20 };
   var eng = document.getElementById('f-engagement').value;
   var sev = document.getElementById('f-severity').value;
   var status = document.getElementById('f-status').value;
-  var search = (document.getElementById('f-search').value || '').toLowerCase();
-  var filtered = state.vulns.filter(function(v) {
-    if (eng && v.engagement_id !== eng) return false;
-    if (sev && v.severity !== sev) return false;
-    if (status && v.status !== status) return false;
-    if (search && !(v.title||'').toLowerCase().includes(search) && !(v.affected_asset||'').toLowerCase().includes(search)) return false;
-    return true;
+  var search = document.getElementById('f-search').value.trim();
+  if (eng) body.engagement_id = eng;
+  if (sev) body.severity = sev;
+  if (status) body.status = status;
+  if (search) body.search = search;
+  api('list_vulnerabilities', body, function(err, d) {
+    if (err) return;
+    state.vulns = d.vulnerabilities || [];
+    renderVulns(state.vulns, d.total_count);
+    renderPagination(d);
   });
-  renderVulns(filtered);
 }
+
+function applyFilters() { loadVulns(1); }
 
 function debouncedFilter() {
   clearTimeout(filterDebounce);
-  filterDebounce = setTimeout(applyFilters, 350);
+  filterDebounce = setTimeout(function() { loadVulns(1); }, 350);
 }
 
 function setSelect(id, val) {
@@ -812,12 +866,7 @@ function loadAll() {
       renderEngagements();
       populateEngagementSelects('');
     }
-    api('list_vulnerabilities', {}, function(err2, d2) {
-      if (!err2) {
-        state.vulns = d2.vulnerabilities || [];
-        applyFilters();
-      }
-    });
+    loadVulns(1);
   });
 }
 

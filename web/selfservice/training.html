@@ -33,6 +33,14 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .row-acts{display:flex;gap:6px}
+.filter-bar{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.filter-bar input{flex:1;height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:820px){.nav{display:none}.main{padding:20px}}
 </style>
 </head>
@@ -60,10 +68,12 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 
   <div class="section-card">
     <div class="section-head"><h2>Assigned Training</h2></div>
+    <div class="filter-bar"><input id="search-training" type="search" placeholder="Search training…" oninput="onTrainingSearch()"></div>
     <table>
       <thead><tr><th>Campaign</th><th>Material</th><th>Status</th><th></th></tr></thead>
       <tbody id="training-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
+    <div class="pagination"><span id="page-info-training">—</span><div class="page-btns" id="page-btns-training"></div></div>
   </div>
 </main>
 
@@ -88,12 +98,57 @@ function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replac
 
 var STATUS_PILL = { ENROLLED:'<span class="pill watch">Enrolled</span>', IN_PROGRESS:'<span class="pill info">In Progress</span>', COMPLETED:'<span class="pill good">Completed</span>', FAILED:'<span class="pill risk">Failed</span>' };
 
-function loadTrainings() {
-  api('list_my_trainings', {}, function(err, d) {
+function buildPageList(current, total) {
+  if (total <= 7) { var arr = []; for (var i = 1; i <= total; i++) arr.push(i); return arr; }
+  var set = [1, total, current];
+  if (current - 1 > 1) set.push(current - 1);
+  if (current + 1 < total) set.push(current + 1);
+  if (current - 2 > 1) set.push(current - 2);
+  if (current + 2 < total) set.push(current + 2);
+  var unique = set.filter(function(v, i, a) { return a.indexOf(v) === i; }).sort(function(a, b) { return a - b; });
+  var result = [];
+  for (var j = 0; j < unique.length; j++) {
+    if (j > 0 && unique[j] - unique[j - 1] > 1) result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0, 9);
+}
+
+function renderPagination(data, infoId, btnsId, noun, loadFn) {
+  var total = data.total_count || 0;
+  var page = data.page || 1;
+  var pageSize = data.page_size || 20;
+  var totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
+  var from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  var to = Math.min(page * pageSize, total);
+  document.getElementById(infoId).textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' ' + noun + (total !== 1 ? 's' : '');
+  var btnsEl = document.getElementById(btnsId);
+  btnsEl.innerHTML = '';
+  if (totalPages <= 1) return;
+  buildPageList(page, totalPages).forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'page-btn' + (p === page ? ' active' : '');
+    btn.textContent = p === '…' ? '…' : String(p);
+    if (p === '…') { btn.disabled = true; }
+    else { (function(pg) { btn.onclick = function() { loadFn(pg); }; })(p); }
+    btnsEl.appendChild(btn);
+  });
+}
+
+var _trainingPage = 1;
+var _trainingSearchDebounce = null;
+function onTrainingSearch() { clearTimeout(_trainingSearchDebounce); _trainingSearchDebounce = setTimeout(function() { loadTrainings(1); }, 300); }
+
+function loadTrainings(page) {
+  _trainingPage = page || 1;
+  var reqBody = { page: _trainingPage, limit: 20 };
+  var search = document.getElementById('search-training').value.trim();
+  if (search) reqBody.search = search;
+  api('list_my_trainings', reqBody, function(err, d) {
     var body = document.getElementById('training-body');
     if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.trainings || [];
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No training currently assigned.</td></tr>'; return; }
+    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No training currently assigned.</td></tr>'; document.getElementById('page-info-training').textContent = '—'; document.getElementById('page-btns-training').innerHTML = ''; return; }
     body.innerHTML = list.map(function(t) {
       var materialCell = t.material_title
         ? (t.content_url ? '<a href="' + esc(t.content_url) + '" target="_blank" rel="noopener">' + esc(t.material_title) + '</a>' : esc(t.material_title))
@@ -104,6 +159,7 @@ function loadTrainings() {
         '<td>' + (STATUS_PILL[t.status] || esc(t.status)) + '</td>' +
         '<td><div class="row-acts">' + (canComplete ? '<button class="btn primary" onclick="complete(\'' + t.campaign_id + '\', this)">Mark Complete</button>' : '') + '</div></td></tr>';
     }).join('');
+    renderPagination(d, 'page-info-training', 'page-btns-training', 'training record', loadTrainings);
   });
 }
 
@@ -111,7 +167,7 @@ function complete(campaignId, btn) {
   btn.disabled = true; btn.textContent = 'Saving…';
   api('complete_training', { campaign_id: campaignId }, function(err) {
     if (err) { alert('Error: ' + err); btn.disabled = false; btn.textContent = 'Mark Complete'; return; }
-    loadTrainings();
+    loadTrainings(_trainingPage);
   });
 }
 
@@ -119,7 +175,7 @@ function complete(campaignId, btn) {
   var n = localStorage.getItem('username') || 'User';
   var nm = document.getElementById('user-name');
   if (nm) { nm.textContent = n; nm.title = n; }
-  loadTrainings();
+  loadTrainings(1);
 })();
 </script>
 <script src="../console/notifications.js"></script>

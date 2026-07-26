@@ -29,7 +29,7 @@ public class Controls implements Action {
                 case "add_control":            addControl(req, res, input);                               break;
                 case "update_control":         updateControl(req, res, input);                            break;
                 case "attest_control":         attestControl(req, res, input);                            break;
-                case "list_exceptions":        OutputProcessor.send(res, 200, listExceptions());          break;
+                case "list_exceptions":        OutputProcessor.send(res, 200, listExceptions(input));      break;
                 case "add_exception":          addException(req, res, input);                             break;
                 case "update_exception_status": updateExceptionStatus(req, res, input);                   break;
                 case "list_staff":                     OutputProcessor.send(res, 200, listStaff());                       break;
@@ -139,7 +139,28 @@ public class Controls implements Action {
     @SuppressWarnings("unchecked")
     private JSONObject listControls(JSONObject input) throws Exception {
         String frameworkId = (String) input.get("framework_id");
+        String type   = (String) input.get("type");
+        String status = (String) input.get("status");
         String search = (String) input.get("search");
+        boolean export = Boolean.TRUE.equals(input.get("export"));
+
+        long page = 1L, limit = 20L;
+        Object pageObj = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        // Note: `where` references ca.status (attestation status), so both the count and data
+        // queries must include the LATERAL "ca" join even though the count query has no other use for it.
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(frameworkId)) where.append(" AND fr.framework_id = ?");
+        if (!isBlank(type))        where.append(" AND c.type = ?");
+        if (!isBlank(status))      where.append(" AND ca.status = ?");
+        if (!isBlank(search))      where.append(" AND (c.code ILIKE ? OR c.title ILIKE ?)");
+
         StringBuilder sql = new StringBuilder(
             "SELECT c.id::text, c.code, c.title, c.type, c.frequency, c.description, " +
             "c.owner_id::text, u.username AS owner_name, " +
@@ -156,21 +177,48 @@ public class Controls implements Action {
             ") ca ON true " +
             "LEFT JOIN control_requirement_mappings crm ON crm.control_id = c.id " +
             "LEFT JOIN framework_requirements fr ON fr.id = crm.requirement_id " +
-            "LEFT JOIN frameworks f ON f.id = fr.framework_id " +
-            "WHERE 1=1"
+            "LEFT JOIN frameworks f ON f.id = fr.framework_id" +
+            where
         );
-        if (!isBlank(frameworkId)) sql.append(" AND fr.framework_id = ?");
-        if (!isBlank(search)) sql.append(" AND (c.code ILIKE ? OR c.title ILIKE ?)");
         sql.append(" GROUP BY c.id, c.code, c.title, c.type, c.frequency, c.description, c.owner_id, u.username, ca.status, ca.next_due_date, ca.attested_at, ca.id ORDER BY c.code");
+        if (!export) sql.append(" LIMIT ? OFFSET ?");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray controls = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            if (!export) {
+                // Count over distinct controls matching the same filters — GROUP BY above already
+                // guarantees one row per control, so COUNT(DISTINCT c.id) with the same joins/filters
+                // gives the same row count as the data query without needing the aggregation.
+                String countSql = "SELECT COUNT(DISTINCT c.id) FROM controls c " +
+                    "LEFT JOIN LATERAL (" +
+                    "  SELECT id, control_id, status FROM control_attestations " +
+                    "  WHERE control_id = c.id ORDER BY attested_at DESC NULLS LAST LIMIT 1" +
+                    ") ca ON true " +
+                    "LEFT JOIN control_requirement_mappings crm ON crm.control_id = c.id " +
+                    "LEFT JOIN framework_requirements fr ON fr.id = crm.requirement_id" + where;
+                p = conn.prepareStatement(countSql);
+                int idx = 1;
+                if (!isBlank(frameworkId)) p.setObject(idx++, UUID.fromString(frameworkId));
+                if (!isBlank(type))        p.setString(idx++, type);
+                if (!isBlank(status))      p.setString(idx++, status);
+                if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+                rs = p.executeQuery();
+                if (rs.next()) total = rs.getLong(1);
+                try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+                rs = null; p = null;
+            }
+
             p = conn.prepareStatement(sql.toString());
             int idx = 1;
             if (!isBlank(frameworkId)) p.setObject(idx++, UUID.fromString(frameworkId));
-            if (!isBlank(search)) { String like = "%"+search+"%"; p.setString(idx++, like); p.setString(idx++, like); }
+            if (!isBlank(type))        p.setString(idx++, type);
+            if (!isBlank(status))      p.setString(idx++, status);
+            if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            if (!export) { p.setLong(idx++, limit); p.setLong(idx++, offset); }
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject c = new JSONObject();
@@ -192,7 +240,15 @@ public class Controls implements Action {
                 controls.add(c);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("controls", controls); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("controls", controls);
+        if (export) {
+            long n = controls.size();
+            result.put("total_count", n); result.put("page", 1L); result.put("page_size", n); result.put("total_pages", 1L);
+        } else {
+            result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+            result.put("total_pages", (total + limit - 1) / limit);
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -263,12 +319,42 @@ public class Controls implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listExceptions() throws Exception {
+    private JSONObject listExceptions(JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        String status = (String) input.get("status");
+
+        long page = 1L, limit = 20L;
+        Object pageObj = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(status)) where.append(" AND e.status = ?");
+        if (!isBlank(search)) where.append(" AND (e.reason ILIKE ? OR e.compensating_controls ILIKE ? OR pol.title ILIKE ? OR c.title ILIKE ? OR c.code ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray exceptions = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement(
+
+            String countSql = "SELECT COUNT(*) FROM exceptions e " +
+                "LEFT JOIN policies pol ON pol.id = e.policy_id " +
+                "LEFT JOIN controls c ON c.id = e.control_id" + where;
+            p = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(status)) p.setString(idx++, status);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
+            String dataSql =
                 "SELECT e.id::text, e.reason, e.compensating_controls, e.expiry_date::text, e.status, e.created_at::text, " +
                 "pol.title AS policy_title, c.title AS control_title, c.code AS control_code, " +
                 "req.username AS requester_name, apr.username AS approver_name " +
@@ -276,9 +362,12 @@ public class Controls implements Action {
                 "LEFT JOIN policies pol ON pol.id = e.policy_id " +
                 "LEFT JOIN controls c ON c.id = e.control_id " +
                 "LEFT JOIN users req ON req.id = e.requested_by " +
-                "LEFT JOIN users apr ON apr.id = e.approver_id " +
-                "ORDER BY CASE e.status WHEN 'PENDING' THEN 1 WHEN 'APPROVED' THEN 2 ELSE 3 END, e.expiry_date ASC"
-            );
+                "LEFT JOIN users apr ON apr.id = e.approver_id" + where +
+                " ORDER BY CASE e.status WHEN 'PENDING' THEN 1 WHEN 'APPROVED' THEN 2 ELSE 3 END, e.expiry_date ASC LIMIT ? OFFSET ?";
+            p = conn.prepareStatement(dataSql); idx = 1;
+            if (!isBlank(status)) p.setString(idx++, status);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject ex = new JSONObject();
@@ -296,7 +385,10 @@ public class Controls implements Action {
                 exceptions.add(ex);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("exceptions", exceptions); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("exceptions", exceptions);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")

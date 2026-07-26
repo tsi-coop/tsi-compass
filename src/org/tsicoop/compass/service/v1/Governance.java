@@ -50,7 +50,7 @@ public class Governance implements Action {
                     logMinutes(req, res, input);
                     break;
                 case "list_action_items":
-                    OutputProcessor.send(res, 200, listActionItems());
+                    OutputProcessor.send(res, 200, listActionItems(input));
                     break;
                 case "add_action_item":
                     addActionItem(req, res, input);
@@ -206,27 +206,44 @@ public class Governance implements Action {
     @SuppressWarnings("unchecked")
     private JSONObject listMeetings(JSONObject input) throws Exception {
         String status = (String) input.get("status");
-        StringBuilder sql = new StringBuilder(
-            "SELECT cm.id::text, c.name AS committee_name, c.id::text AS committee_id, " +
-            "cm.scheduled_at::text, cm.agenda, cm.venue, cm.status, " +
-            "(SELECT COUNT(*) FROM committee_mom mom WHERE mom.meeting_id = cm.id) AS mom_count " +
-            "FROM committee_meetings cm " +
-            "JOIN committees c ON c.id = cm.committee_id " +
-            "WHERE 1=1"
-        );
-        if (!isBlank(status)) sql.append(" AND cm.status = ?");
-        sql.append(" ORDER BY cm.scheduled_at DESC LIMIT 60");
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(status)) where.append(" AND cm.status = ?");
+        if (!isBlank(search)) where.append(" AND (cm.agenda ILIKE ? OR cm.venue ILIKE ? OR c.name ILIKE ?)");
 
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         JSONArray meetings = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
-            if (!isBlank(status)) pstmt.setString(1, status);
+
+            String countSql = "SELECT COUNT(*) FROM committee_meetings cm JOIN committees c ON c.id = cm.committee_id" + where;
+            pstmt = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) { String like = "%" + search + "%"; pstmt.setString(idx++, like); pstmt.setString(idx++, like); pstmt.setString(idx++, like); }
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            String dataSql =
+                "SELECT cm.id::text, c.name AS committee_name, c.id::text AS committee_id, " +
+                "cm.scheduled_at::text, cm.agenda, cm.venue, cm.status, " +
+                "(SELECT COUNT(*) FROM committee_mom mom WHERE mom.meeting_id = cm.id) AS mom_count " +
+                "FROM committee_meetings cm " +
+                "JOIN committees c ON c.id = cm.committee_id" + where +
+                " ORDER BY cm.scheduled_at DESC LIMIT ? OFFSET ?";
+            pstmt = conn.prepareStatement(dataSql); idx = 1;
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) { String like = "%" + search + "%"; pstmt.setString(idx++, like); pstmt.setString(idx++, like); pstmt.setString(idx++, like); }
+            pstmt.setLong(idx++, limit); pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject m = new JSONObject();
@@ -246,6 +263,8 @@ public class Governance implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("meetings", meetings);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 
@@ -397,17 +416,40 @@ public class Governance implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listActionItems() throws Exception {
+    private JSONObject listActionItems(JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE cai.status != 'COMPLETED'");
+        if (!isBlank(search)) where.append(" AND (cai.deliverable ILIKE ? OR c.name ILIKE ?)");
+
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         JSONArray items = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            String countSql =
+                "SELECT COUNT(*) " +
+                "FROM committee_action_items cai " +
+                "LEFT JOIN committee_meetings cm ON cm.id = cai.meeting_id " +
+                "LEFT JOIN committee_mom mom ON mom.id = cai.mom_id " +
+                "LEFT JOIN committee_meetings mcm ON mcm.id = mom.meeting_id " +
+                "LEFT JOIN committees c ON c.id = COALESCE(cm.committee_id, mcm.committee_id)" + where;
+            pstmt = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(search)) { String like = "%" + search + "%"; pstmt.setString(idx++, like); pstmt.setString(idx++, like); }
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
             // Support both paths: direct meeting_id (UI-created) and mom_id (minutes-created)
-            pstmt = conn.prepareStatement(
+            String dataSql =
                 "SELECT cai.id::text, cai.deliverable, u.username AS assignee_name, " +
                 "cai.due_date::text, cai.status, " +
                 "c.name AS committee_name, " +
@@ -417,10 +459,11 @@ public class Governance implements Action {
                 "LEFT JOIN committee_meetings cm ON cm.id = cai.meeting_id " +
                 "LEFT JOIN committee_mom mom ON mom.id = cai.mom_id " +
                 "LEFT JOIN committee_meetings mcm ON mcm.id = mom.meeting_id " +
-                "LEFT JOIN committees c ON c.id = COALESCE(cm.committee_id, mcm.committee_id) " +
-                "WHERE cai.status != 'COMPLETED' " +
-                "ORDER BY cai.due_date ASC LIMIT 60"
-            );
+                "LEFT JOIN committees c ON c.id = COALESCE(cm.committee_id, mcm.committee_id)" + where +
+                " ORDER BY cai.due_date ASC LIMIT ? OFFSET ?";
+            pstmt = conn.prepareStatement(dataSql); idx = 1;
+            if (!isBlank(search)) { String like = "%" + search + "%"; pstmt.setString(idx++, like); pstmt.setString(idx++, like); }
+            pstmt.setLong(idx++, limit); pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject item = new JSONObject();
@@ -439,6 +482,8 @@ public class Governance implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("action_items", items);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 
@@ -564,32 +609,45 @@ public class Governance implements Action {
         String type   = (String) input.get("type");
         String status = (String) input.get("status");
         String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT p.id::text, p.title, p.type, p.version, p.status, " +
-            "p.framework_tags, u.username AS owner_name, p.author_id::text AS owner_id, " +
-            "p.review_date::text, p.created_at::text, p.document_name, " +
-            "ap.username AS approved_by_name " +
-            "FROM policies p " +
-            "LEFT JOIN users u  ON u.id  = p.author_id " +
-            "LEFT JOIN users ap ON ap.id = p.approved_by " +
-            "WHERE p.status != 'ARCHIVED'"
-        );
-        if (!isBlank(type))   sql.append(" AND p.type = ?");
-        if (!isBlank(status)) sql.append(" AND p.status = ?");
-        if (!isBlank(search)) sql.append(" AND (p.title ILIKE ? OR COALESCE(p.framework_tags,'') ILIKE ?)");
-        sql.append(" ORDER BY p.created_at DESC");
+        StringBuilder where = new StringBuilder(" WHERE p.status != 'ARCHIVED'");
+        if (!isBlank(type))   where.append(" AND p.type = ?");
+        if (!isBlank(status)) where.append(" AND p.status = ?");
+        if (!isBlank(search)) where.append(" AND (p.title ILIKE ? OR COALESCE(p.framework_tags,'') ILIKE ?)");
 
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         JSONArray policies = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
+
+            String countSql = "SELECT COUNT(*) FROM policies p" + where;
+            pstmt = conn.prepareStatement(countSql);
             int idx = 1;
+            if (!isBlank(type))   pstmt.setString(idx++, type);
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) { String like = "%" + search + "%"; pstmt.setString(idx++, like); pstmt.setString(idx++, like); }
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            String dataSql =
+                "SELECT p.id::text, p.title, p.type, p.version, p.status, " +
+                "p.framework_tags, u.username AS owner_name, p.author_id::text AS owner_id, " +
+                "p.review_date::text, p.created_at::text, p.document_name, " +
+                "ap.username AS approved_by_name " +
+                "FROM policies p " +
+                "LEFT JOIN users u  ON u.id  = p.author_id " +
+                "LEFT JOIN users ap ON ap.id = p.approved_by" + where +
+                " ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
+            pstmt = conn.prepareStatement(dataSql);
+            idx = 1;
             if (!isBlank(type))   pstmt.setString(idx++, type);
             if (!isBlank(status)) pstmt.setString(idx++, status);
             if (!isBlank(search)) {
@@ -597,6 +655,7 @@ public class Governance implements Action {
                 pstmt.setString(idx++, like);
                 pstmt.setString(idx++, like);
             }
+            pstmt.setLong(idx++, limit); pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject p = new JSONObject();
@@ -620,6 +679,8 @@ public class Governance implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("policies", policies);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 
@@ -1052,5 +1113,17 @@ public class Governance implements Action {
 
     private boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
+    }
+
+    // page/limit -> {page, limit}, page 1-based, limit capped at 100, default 20
+    private long[] parsePaging(JSONObject input) {
+        long page = 1L, limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        return new long[]{page, limit};
     }
 }

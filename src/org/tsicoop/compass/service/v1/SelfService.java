@@ -37,14 +37,14 @@ public class SelfService implements Action {
             }
 
             switch (func.toLowerCase()) {
-                case "create_ticket":         createTicket(req, res, input, selfId);         break;
-                case "list_my_tickets":       OutputProcessor.send(res, 200, listMyTickets(selfId));       break;
-                case "create_change_request": createChangeRequest(req, res, input, selfId);  break;
-                case "list_my_changes":       OutputProcessor.send(res, 200, listMyChanges(selfId));       break;
-                case "list_pending_policies": OutputProcessor.send(res, 200, listPendingPolicies(selfId)); break;
-                case "list_my_attestations":  OutputProcessor.send(res, 200, listMyAttestations(selfId));  break;
-                case "acknowledge_policy":    acknowledgePolicy(req, res, input, selfId);     break;
-                case "list_my_trainings":     OutputProcessor.send(res, 200, listMyTrainings(selfId));     break;
+                case "create_ticket":         createTicket(req, res, input, selfId);                break;
+                case "list_my_tickets":       OutputProcessor.send(res, 200, listMyTickets(selfId, input));       break;
+                case "create_change_request": createChangeRequest(req, res, input, selfId);         break;
+                case "list_my_changes":       OutputProcessor.send(res, 200, listMyChanges(selfId, input));       break;
+                case "list_pending_policies": OutputProcessor.send(res, 200, listPendingPolicies(selfId, input)); break;
+                case "list_my_attestations":  OutputProcessor.send(res, 200, listMyAttestations(selfId, input));  break;
+                case "acknowledge_policy":    acknowledgePolicy(req, res, input, selfId);            break;
+                case "list_my_trainings":     OutputProcessor.send(res, 200, listMyTrainings(selfId, input));     break;
                 case "complete_training":     completeTraining(req, res, input, selfId);      break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: " + func, req.getRequestURI());
             }
@@ -54,6 +54,18 @@ public class SelfService implements Action {
     }
 
     @Override public boolean validate(String m, HttpServletRequest q, HttpServletResponse r) { return "POST".equalsIgnoreCase(m); }
+
+    // page/limit -> {page, limit}, page 1-based, limit capped at 100, default 20
+    private long[] parsePaging(JSONObject input) {
+        long page = 1L, limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        return new long[]{page, limit};
+    }
 
     // -------------------------------------------------------------------------
     // Tickets
@@ -86,16 +98,33 @@ public class SelfService implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listMyTickets(UUID selfId) throws Exception {
+    private JSONObject listMyTickets(UUID selfId, JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE created_by = ?");
+        if (!isBlank(search)) where.append(" AND (title ILIKE ? OR description ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
-        JSONArray list = new JSONArray();
+        JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            p = conn.prepareStatement("SELECT COUNT(*) FROM helpdesk_tickets" + where);
+            int idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
                 "SELECT id::text, title, description, status, priority, created_at::text " +
-                "FROM helpdesk_tickets WHERE created_by = ? ORDER BY created_at DESC"
+                "FROM helpdesk_tickets" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
             );
-            p.setObject(1, selfId);
+            idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject t = new JSONObject();
@@ -108,7 +137,10 @@ public class SelfService implements Action {
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("tickets", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("tickets", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     // -------------------------------------------------------------------------
@@ -140,16 +172,33 @@ public class SelfService implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listMyChanges(UUID selfId) throws Exception {
+    private JSONObject listMyChanges(UUID selfId, JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE requester_id = ?");
+        if (!isBlank(search)) where.append(" AND (title ILIKE ? OR description ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
-        JSONArray list = new JSONArray();
+        JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            p = conn.prepareStatement("SELECT COUNT(*) FROM change_requests" + where);
+            int idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
                 "SELECT id::text, title, description, stage, status, created_at::text " +
-                "FROM change_requests WHERE requester_id = ? ORDER BY created_at DESC"
+                "FROM change_requests" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
             );
-            p.setObject(1, selfId);
+            idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject c = new JSONObject();
@@ -162,7 +211,10 @@ public class SelfService implements Action {
                 list.add(c);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("changes", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("changes", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     // -------------------------------------------------------------------------
@@ -170,17 +222,34 @@ public class SelfService implements Action {
     // -------------------------------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private JSONObject listPendingPolicies(UUID selfId) throws Exception {
+    private JSONObject listPendingPolicies(UUID selfId, JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(
+            " WHERE status = 'PUBLISHED' AND id NOT IN (SELECT policy_id FROM policy_attestations WHERE user_id = ?)"
+        );
+        if (!isBlank(search)) where.append(" AND (title ILIKE ? OR type ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
-        JSONArray list = new JSONArray();
+        JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            p = conn.prepareStatement("SELECT COUNT(*) FROM policies" + where);
+            int idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
-                "SELECT id::text, title, type, version FROM policies " +
-                "WHERE status = 'PUBLISHED' AND id NOT IN (SELECT policy_id FROM policy_attestations WHERE user_id = ?) " +
-                "ORDER BY title"
+                "SELECT id::text, title, type, version FROM policies" + where + " ORDER BY title LIMIT ? OFFSET ?"
             );
-            p.setObject(1, selfId);
+            idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject pol = new JSONObject();
@@ -191,21 +260,43 @@ public class SelfService implements Action {
                 list.add(pol);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("policies", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("policies", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listMyAttestations(UUID selfId) throws Exception {
+    private JSONObject listMyAttestations(UUID selfId, JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE pa.user_id = ?");
+        if (!isBlank(search)) where.append(" AND (pol.title ILIKE ? OR pol.type ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
-        JSONArray list = new JSONArray();
+        JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            p = conn.prepareStatement(
+                "SELECT COUNT(*) FROM policy_attestations pa JOIN policies pol ON pol.id = pa.policy_id" + where
+            );
+            int idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
                 "SELECT pol.id::text, pol.title, pol.type, pol.version, pa.acknowledged_at::text " +
-                "FROM policy_attestations pa JOIN policies pol ON pol.id = pa.policy_id " +
-                "WHERE pa.user_id = ? ORDER BY pa.acknowledged_at DESC"
+                "FROM policy_attestations pa JOIN policies pol ON pol.id = pa.policy_id" + where +
+                " ORDER BY pa.acknowledged_at DESC LIMIT ? OFFSET ?"
             );
-            p.setObject(1, selfId);
+            idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject a = new JSONObject();
@@ -217,7 +308,10 @@ public class SelfService implements Action {
                 list.add(a);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("attestations", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("attestations", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -263,20 +357,41 @@ public class SelfService implements Action {
     // -------------------------------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private JSONObject listMyTrainings(UUID selfId) throws Exception {
+    private JSONObject listMyTrainings(UUID selfId, JSONObject input) throws Exception {
+        String search = (String) input.get("search");
+        long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE ce.user_id = ?");
+        if (!isBlank(search)) where.append(" AND (ac.name ILIKE ? OR ac.description ILIKE ? OR tm.title ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
-        JSONArray list = new JSONArray();
+        JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            p = conn.prepareStatement(
+                "SELECT COUNT(*) FROM campaign_enrollments ce " +
+                "JOIN awareness_campaigns ac ON ac.id = ce.campaign_id " +
+                "LEFT JOIN training_materials tm ON tm.id = ac.material_id" + where
+            );
+            int idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
                 "SELECT ac.id::text AS campaign_id, ac.name AS campaign_name, ac.description, " +
                 "tm.title AS material_title, tm.content_url, ce.status, ce.completed_at::text " +
                 "FROM campaign_enrollments ce " +
                 "JOIN awareness_campaigns ac ON ac.id = ce.campaign_id " +
-                "LEFT JOIN training_materials tm ON tm.id = ac.material_id " +
-                "WHERE ce.user_id = ? ORDER BY ac.scheduled_start DESC"
+                "LEFT JOIN training_materials tm ON tm.id = ac.material_id" + where +
+                " ORDER BY ac.scheduled_start DESC LIMIT ? OFFSET ?"
             );
-            p.setObject(1, selfId);
+            idx = 1; p.setObject(idx++, selfId);
+            if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject t = new JSONObject();
@@ -290,7 +405,10 @@ public class SelfService implements Action {
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("trainings", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("trainings", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")

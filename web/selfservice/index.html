@@ -34,6 +34,20 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .mobilebar{display:none}
+.filter-bar{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.filter-bar input{flex:1;height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.tab-btn{padding:10px 16px;border:none;background:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 @media(max-width:820px){.nav{display:none}.main{padding:20px}}
 </style>
 </head>
@@ -59,20 +73,33 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <p class="subtitle">Track the status of the helpdesk tickets and change requests you've submitted.</p>
   </div>
 
-  <div class="section-card">
-    <div class="section-head"><h2>Helpdesk Tickets</h2><div class="acts"><a class="btn primary" href="new-ticket.html">+ New Ticket</a></div></div>
-    <table>
-      <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Submitted</th></tr></thead>
-      <tbody id="tickets-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
-    </table>
+  <div class="tabs">
+    <button type="button" class="tab-btn active" id="tab-btn-tickets" onclick="switchTab('tickets')">Helpdesk Tickets</button>
+    <button type="button" class="tab-btn" id="tab-btn-changes" onclick="switchTab('changes')">Change Requests</button>
   </div>
 
-  <div class="section-card">
-    <div class="section-head"><h2>Change Requests</h2><div class="acts"><a class="btn primary" href="new-change.html">+ New Change</a></div></div>
-    <table>
-      <thead><tr><th>Title</th><th>Stage</th><th>Status</th><th>Submitted</th></tr></thead>
-      <tbody id="changes-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
-    </table>
+  <div class="tab-panel active" id="tab-panel-tickets">
+    <div class="section-card">
+      <div class="section-head"><h2>Helpdesk Tickets</h2><div class="acts"><a class="btn primary" href="new-ticket.html">+ New Ticket</a></div></div>
+      <div class="filter-bar"><input id="search-tickets" type="search" placeholder="Search tickets…" oninput="onTicketSearch()"></div>
+      <table>
+        <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Submitted</th></tr></thead>
+        <tbody id="tickets-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+      <div class="pagination"><span id="page-info-tickets">—</span><div class="page-btns" id="page-btns-tickets"></div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-panel-changes">
+    <div class="section-card">
+      <div class="section-head"><h2>Change Requests</h2><div class="acts"><a class="btn primary" href="new-change.html">+ New Change</a></div></div>
+      <div class="filter-bar"><input id="search-changes" type="search" placeholder="Search change requests…" oninput="onChangeSearch()"></div>
+      <table>
+        <thead><tr><th>Title</th><th>Stage</th><th>Status</th><th>Submitted</th></tr></thead>
+        <tbody id="changes-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+      <div class="pagination"><span id="page-info-changes">—</span><div class="page-btns" id="page-btns-changes"></div></div>
+    </div>
   </div>
 </main>
 
@@ -98,42 +125,100 @@ function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replac
 var TICKET_PILL = { OPEN:'<span class="pill watch">Open</span>', IN_PROGRESS:'<span class="pill info">In Progress</span>', RESOLVED:'<span class="pill good">Resolved</span>', CLOSED:'<span class="pill neu">Closed</span>' };
 var CHANGE_PILL = { DRAFT:'<span class="pill neu">Draft</span>', SUBMITTED:'<span class="pill watch">Submitted</span>', APPROVED:'<span class="pill good">Approved</span>', REJECTED:'<span class="pill risk">Rejected</span>', COMPLETED:'<span class="pill info">Completed</span>' };
 
-function loadTickets() {
-  api('list_my_tickets', {}, function(err, d) {
-    var body = document.getElementById('tickets-body');
-    if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
+function buildPageList(current, total) {
+  if (total <= 7) { var arr = []; for (var i = 1; i <= total; i++) arr.push(i); return arr; }
+  var set = [1, total, current];
+  if (current - 1 > 1) set.push(current - 1);
+  if (current + 1 < total) set.push(current + 1);
+  if (current - 2 > 1) set.push(current - 2);
+  if (current + 2 < total) set.push(current + 2);
+  var unique = set.filter(function(v, i, a) { return a.indexOf(v) === i; }).sort(function(a, b) { return a - b; });
+  var result = [];
+  for (var j = 0; j < unique.length; j++) {
+    if (j > 0 && unique[j] - unique[j - 1] > 1) result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0, 9);
+}
+
+function renderPagination(data, infoId, btnsId, noun, loadFn) {
+  var total = data.total_count || 0;
+  var page = data.page || 1;
+  var pageSize = data.page_size || 20;
+  var totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
+  var from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  var to = Math.min(page * pageSize, total);
+  document.getElementById(infoId).textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' ' + noun + (total !== 1 ? 's' : '');
+  var btnsEl = document.getElementById(btnsId);
+  btnsEl.innerHTML = '';
+  if (totalPages <= 1) return;
+  buildPageList(page, totalPages).forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'page-btn' + (p === page ? ' active' : '');
+    btn.textContent = p === '…' ? '…' : String(p);
+    if (p === '…') { btn.disabled = true; }
+    else { (function(pg) { btn.onclick = function() { loadFn(pg); }; })(p); }
+    btnsEl.appendChild(btn);
+  });
+}
+
+var _ticketSearchDebounce = null;
+function onTicketSearch() { clearTimeout(_ticketSearchDebounce); _ticketSearchDebounce = setTimeout(function() { loadTickets(1); }, 300); }
+var _changeSearchDebounce = null;
+function onChangeSearch() { clearTimeout(_changeSearchDebounce); _changeSearchDebounce = setTimeout(function() { loadChanges(1); }, 300); }
+
+function loadTickets(page) {
+  var body = { page: page || 1, limit: 20 };
+  var search = document.getElementById('search-tickets').value.trim();
+  if (search) body.search = search;
+  api('list_my_tickets', body, function(err, d) {
+    var tbody = document.getElementById('tickets-body');
+    if (err) { tbody.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.tickets || [];
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No tickets submitted yet.</td></tr>'; return; }
-    body.innerHTML = list.map(function(t) {
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No tickets submitted yet.</td></tr>'; document.getElementById('page-info-tickets').textContent = '—'; document.getElementById('page-btns-tickets').innerHTML = ''; return; }
+    tbody.innerHTML = list.map(function(t) {
       return '<tr><td><strong>' + esc(t.title) + '</strong></td>' +
         '<td><span class="tag">' + esc(t.priority) + '</span></td>' +
         '<td>' + (TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
         '<td>' + esc(t.created_at || '—') + '</td></tr>';
     }).join('');
+    renderPagination(d, 'page-info-tickets', 'page-btns-tickets', 'ticket', loadTickets);
   });
 }
 
-function loadChanges() {
-  api('list_my_changes', {}, function(err, d) {
-    var body = document.getElementById('changes-body');
-    if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
+function loadChanges(page) {
+  var body = { page: page || 1, limit: 20 };
+  var search = document.getElementById('search-changes').value.trim();
+  if (search) body.search = search;
+  api('list_my_changes', body, function(err, d) {
+    var tbody = document.getElementById('changes-body');
+    if (err) { tbody.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.changes || [];
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No change requests submitted yet.</td></tr>'; return; }
-    body.innerHTML = list.map(function(c) {
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No change requests submitted yet.</td></tr>'; document.getElementById('page-info-changes').textContent = '—'; document.getElementById('page-btns-changes').innerHTML = ''; return; }
+    tbody.innerHTML = list.map(function(c) {
       return '<tr><td><strong>' + esc(c.title) + '</strong></td>' +
         '<td><span class="tag">' + esc(c.stage || '—') + '</span></td>' +
         '<td>' + (CHANGE_PILL[c.status] || esc(c.status)) + '</td>' +
         '<td>' + esc(c.created_at || '—') + '</td></tr>';
     }).join('');
+    renderPagination(d, 'page-info-changes', 'page-btns-changes', 'change request', loadChanges);
   });
+}
+
+var _changesLoaded = false;
+function switchTab(name) {
+  ['tickets', 'changes'].forEach(function(t) {
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === name);
+    document.getElementById('tab-panel-' + t).classList.toggle('active', t === name);
+  });
+  if (name === 'changes' && !_changesLoaded) { _changesLoaded = true; loadChanges(1); }
 }
 
 (function() {
   var n = localStorage.getItem('username') || 'User';
   var nm = document.getElementById('user-name');
   if (nm) { nm.textContent = n; nm.title = n; }
-  loadTickets();
-  loadChanges();
+  loadTickets(1);
 })();
 </script>
 <script src="../console/notifications.js"></script>

@@ -46,6 +46,12 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 4px 0;margin-top:8px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
@@ -88,10 +94,14 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
     <div class="filter-bar">
       <select id="f-category" onchange="applyFilters()"><option value="">All Categories</option><option>POLICY</option><option>PROCEDURE</option><option>GUIDELINE</option><option>RUNBOOK</option><option>LESSON_LEARNED</option><option>OTHER</option></select>
       <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>DRAFT</option><option>PUBLISHED</option><option>ARCHIVED</option></select>
-      <input id="f-search" type="search" placeholder="Search articles…" oninput="applyFilters()">
+      <input id="f-search" type="search" placeholder="Search articles…" oninput="onSearchInput()">
     </div>
     <div id="articles-grid" class="articles-grid">
       <div class="empty">Loading…</div>
+    </div>
+    <div class="pagination">
+      <span id="page-info">—</span>
+      <div class="page-btns" id="page-btns"></div>
     </div>
   </main>
 </div>
@@ -152,7 +162,8 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 <script src="notifications.js"></script>
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
-var state={articles:[]};
+var state={articles:[],page:1,pageSize:20};
+var _searchDebounce=null;
 
 function api(func,body,cb){
   fetch('/api/v1/incidents',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -181,21 +192,64 @@ function renderCards(list){
   }).join('');
 }
 
-function applyFilters(){
-  var catVal=document.getElementById('f-category').value;
-  var stVal=document.getElementById('f-status').value;
-  var srVal=document.getElementById('f-search').value.toLowerCase();
-  var list=state.articles.filter(function(a){
-    if(catVal&&a.category!==catVal)return false;
-    if(stVal&&a.status!==stVal)return false;
-    if(srVal&&!(a.title||'').toLowerCase().includes(srVal)&&!(a.content||'').toLowerCase().includes(srVal))return false;
-    return true;
+function renderPagination(data){
+  var total=data.total_count||0;
+  var page=data.page||1;
+  var pageSize=data.page_size||state.pageSize;
+  var totalPages=data.total_pages||Math.ceil(total/pageSize)||1;
+  var from=total===0?0:(page-1)*pageSize+1;
+  var to=Math.min(page*pageSize,total);
+  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' article'+(total!==1?'s':'');
+  var btnsEl=document.getElementById('page-btns');
+  btnsEl.innerHTML='';
+  if(totalPages<=1)return;
+  buildPageList(page,totalPages).forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='page-btn'+(p===page?' active':'');
+    btn.textContent=p==='…'?'…':String(p);
+    if(p==='…'){btn.disabled=true;}
+    else{(function(pg){btn.onclick=function(){loadAll(pg);};})(p);}
+    btnsEl.appendChild(btn);
   });
-  renderCards(list);
 }
 
-function loadAll(){
-  api('list_knowledge',{},function(err,d){if(err)return;state.articles=d.articles||[];applyFilters();});
+function buildPageList(current,total){
+  if(total<=7){var arr=[];for(var i=1;i<=total;i++)arr.push(i);return arr;}
+  var set=[1,total,current];
+  if(current-1>1)set.push(current-1);
+  if(current+1<total)set.push(current+1);
+  if(current-2>1)set.push(current-2);
+  if(current+2<total)set.push(current+2);
+  var unique=set.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+  var result=[];
+  for(var j=0;j<unique.length;j++){
+    if(j>0&&unique[j]-unique[j-1]>1)result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0,9);
+}
+
+function applyFilters(){loadAll(1);}
+function onSearchInput(){
+  clearTimeout(_searchDebounce);
+  _searchDebounce=setTimeout(function(){loadAll(1);},300);
+}
+
+function loadAll(page){
+  state.page=page||1;
+  var body={page:state.page,limit:state.pageSize};
+  var catVal=document.getElementById('f-category').value;
+  var stVal=document.getElementById('f-status').value;
+  var srVal=document.getElementById('f-search').value.trim();
+  if(catVal)body.category=catVal;
+  if(stVal)body.status=stVal;
+  if(srVal)body.search=srVal;
+  api('list_knowledge',body,function(err,d){
+    if(err)return;
+    state.articles=d.articles||[];
+    renderCards(state.articles);
+    renderPagination(d);
+  });
 }
 
 function openAdd(){['add-title','add-content','add-audience'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('add-category').value='';document.getElementById('modal-add').classList.add('open');}

@@ -324,6 +324,16 @@ public class Audit implements Action {
         String search = (String) input.get("search");
         String status = (String) input.get("status");
 
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (!isBlank(status)) where.append(" AND a.status = ?");
         if (!isBlank(search)) where.append(" AND a.title ILIKE ?");
@@ -334,9 +344,21 @@ public class Audit implements Action {
         ResultSet rs = null;
         JSONObject result = new JSONObject();
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            String countSql = "SELECT COUNT(*) FROM audits a" + where;
+            pstmt = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) pstmt.setString(idx++, "%" + search + "%");
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
             String sql =
                 "SELECT a.id, a.title, a.scope, a.status, " +
                 "TO_CHAR(a.scheduled_start, 'YYYY-MM-DD') AS scheduled_start, " +
@@ -348,11 +370,13 @@ public class Audit implements Action {
                 "FROM audits a " +
                 "LEFT JOIN frameworks f ON f.id = a.framework_id " +
                 "LEFT JOIN users u ON u.id = a.lead_auditor_id" +
-                where + " ORDER BY a.scheduled_start DESC";
+                where + " ORDER BY a.scheduled_start DESC LIMIT ? OFFSET ?";
             pstmt = conn.prepareStatement(sql);
-            int idx = 1;
+            idx = 1;
             if (!isBlank(status)) pstmt.setString(idx++, status);
             if (!isBlank(search)) pstmt.setString(idx++, "%" + search + "%");
+            pstmt.setLong(idx++, limit);
+            pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject row = new JSONObject();
@@ -375,6 +399,10 @@ public class Audit implements Action {
         }
         result.put("success", true);
         result.put("audits",  list);
+        result.put("total_count", total);
+        result.put("page", page);
+        result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 
@@ -466,6 +494,17 @@ public class Audit implements Action {
         String priority = (String) input.get("priority");
         String status   = (String) input.get("status");
         String search   = (String) input.get("search");
+        boolean export  = Boolean.TRUE.equals(input.get("export"));
+
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
 
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (!isBlank(auditId))  where.append(" AND ao.audit_id = ?::uuid");
@@ -479,9 +518,25 @@ public class Audit implements Action {
         ResultSet rs = null;
         JSONObject result = new JSONObject();
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            if (!export) {
+                String countSql = "SELECT COUNT(*) FROM audit_observations ao" + where;
+                pstmt = conn.prepareStatement(countSql);
+                int cidx = 1;
+                if (!isBlank(auditId))  pstmt.setString(cidx++, auditId);
+                if (!isBlank(priority)) pstmt.setString(cidx++, priority);
+                if (!isBlank(status))   pstmt.setString(cidx++, status);
+                if (!isBlank(search))   pstmt.setString(cidx++, "%" + search + "%");
+                rs = pstmt.executeQuery();
+                if (rs.next()) total = rs.getLong(1);
+                try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+                rs = null; pstmt = null;
+            }
+
             String sql =
                 "SELECT ao.id, ao.audit_id, ao.title, ao.description, ao.priority, ao.status, " +
                 "a.title AS audit_title, " +
@@ -496,13 +551,18 @@ public class Audit implements Action {
                 "LEFT JOIN controls c ON c.id = ao.failed_control_id " +
                 "LEFT JOIN audit_remediations ar ON ar.observation_id = ao.id" +
                 where +
-                " ORDER BY CASE ao.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END, ao.status";
+                " ORDER BY CASE ao.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END, ao.status" +
+                (export ? "" : " LIMIT ? OFFSET ?");
             pstmt = conn.prepareStatement(sql);
             int idx = 1;
             if (!isBlank(auditId))  pstmt.setString(idx++, auditId);
             if (!isBlank(priority)) pstmt.setString(idx++, priority);
             if (!isBlank(status))   pstmt.setString(idx++, status);
             if (!isBlank(search))   pstmt.setString(idx++, "%" + search + "%");
+            if (!export) {
+                pstmt.setLong(idx++, limit);
+                pstmt.setLong(idx++, offset);
+            }
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject row = new JSONObject();
@@ -529,6 +589,12 @@ public class Audit implements Action {
         }
         result.put("success",      true);
         result.put("observations", list);
+        if (!export) {
+            result.put("total_count", total);
+            result.put("page", page);
+            result.put("page_size", limit);
+            result.put("total_pages", (total + limit - 1) / limit);
+        }
         return result;
     }
 
@@ -613,6 +679,16 @@ public class Audit implements Action {
         String auditId = (String) input.get("audit_id");
         String search  = (String) input.get("search");
 
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (!isBlank(auditId)) where.append(" AND el.audit_id = ?::uuid");
         if (!isBlank(search))  where.append(" AND el.file_name ILIKE ?");
@@ -623,9 +699,21 @@ public class Audit implements Action {
         ResultSet rs = null;
         JSONObject result = new JSONObject();
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            String countSql = "SELECT COUNT(*) FROM evidence_locker el" + where;
+            pstmt = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(auditId)) pstmt.setString(idx++, auditId);
+            if (!isBlank(search))  pstmt.setString(idx++, "%" + search + "%");
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
             String sql =
                 "SELECT el.id, el.file_name, el.file_path, el.sha256_checksum, el.is_locked, " +
                 "TO_CHAR(el.uploaded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') AS uploaded_at, " +
@@ -634,11 +722,13 @@ public class Audit implements Action {
                 "FROM evidence_locker el " +
                 "LEFT JOIN audits a ON a.id = el.audit_id " +
                 "LEFT JOIN users u ON u.id = el.uploaded_by" +
-                where + " ORDER BY el.uploaded_at DESC";
+                where + " ORDER BY el.uploaded_at DESC LIMIT ? OFFSET ?";
             pstmt = conn.prepareStatement(sql);
-            int idx = 1;
+            idx = 1;
             if (!isBlank(auditId)) pstmt.setString(idx++, auditId);
             if (!isBlank(search))  pstmt.setString(idx++, "%" + search + "%");
+            pstmt.setLong(idx++, limit);
+            pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject row = new JSONObject();
@@ -660,6 +750,10 @@ public class Audit implements Action {
         }
         result.put("success",  true);
         result.put("evidence", list);
+        result.put("total_count", total);
+        result.put("page", page);
+        result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 

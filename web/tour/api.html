@@ -878,7 +878,7 @@ Content-Type: application/json</pre>
             <tr><td class="fn">update_vendor</td><td class="fd">Update vendor by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">delete_vendor</td><td class="fd">Delete vendor by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
             <tr><td class="fn">import_vendors</td><td class="fd">Bulk import vendors. Body: <code>vendors</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
-            <tr><td class="fn">list_tickets</td><td class="fd">Helpdesk tickets. Filters: <code>status</code>, <code>priority</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">list_tickets</td><td class="fd">Helpdesk tickets. Filters: <code>status</code>, <code>priority</code>, <code>search</code> (title, description, or reported-by). Paginated: <code>page</code>, <code>limit</code></td><td><span class="pill pr">READ+</span></td></tr>
             <tr><td class="fn">add_ticket</td><td class="fd">Open ticket. Fields: <code>subject</code>, <code>description</code>, <code>priority</code>, <code>category</code></td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">update_ticket</td><td class="fd">Update ticket by <code>id</code> (including resolution and <code>status</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">delete_ticket</td><td class="fd">Delete ticket by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
@@ -1038,7 +1038,10 @@ Content-Type: application/json</pre>
         <pre class="cb blue">{
   "_func": "list_tickets",
   "status": "OPEN",
-  "priority": "HIGH"
+  "priority": "HIGH",
+  "search": "vpn",
+  "page": 1,
+  "limit": 20
 }</pre></div>
         <div><div class="clbl">add_ticket</div>
         <pre class="cb blue">{

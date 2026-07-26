@@ -74,6 +74,12 @@ tr:last-child td{border-bottom:none}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
 .cancel-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer}
 .danger-btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid #fde8e8;background:#fef2f2;color:var(--red);font-weight:700;font-size:12px;cursor:pointer}
+.pagination{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}}
 </style>
 </head>
@@ -172,6 +178,10 @@ tr:last-child td{border-bottom:none}
           <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading users…</td></tr>
         </tbody>
       </table>
+      <div class="pagination">
+        <span id="page-info">—</span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
     </div>
 
   </main>
@@ -313,7 +323,7 @@ tr:last-child td{border-bottom:none}
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = '../index.html';
 
-var state = { users: [] };
+var state = { users: [], page: 1, pageSize: 20 };
 var editId = null, deactivateId = null;
 var searchTimer = null;
 
@@ -389,12 +399,13 @@ function initials(name) {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-function loadUsers() {
+function loadUsers(page) {
+  state.page = page || 1;
   var role = document.getElementById('f-role').value || null;
   var status = document.getElementById('f-status').value || null;
   var search = document.getElementById('f-search').value.trim() || null;
 
-  var params = {};
+  var params = { page: state.page, limit: state.pageSize };
   if (role) params.role = role;
   if (status) params.status = status;
   if (search) params.search = search;
@@ -411,21 +422,69 @@ function loadUsers() {
     }
     state.users = data.users || [];
     renderUsers(state.users);
+    renderPagination(data);
     populateResetUserSelect();
   });
 }
 
-function renderUsers(users) {
-  var active = 0, suspended = 0;
-  users.forEach(function(u) {
-    if (u.status === 'ACTIVE') active++;
-    else if (u.status === 'SUSPENDED') suspended++;
+function loadMetrics() {
+  api('get_platform_metrics', {}, function(err, data) {
+    if (err) return;
+    var active = data.active_users || 0, pending = data.pending_users || 0, suspended = data.suspended_users || 0;
+    document.getElementById('mu-total').textContent = active + pending + suspended;
+    document.getElementById('mu-active').textContent = active;
+    document.getElementById('mu-inactive').textContent = suspended;
   });
+}
 
-  document.getElementById('mu-total').textContent = users.length;
-  document.getElementById('mu-active').textContent = active;
-  document.getElementById('mu-inactive').textContent = suspended;
+function renderPagination(data) {
+  var total = data.total_count || 0;
+  var page = data.page || 1;
+  var pageSize = data.page_size || state.pageSize;
+  var totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
 
+  var from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  var to = Math.min(page * pageSize, total);
+  document.getElementById('page-info').textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' user' + (total !== 1 ? 's' : '');
+
+  var btnsEl = document.getElementById('page-btns');
+  btnsEl.innerHTML = '';
+  if (totalPages <= 1) return;
+
+  buildPageList(page, totalPages).forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'page-btn' + (p === page ? ' active' : '');
+    btn.textContent = p === '…' ? '…' : String(p);
+    if (p === '…') {
+      btn.disabled = true;
+    } else {
+      (function(pg) { btn.onclick = function() { loadUsers(pg); }; })(p);
+    }
+    btnsEl.appendChild(btn);
+  });
+}
+
+function buildPageList(current, total) {
+  if (total <= 7) {
+    var arr = [];
+    for (var i = 1; i <= total; i++) arr.push(i);
+    return arr;
+  }
+  var set = [1, total, current];
+  if (current - 1 > 1) set.push(current - 1);
+  if (current + 1 < total) set.push(current + 1);
+  if (current - 2 > 1) set.push(current - 2);
+  if (current + 2 < total) set.push(current + 2);
+  var unique = set.filter(function(v, i, a) { return a.indexOf(v) === i; }).sort(function(a, b) { return a - b; });
+  var result = [];
+  for (var j = 0; j < unique.length; j++) {
+    if (j > 0 && unique[j] - unique[j - 1] > 1) result.push('…');
+    result.push(unique[j]);
+  }
+  return result.slice(0, 9);
+}
+
+function renderUsers(users) {
   // Render main table (all users)
   var tbody = document.getElementById('users-tbody');
   var isAdmin = (localStorage.getItem('role') === 'ADMIN');
@@ -508,7 +567,8 @@ window.activateUser = function(id) {
   api('set_user_status', { id: id, status: 'ACTIVE' }, function(err) {
     if (err) { showToast('Failed to activate user: ' + err, true); return; }
     showToast('User activated successfully.');
-    loadUsers();
+    loadUsers(state.page);
+    loadMetrics();
   });
 };
 
@@ -539,7 +599,8 @@ document.getElementById('form-provision').addEventListener('submit', function(e)
     if (err) { showToast('Failed to provision user: ' + err, true); return; }
     closeModal('modal-provision-user');
     showToast('User provisioned successfully.');
-    loadUsers();
+    loadUsers(1);
+    loadMetrics();
   });
 });
 
@@ -561,7 +622,8 @@ document.getElementById('form-edit-user').addEventListener('submit', function(e)
     if (err) { showToast('Failed to update user: ' + err, true); return; }
     closeModal('modal-edit-user');
     showToast('User updated successfully.');
-    loadUsers();
+    loadUsers(state.page);
+    loadMetrics();
   });
 });
 
@@ -577,7 +639,8 @@ document.getElementById('form-deactivate').addEventListener('submit', function(e
     if (err) { showToast('Failed to deactivate user: ' + err, true); return; }
     closeModal('modal-deactivate-user');
     showToast('User deactivated.');
-    loadUsers();
+    loadUsers(state.page);
+    loadMetrics();
   });
 });
 
@@ -641,11 +704,11 @@ window.copyPassphrase = function() {
 };
 
 // Filter change handlers
-document.getElementById('f-role').addEventListener('change', loadUsers);
-document.getElementById('f-status').addEventListener('change', loadUsers);
+document.getElementById('f-role').addEventListener('change', function() { loadUsers(1); });
+document.getElementById('f-status').addEventListener('change', function() { loadUsers(1); });
 document.getElementById('f-search').addEventListener('input', function() {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(loadUsers, 400);
+  searchTimer = setTimeout(function() { loadUsers(1); }, 400);
 });
 
 // Init: load sidebar user info, then load departments and users
@@ -661,7 +724,8 @@ document.getElementById('f-search').addEventListener('input', function() {
     var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
     av.textContent = i || 'U';
   }
-  loadUsers();
+  loadMetrics();
+  loadUsers(1);
 })();
 </script>
 </body>

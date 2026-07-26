@@ -148,31 +148,72 @@ public class Risk implements Action {
     @SuppressWarnings("unchecked")
     private JSONObject listRisks(JSONObject input) throws Exception {
         String status = (String) input.get("status");
-        StringBuilder sql = new StringBuilder(
-            "SELECT r.id::text, r.risk_code, r.title, r.description, r.category, " +
-            "r.inherent_impact, r.inherent_likelihood, r.inherent_risk_score, " +
-            "r.treatment_strategy, r.mitigating_controls, " +
-            "r.residual_impact, r.residual_likelihood, " +
-            "r.status, r.created_at::text, " +
-            "r.owner_id::text, u.username AS owner_name " +
-            "FROM risks r " +
-            "LEFT JOIN users u ON u.id = r.owner_id " +
-            "WHERE 1=1"
-        );
-        if (!isBlank(status)) sql.append(" AND r.status = ?");
-        else sql.append(" AND r.status != 'RETIRED'");
-        sql.append(" ORDER BY r.inherent_risk_score DESC, r.created_at DESC");
+        String search = (String) input.get("search");
+        boolean export = Boolean.TRUE.equals(input.get("export"));
+
+        long page = 1L, limit = 20L;
+        Object pageObj = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj instanceof Long) page = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(status)) where.append(" AND r.status = ?");
+        else where.append(" AND r.status != 'RETIRED'");
+        if (!isBlank(search)) where.append(" AND (r.title ILIKE ? OR r.description ILIKE ? OR r.risk_code ILIKE ?)");
 
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         JSONArray risks = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            if (!export) {
+                pstmt = conn.prepareStatement("SELECT COUNT(*) FROM risks r" + where);
+                int idx = 1;
+                if (!isBlank(status)) pstmt.setString(idx++, status);
+                if (!isBlank(search)) {
+                    String like = "%" + search + "%";
+                    pstmt.setString(idx++, like);
+                    pstmt.setString(idx++, like);
+                    pstmt.setString(idx++, like);
+                }
+                rs = pstmt.executeQuery();
+                if (rs.next()) total = rs.getLong(1);
+                try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+                rs = null; pstmt = null;
+            }
+
+            StringBuilder sql = new StringBuilder(
+                "SELECT r.id::text, r.risk_code, r.title, r.description, r.category, " +
+                "r.inherent_impact, r.inherent_likelihood, r.inherent_risk_score, " +
+                "r.treatment_strategy, r.mitigating_controls, " +
+                "r.residual_impact, r.residual_likelihood, " +
+                "r.status, r.created_at::text, " +
+                "r.owner_id::text, u.username AS owner_name " +
+                "FROM risks r " +
+                "LEFT JOIN users u ON u.id = r.owner_id" + where +
+                " ORDER BY r.inherent_risk_score DESC, r.created_at DESC"
+            );
+            if (!export) sql.append(" LIMIT ? OFFSET ?");
+
             pstmt = conn.prepareStatement(sql.toString());
-            if (!isBlank(status)) pstmt.setString(1, status);
+            int idx = 1;
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) {
+                String like = "%" + search + "%";
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+            }
+            if (!export) { pstmt.setLong(idx++, limit); pstmt.setLong(idx++, offset); }
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject r = new JSONObject();
@@ -202,6 +243,12 @@ public class Risk implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("risks", risks);
+        if (!export) {
+            result.put("total_count", total);
+            result.put("page", page);
+            result.put("page_size", limit);
+            result.put("total_pages", (total + limit - 1) / limit);
+        }
         return result;
     }
 
@@ -331,32 +378,32 @@ public class Risk implements Action {
         String status = (String) input.get("status");
         String search = (String) input.get("search");
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT v.id::text, v.vuln_code, v.title, v.description, v.source, v.severity, v.status, " +
-            "v.affected_asset, v.sla_deadline::text, v.mitigation_details, v.created_at::text, " +
-            "v.assignee_id::text, u.username AS assignee_name, " +
-            "v.engagement_id::text, e.name AS engagement_name, " +
-            "v.linked_risk_id::text " +
-            "FROM vulnerabilities v " +
-            "LEFT JOIN users u ON u.id = v.assignee_id " +
-            "LEFT JOIN vapt_engagements e ON e.id = v.engagement_id " +
-            "WHERE 1=1"
-        );
-        if (!isBlank(engagementId)) sql.append(" AND v.engagement_id = ?");
-        if (!isBlank(severity)) sql.append(" AND v.severity = ?");
-        if (!isBlank(status)) sql.append(" AND v.status = ?");
-        if (!isBlank(search)) sql.append(" AND (v.title ILIKE ? OR v.description ILIKE ? OR v.affected_asset ILIKE ?)");
-        sql.append(" ORDER BY CASE v.severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 WHEN 'LOW' THEN 4 END, v.sla_deadline ASC NULLS LAST LIMIT 100");
+        long page = 1L, limit = 20L;
+        Object pageObj = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj instanceof Long) page = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(engagementId)) where.append(" AND v.engagement_id = ?");
+        if (!isBlank(severity)) where.append(" AND v.severity = ?");
+        if (!isBlank(status)) where.append(" AND v.status = ?");
+        if (!isBlank(search)) where.append(" AND (v.title ILIKE ? OR v.description ILIKE ? OR v.affected_asset ILIKE ?)");
 
         PoolDB pool = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         JSONArray vulns = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
+
+            pstmt = conn.prepareStatement("SELECT COUNT(*) FROM vulnerabilities v" + where);
             int idx = 1;
             if (!isBlank(engagementId)) pstmt.setObject(idx++, UUID.fromString(engagementId));
             if (!isBlank(severity)) pstmt.setString(idx++, severity.toUpperCase());
@@ -367,6 +414,36 @@ public class Risk implements Action {
                 pstmt.setString(idx++, like);
                 pstmt.setString(idx++, like);
             }
+            rs = pstmt.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, pstmt, null); } catch (Exception ignored) {}
+            rs = null; pstmt = null;
+
+            StringBuilder sql = new StringBuilder(
+                "SELECT v.id::text, v.vuln_code, v.title, v.description, v.source, v.severity, v.status, " +
+                "v.affected_asset, v.sla_deadline::text, v.mitigation_details, v.created_at::text, " +
+                "v.assignee_id::text, u.username AS assignee_name, " +
+                "v.engagement_id::text, e.name AS engagement_name, " +
+                "v.linked_risk_id::text " +
+                "FROM vulnerabilities v " +
+                "LEFT JOIN users u ON u.id = v.assignee_id " +
+                "LEFT JOIN vapt_engagements e ON e.id = v.engagement_id" + where +
+                " ORDER BY CASE v.severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 WHEN 'LOW' THEN 4 END, v.sla_deadline ASC NULLS LAST" +
+                " LIMIT ? OFFSET ?"
+            );
+            pstmt = conn.prepareStatement(sql.toString());
+            idx = 1;
+            if (!isBlank(engagementId)) pstmt.setObject(idx++, UUID.fromString(engagementId));
+            if (!isBlank(severity)) pstmt.setString(idx++, severity.toUpperCase());
+            if (!isBlank(status)) pstmt.setString(idx++, status);
+            if (!isBlank(search)) {
+                String like = "%" + search + "%";
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+                pstmt.setString(idx++, like);
+            }
+            pstmt.setLong(idx++, limit);
+            pstmt.setLong(idx++, offset);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 JSONObject v = new JSONObject();
@@ -394,6 +471,10 @@ public class Risk implements Action {
         JSONObject result = new JSONObject();
         result.put("success", true);
         result.put("vulnerabilities", vulns);
+        result.put("total_count", total);
+        result.put("page", page);
+        result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
         return result;
     }
 

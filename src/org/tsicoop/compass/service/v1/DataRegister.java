@@ -76,34 +76,59 @@ public class DataRegister implements Action {
         String category    = (String) input.get("category");
         String sensitivity = (String) input.get("sensitivity");
         String search       = (String) input.get("search");
-        StringBuilder sql = new StringBuilder(
-            "SELECT d.id::text, d.name, d.system_type, d.category, d.sensitivity, d.location, d.volume_estimate, " +
-            "d.description, d.discovery_status, d.last_reviewed_at::text, d.created_at::text, " +
-            "d.owner_id::text, o.username AS owner_name, " +
-            "d.reviewed_by::text, r.username AS reviewer_name, " +
-            "d.linked_asset_id::text, a.name AS linked_asset_name, " +
-            "d.linked_vendor_id::text, v.name AS linked_vendor_name " +
-            "FROM data_assets d " +
-            "LEFT JOIN users o ON o.id = d.owner_id " +
-            "LEFT JOIN users r ON r.id = d.reviewed_by " +
-            "LEFT JOIN assets a ON a.id = d.linked_asset_id " +
-            "LEFT JOIN vendors v ON v.id = d.linked_vendor_id " +
-            "WHERE 1=1"
-        );
-        if (!isBlank(category))    sql.append(" AND d.category = ?");
-        if (!isBlank(sensitivity)) sql.append(" AND d.sensitivity = ?");
-        if (!isBlank(search))      sql.append(" AND d.name ILIKE ?");
-        sql.append(" ORDER BY CASE d.sensitivity WHEN 'RESTRICTED' THEN 1 WHEN 'CONFIDENTIAL' THEN 2 WHEN 'INTERNAL' THEN 3 ELSE 4 END, d.name");
+
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(category))    where.append(" AND d.category = ?");
+        if (!isBlank(sensitivity)) where.append(" AND d.sensitivity = ?");
+        if (!isBlank(search))      where.append(" AND d.name ILIKE ?");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement(sql.toString());
+
+            String countSql = "SELECT COUNT(*) FROM data_assets d" + where;
+            p = conn.prepareStatement(countSql);
             int idx = 1;
             if (!isBlank(category))    p.setString(idx++, category);
             if (!isBlank(sensitivity)) p.setString(idx++, sensitivity);
             if (!isBlank(search))      p.setString(idx++, "%"+search+"%");
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
+            String dataSql =
+                "SELECT d.id::text, d.name, d.system_type, d.category, d.sensitivity, d.location, d.volume_estimate, " +
+                "d.description, d.discovery_status, d.last_reviewed_at::text, d.created_at::text, " +
+                "d.owner_id::text, o.username AS owner_name, " +
+                "d.reviewed_by::text, r.username AS reviewer_name, " +
+                "d.linked_asset_id::text, a.name AS linked_asset_name, " +
+                "d.linked_vendor_id::text, v.name AS linked_vendor_name " +
+                "FROM data_assets d " +
+                "LEFT JOIN users o ON o.id = d.owner_id " +
+                "LEFT JOIN users r ON r.id = d.reviewed_by " +
+                "LEFT JOIN assets a ON a.id = d.linked_asset_id " +
+                "LEFT JOIN vendors v ON v.id = d.linked_vendor_id" + where +
+                " ORDER BY CASE d.sensitivity WHEN 'RESTRICTED' THEN 1 WHEN 'CONFIDENTIAL' THEN 2 WHEN 'INTERNAL' THEN 3 ELSE 4 END, d.name" +
+                " LIMIT ? OFFSET ?";
+            p = conn.prepareStatement(dataSql);
+            idx = 1;
+            if (!isBlank(category))    p.setString(idx++, category);
+            if (!isBlank(sensitivity)) p.setString(idx++, sensitivity);
+            if (!isBlank(search))      p.setString(idx++, "%"+search+"%");
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject d = new JSONObject();
@@ -129,7 +154,10 @@ public class DataRegister implements Action {
                 list.add(d);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("data_assets", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("data_assets", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")

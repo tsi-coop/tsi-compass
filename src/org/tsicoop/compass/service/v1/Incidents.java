@@ -121,21 +121,57 @@ public class Incidents implements Action {
     private JSONObject listIncidents(JSONObject input) throws Exception {
         String status   = (String) input.get("status");
         String severity = (String) input.get("severity");
-        StringBuilder sql = new StringBuilder(
-            "SELECT id::text, title, description, severity, status, " +
-            "rca_timeline, rca_business_impact, rca_root_cause, rca_preventative_actions, " +
-            "created_at::text, resolved_at::text FROM incidents WHERE 1=1"
-        );
-        if (!isBlank(status))   sql.append(" AND status=?");
-        if (!isBlank(severity)) sql.append(" AND severity=?");
-        sql.append(" ORDER BY CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, created_at DESC LIMIT 100");
+        String search   = (String) input.get("search");
+        boolean export  = Boolean.TRUE.equals(input.get("export"));
+
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(status))   where.append(" AND status=?");
+        if (!isBlank(severity)) where.append(" AND severity=?");
+        if (!isBlank(search))   where.append(" AND (title ILIKE ? OR description ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement(sql.toString()); int idx=1;
+
+            if (!export) {
+                String countSql = "SELECT COUNT(*) FROM incidents" + where;
+                p = conn.prepareStatement(countSql);
+                int idx = 1;
+                if (!isBlank(status))   p.setString(idx++, status);
+                if (!isBlank(severity)) p.setString(idx++, severity);
+                if (!isBlank(search))   { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+                rs = p.executeQuery();
+                if (rs.next()) total = rs.getLong(1);
+                try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+                rs = null; p = null;
+            }
+
+            StringBuilder dataSql = new StringBuilder(
+                "SELECT id::text, title, description, severity, status, " +
+                "rca_timeline, rca_business_impact, rca_root_cause, rca_preventative_actions, " +
+                "created_at::text, resolved_at::text FROM incidents"
+            );
+            dataSql.append(where);
+            dataSql.append(" ORDER BY CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, created_at DESC");
+            if (!export) dataSql.append(" LIMIT ? OFFSET ?");
+
+            p = conn.prepareStatement(dataSql.toString()); int idx=1;
             if (!isBlank(status))   p.setString(idx++, status);
             if (!isBlank(severity)) p.setString(idx++, severity);
+            if (!isBlank(search))   { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            if (!export) { p.setLong(idx++, limit); p.setLong(idx++, offset); }
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject inc = new JSONObject();
@@ -153,7 +189,12 @@ public class Incidents implements Action {
                 list.add(inc);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("incidents", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("incidents", list);
+        if (!export) {
+            result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+            result.put("total_pages", (total + limit - 1) / limit);
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -295,24 +336,50 @@ public class Incidents implements Action {
         String category = (String) input.get("category");
         String status   = (String) input.get("status");
         String search   = (String) input.get("search");
-        StringBuilder sql = new StringBuilder(
-            "SELECT bpv.id::text, bpv.title, bpv.content, bpv.category, bpv.audience, bpv.status, " +
-            "bpv.created_at::text, bpv.updated_at::text, u.username AS author_name " +
-            "FROM best_practices_vault bpv LEFT JOIN users u ON u.id = bpv.author_id WHERE 1=1"
-        );
-        if (!isBlank(category)) sql.append(" AND bpv.category=?");
-        if (!isBlank(status))   sql.append(" AND bpv.status=?");
-        else                    sql.append(" AND bpv.status != 'ARCHIVED'");
-        if (!isBlank(search))   sql.append(" AND (bpv.title ILIKE ? OR bpv.content ILIKE ?)");
-        sql.append(" ORDER BY bpv.updated_at DESC LIMIT 100");
+
+        long page  = 1L;
+        long limit = 20L;
+        Object pageObj  = input.get("page");
+        Object limitObj = input.get("limit");
+        if (pageObj  instanceof Long) page  = (Long) pageObj;
+        if (limitObj instanceof Long) limit = (Long) limitObj;
+        if (limit > 100) limit = 100;
+        if (page < 1) page = 1;
+        long offset = (page - 1) * limit;
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (!isBlank(category)) where.append(" AND bpv.category=?");
+        if (!isBlank(status))   where.append(" AND bpv.status=?");
+        else                    where.append(" AND bpv.status != 'ARCHIVED'");
+        if (!isBlank(search))   where.append(" AND (bpv.title ILIKE ? OR bpv.content ILIKE ?)");
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
+        long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement(sql.toString()); int idx=1;
+
+            String countSql = "SELECT COUNT(*) FROM best_practices_vault bpv" + where;
+            p = conn.prepareStatement(countSql);
+            int idx = 1;
+            if (!isBlank(category)) p.setString(idx++, category);
+            if (!isBlank(status))   p.setString(idx++, status);
+            if (!isBlank(search))   { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            rs = p.executeQuery();
+            if (rs.next()) total = rs.getLong(1);
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
+            String dataSql =
+                "SELECT bpv.id::text, bpv.title, bpv.content, bpv.category, bpv.audience, bpv.status, " +
+                "bpv.created_at::text, bpv.updated_at::text, u.username AS author_name " +
+                "FROM best_practices_vault bpv LEFT JOIN users u ON u.id = bpv.author_id" + where +
+                " ORDER BY bpv.updated_at DESC LIMIT ? OFFSET ?";
+            p = conn.prepareStatement(dataSql); idx=1;
             if (!isBlank(category)) p.setString(idx++, category);
             if (!isBlank(status))   p.setString(idx++, status);
             if (!isBlank(search))   { String like="%"+search+"%"; p.setString(idx++, like); p.setString(idx++, like); }
+            p.setLong(idx++, limit); p.setLong(idx++, offset);
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject a = new JSONObject();
@@ -328,7 +395,10 @@ public class Incidents implements Action {
                 list.add(a);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
-        JSONObject result = new JSONObject(); result.put("success", true); result.put("articles", list); return result;
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("articles", list);
+        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+        result.put("total_pages", (total + limit - 1) / limit);
+        return result;
     }
 
     @SuppressWarnings("unchecked")

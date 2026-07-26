@@ -36,7 +36,7 @@ body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-se
 
 <div class="brand">
   <div class="brand-row"><span class="mark">TC</span><span>TSI Compass</span></div>
-  <span class="brand-tag">Self-service portal — request access</span>
+  <span class="brand-tag">Self-service portal - request access</span>
 </div>
 
 <div class="card">
@@ -113,7 +113,7 @@ function handleRegister(event) {
     if (res.status === 200 && res.body.success) {
       document.getElementById('register-form').reset();
       document.getElementById('register-form').style.display = 'none';
-      okBox.textContent = 'Your request has been submitted — an administrator will approve your account before you can log in.';
+      okBox.textContent = 'Your request has been submitted - an administrator will approve your account before you can log in.';
       okBox.style.display = 'block';
     } else {
       var msg = (res.body && res.body.message) ? res.body.message : 'Registration failed. Please try again.';
