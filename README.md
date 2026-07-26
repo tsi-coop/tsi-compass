@@ -1,8 +1,8 @@
 # TSI Compass
 
-**The beginner's open source IT GRC platform.**
+**The beginner's open source IT GRC and ITSM platform.**
 
-TSI Compass is a self-hosted IT Governance, Risk & Compliance (GRC) tool built for organisations that are new to structured compliance practice. It covers the full IT GRC lifecycle: policies, risk registers, controls, audits, incidents, and reporting, behind a clean web console with an immutable audit trail on every action.
+TSI Compass is a beginner-friendly, self-hosted IT GRC platform built right on top of the daily IT work you already do. It connects your compliance needs (policies, risk registers, controls, audits, incidents, and reports) directly to your helpdesk tickets, change requests, and asset inventory. Everything sits behind a clean web console with a tamper-proof log for every action.
 
 ---
 
@@ -40,11 +40,18 @@ Read the launch post: [TSI Compass - The Beginner's Open Source GRC Platform](ht
 | Demo | Link |
 |------|------|
 | **Installation Walkthrough** | [https://youtu.be/WRR5JjrhSmY](https://youtu.be/WRR5JjrhSmY) |
-| **Functional Walkthrough** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
-
+| **Functional Overview** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
+| **Ticketing System Demo** | [https://www.youtube.com/watch?v=5DQmEyTMMQU](https://www.youtube.com/watch?v=5DQmEyTMMQU) |
 ---
 
 ## Changelog
+
+### v0.3
+
+- **Search + pagination across the console** - added server-side search and pagination to every list view
+- **Self-service portal** - created a self service portal for employees to manage the ITSM activities.
+- **One-click ticket-to-incident escalation** - Helpdesk tickets can now be escalated to a Security Incident directly from the ticket
+- **White labeling** - Branding support
 
 ### v0.2
 
@@ -91,7 +98,10 @@ All secrets have safe local defaults. Override them for any non-local deployment
 tsi-compass/
 ├── db/
 │   ├── 01_init.sql                # Full schema (tables, triggers, seed data)
-│   └── 02_data_register.sql      # Data Register module schema (applied after 01_init.sql)
+│   ├── 02_data_register.sql      # Data Register module schema (applied after 01_init.sql)
+│   ├── 03_selfservice.sql        # Self-service portal schema additions
+│   ├── 04_notifications.sql      # In-app notifications schema
+│   └── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
 ├── src/
 │   └── org/tsicoop/compass/
 │       ├── framework/            # Servlet filter, routing, JWT, DB pool, helpers
