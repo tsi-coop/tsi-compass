@@ -26,6 +26,7 @@ services:
     # To serve from a pre-built image instead: comment out 'build' and uncomment 'image' below.
     #build: .
     image: "${IMAGE_NAME:-tsicoop/tsi-compass:latest}"
+    pull_policy: always
     container_name: tsi_compass_server
     restart: unless-stopped
     ports:
