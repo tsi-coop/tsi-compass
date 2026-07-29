@@ -146,12 +146,31 @@ public class InterceptingFilter implements Filter {
     }
 
     /**
+     * Reconstructs the scheme://host[:port] that this request itself was received on.
+     * The console and API are served from the same webapp, so a browser that loaded
+     * the console from e.g. http://192.168.1.50:8085 will send that same value as
+     * Origin on its API calls — this is always safe to allow regardless of whether
+     * the host used was localhost, a LAN IP, or a hostname.
+     */
+    private String selfOrigin(HttpServletRequest req) {
+        String scheme = req.getScheme();
+        String host = req.getServerName();
+        int port = req.getServerPort();
+        boolean isDefaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
+                || ("https".equalsIgnoreCase(scheme) && port == 443);
+        return scheme + "://" + host + (isDefaultPort ? "" : ":" + port);
+    }
+
+    /**
      * Returns true when the request Origin is acceptable.
-     * Enforcement only activates when ALLOWED_ORIGINS env var is set and the Origin header is present.
+     * Same-origin requests (the normal case, since the console and API share a host)
+     * are always allowed. ALLOWED_ORIGINS is only needed for cross-origin access,
+     * e.g. a separately hosted frontend.
      */
     private boolean isOriginAllowed(HttpServletRequest req) {
         String origin = req.getHeader("Origin");
         if (origin == null) return true;
+        if (origin.equalsIgnoreCase(selfOrigin(req))) return true;
         String allowedOrigins = System.getenv("ALLOWED_ORIGINS");
         if (allowedOrigins == null || allowedOrigins.trim().isEmpty()) return false;
         for (String allowed : allowedOrigins.split(",")) {
@@ -168,10 +187,13 @@ public class InterceptingFilter implements Filter {
         String uri = req.getRequestURI();
         String servletPath = req.getServletPath(); // e.g., /api/v1/user, /api/v1/policy
 
-        // CORS — origin driven by environment; defaults to deny-all if unset
-        String allowedOrigin = System.getenv("ALLOWED_ORIGINS");
-        if (allowedOrigin != null && !allowedOrigin.trim().isEmpty()) {
-            res.setHeader("Access-Control-Allow-Origin", allowedOrigin.trim());
+        // CORS — same-origin requests are always allowed; cross-origin callers must
+        // appear in ALLOWED_ORIGINS. Echo back the specific matched origin (never the
+        // raw env value) since Access-Control-Allow-Origin must be a single origin.
+        String requestOrigin = req.getHeader("Origin");
+        if (requestOrigin != null && isOriginAllowed(req)) {
+            res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+            res.setHeader("Vary", "Origin");
         }
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-API-KEY");
