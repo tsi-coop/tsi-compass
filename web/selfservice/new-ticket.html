@@ -63,6 +63,9 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
     <form id="ticket-form" onsubmit="submitTicket(event)">
       <div class="form-row"><label>Title</label><input id="t-title" required></div>
       <div class="form-row"><label>Description</label><textarea id="t-desc" required></textarea></div>
+      <div class="form-row"><label>Category</label>
+        <select id="t-category" required><option value="">Loading…</option></select>
+      </div>
       <div class="form-row"><label>Priority</label>
         <select id="t-priority"><option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select>
       </div>
@@ -98,12 +101,14 @@ function submitTicket(e) {
   errBox.style.display = 'none'; okBox.style.display = 'none';
   var title = document.getElementById('t-title').value.trim();
   var desc  = document.getElementById('t-desc').value.trim();
+  var categoryId = document.getElementById('t-category').value;
   var priority = document.getElementById('t-priority').value;
   if (!title || !desc) { errBox.textContent = 'Title and description are required.'; errBox.style.display = 'block'; return; }
+  if (!categoryId) { errBox.textContent = 'Category is required.'; errBox.style.display = 'block'; return; }
 
   var btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Submitting…';
-  api('create_ticket', { title: title, description: desc, priority: priority }, function(err) {
+  api('create_ticket', { title: title, description: desc, category_id: categoryId, priority: priority }, function(err) {
     btn.disabled = false; btn.textContent = 'Submit Ticket';
     if (err) { errBox.textContent = err; errBox.style.display = 'block'; return; }
     okBox.textContent = 'Ticket submitted. Redirecting to My Requests…';
@@ -112,10 +117,23 @@ function submitTicket(e) {
   });
 }
 
+function loadCategories() {
+  var sel = document.getElementById('t-category');
+  api('list_ticket_categories', {}, function(err, d) {
+    if (err || !d || !d.categories || !d.categories.length) {
+      sel.innerHTML = '<option value="">No categories available — contact your administrator</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Select a category…</option>' +
+      d.categories.map(function(c) { return '<option value="' + c.id + '">' + c.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</option>'; }).join('');
+  });
+}
+
 (function() {
   var n = localStorage.getItem('username') || 'User';
   var nm = document.getElementById('user-name');
   if (nm) { nm.textContent = n; nm.title = n; }
+  loadCategories();
 })();
 </script>
 <script src="../console/notifications.js"></script>

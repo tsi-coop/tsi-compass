@@ -39,6 +39,7 @@ public class Operations implements Action {
                 case "update_ticket":      updateTicket(req, res, input);                         break;
                 case "escalate_ticket":    escalateTicket(req, res, input);                       break;
                 case "list_staff":         OutputProcessor.send(res, 200, listStaff());           break;
+                case "list_ticket_categories": OutputProcessor.send(res, 200, listTicketCategories()); break;
                 case "delete_change":      deleteChange(req, res, input);                         break;
                 case "delete_asset":       deleteAsset(req, res, input);                          break;
                 case "delete_vendor":      deleteVendor(req, res, input);                         break;
@@ -466,9 +467,11 @@ public class Operations implements Action {
 
     @SuppressWarnings("unchecked")
     private JSONObject listTickets(JSONObject input) throws Exception {
-        String status   = (String) input.get("status");
-        String priority = (String) input.get("priority");
-        String search   = (String) input.get("search");
+        String status     = (String) input.get("status");
+        String priority   = (String) input.get("priority");
+        String categoryId = (String) input.get("category_id");
+        String search     = (String) input.get("search");
+        boolean export = Boolean.TRUE.equals(input.get("export"));
 
         long page  = 1L;
         long limit = 20L;
@@ -481,9 +484,10 @@ public class Operations implements Action {
         long offset = (page - 1) * limit;
 
         StringBuilder where = new StringBuilder(" WHERE 1=1");
-        if (!isBlank(status))   where.append(" AND ht.status=?");
-        if (!isBlank(priority)) where.append(" AND ht.priority=?");
-        if (!isBlank(search))   where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ? OR cb.username ILIKE ?)");
+        if (!isBlank(status))     where.append(" AND ht.status=?");
+        if (!isBlank(priority))   where.append(" AND ht.priority=?");
+        if (!isBlank(categoryId)) where.append(" AND ht.category_id=?::uuid");
+        if (!isBlank(search))     where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ? OR cb.username ILIKE ?)");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
@@ -491,32 +495,39 @@ public class Operations implements Action {
         try {
             pool = new PoolDB(); conn = pool.getConnection();
 
-            String countSql = "SELECT COUNT(*) FROM helpdesk_tickets ht LEFT JOIN users cb ON cb.id = ht.created_by" + where;
-            p = conn.prepareStatement(countSql);
-            int idx = 1;
-            if (!isBlank(status))   p.setString(idx++, status);
-            if (!isBlank(priority)) p.setString(idx++, priority);
-            if (!isBlank(search))   { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
-            rs = p.executeQuery();
-            if (rs.next()) total = rs.getLong(1);
-            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
-            rs = null; p = null;
+            if (!export) {
+                String countSql = "SELECT COUNT(*) FROM helpdesk_tickets ht LEFT JOIN users cb ON cb.id = ht.created_by" + where;
+                p = conn.prepareStatement(countSql);
+                int idx = 1;
+                if (!isBlank(status))     p.setString(idx++, status);
+                if (!isBlank(priority))   p.setString(idx++, priority);
+                if (!isBlank(categoryId)) p.setString(idx++, categoryId);
+                if (!isBlank(search))     { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+                rs = p.executeQuery();
+                if (rs.next()) total = rs.getLong(1);
+                try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+                rs = null; p = null;
+            }
 
             String dataSql =
                 "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, " +
                 "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text, " +
+                "tc.id::text AS category_id, tc.name AS category_name, " +
                 "inc.id::text AS incident_id " +
                 "FROM helpdesk_tickets ht " +
                 "LEFT JOIN assets a ON a.id = ht.asset_id " +
                 "LEFT JOIN users cb ON cb.id = ht.created_by " +
                 "LEFT JOIN users at ON at.id = ht.assigned_to " +
+                "LEFT JOIN ticket_categories tc ON tc.id = ht.category_id " +
                 "LEFT JOIN incidents inc ON inc.ticket_escalation_id = ht.id" + where +
-                " ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, ht.created_at DESC LIMIT ? OFFSET ?";
-            p = conn.prepareStatement(dataSql); idx = 1;
-            if (!isBlank(status))   p.setString(idx++, status);
-            if (!isBlank(priority)) p.setString(idx++, priority);
-            if (!isBlank(search))   { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
-            p.setLong(idx++, limit); p.setLong(idx++, offset);
+                " ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, ht.created_at DESC" +
+                (export ? "" : " LIMIT ? OFFSET ?");
+            p = conn.prepareStatement(dataSql); int idx = 1;
+            if (!isBlank(status))     p.setString(idx++, status);
+            if (!isBlank(priority))   p.setString(idx++, priority);
+            if (!isBlank(categoryId)) p.setString(idx++, categoryId);
+            if (!isBlank(search))     { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            if (!export) { p.setLong(idx++, limit); p.setLong(idx++, offset); }
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject t = new JSONObject();
@@ -530,32 +541,38 @@ public class Operations implements Action {
                 t.put("created_by_name",  rs.getString("created_by_name"));
                 t.put("assigned_to_name", rs.getString("assigned_to_name"));
                 t.put("assigned_to",      rs.getString("assigned_to"));
+                t.put("category_id",      rs.getString("category_id"));
+                t.put("category_name",    rs.getString("category_name"));
                 t.put("incident_id",      rs.getString("incident_id"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
         JSONObject result = new JSONObject(); result.put("success", true); result.put("tickets", list);
-        result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
-        result.put("total_pages", (total + limit - 1) / limit);
+        if (!export) {
+            result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
+            result.put("total_pages", (total + limit - 1) / limit);
+        }
         return result;
     }
 
     @SuppressWarnings("unchecked")
     private void addTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String title    = (String) input.get("title");
-        String desc     = (String) input.get("description");
-        String priority = (String) input.get("priority");
-        if (isBlank(title) || isBlank(desc)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "title and description required", req.getRequestURI()); return;
+        String title      = (String) input.get("title");
+        String desc       = (String) input.get("description");
+        String priority   = (String) input.get("priority");
+        String categoryId = (String) input.get("category_id");
+        if (isBlank(title) || isBlank(desc) || isBlank(categoryId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "title, description and category_id required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,created_by,assigned_to,asset_id) VALUES (?,?,?::varchar,?::uuid,?::uuid,?::uuid) RETURNING id::text");
+            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by,assigned_to,asset_id) VALUES (?,?,?::varchar,?::uuid,?::uuid,?::uuid,?::uuid) RETURNING id::text");
             p.setString(1,title); p.setString(2,desc); p.setString(3, isBlank(priority)?"MEDIUM":priority);
-            String createdBy=(String)input.get("created_by"); p.setString(4, isBlank(createdBy)?null:createdBy);
-            String assignedTo=(String)input.get("assigned_to"); p.setString(5, isBlank(assignedTo)?null:assignedTo);
-            String assetId=(String)input.get("asset_id"); p.setString(6, isBlank(assetId)?null:assetId);
+            p.setString(4, categoryId);
+            String createdBy=(String)input.get("created_by"); p.setString(5, isBlank(createdBy)?null:createdBy);
+            String assignedTo=(String)input.get("assigned_to"); p.setString(6, isBlank(assignedTo)?null:assignedTo);
+            String assetId=(String)input.get("asset_id"); p.setString(7, isBlank(assetId)?null:assetId);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             if (rs.next()) result.put("id", rs.getString(1));
@@ -574,11 +591,12 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), assigned_to=COALESCE(?::uuid,assigned_to) WHERE id=?");
+            p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id) WHERE id=?");
             p.setString(1, newStatus); p.setString(2,(String)input.get("priority"));
             p.setString(3,(String)input.get("description"));
             String at=(String)input.get("assigned_to"); p.setString(4, isBlank(at)?null:at);
-            p.setObject(5, UUID.fromString(id)); p.executeUpdate();
+            String catId=(String)input.get("category_id"); p.setString(5, isBlank(catId)?null:catId);
+            p.setObject(6, UUID.fromString(id)); p.executeUpdate();
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
 
@@ -669,6 +687,19 @@ public class Operations implements Action {
             snap.put("created_by", rs.getString("created_by"));
             return snap;
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listTicketCategories() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray categories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT id::text, name FROM ticket_categories WHERE is_active = TRUE ORDER BY name");
+            rs = p.executeQuery();
+            while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); categories.add(c); }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("categories", categories); return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -878,19 +909,31 @@ public class Operations implements Action {
         if (rows == null || rows.isEmpty()) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
         }
-        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         int imported = 0; JSONArray errors = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title, description, priority) VALUES (?, ?, ?)");
+
+            java.util.Map<String,String> categoryByName = new java.util.HashMap<>();
+            p = conn.prepareStatement("SELECT id::text, name FROM ticket_categories WHERE is_active = TRUE");
+            rs = p.executeQuery();
+            while (rs.next()) categoryByName.put(rs.getString("name").toUpperCase(), rs.getString("id"));
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
+            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title, description, priority, category_id) VALUES (?, ?, ?, ?::uuid)");
             for (Object obj : rows) {
                 JSONObject row = (JSONObject) obj;
                 String title = strVal(row, "title"); String desc = strVal(row, "description");
-                if (isBlank(title) || isBlank(desc)) { errors.add("Row skipped: title and description required"); continue; }
+                String cat = strVal(row, "category");
+                if (isBlank(title) || isBlank(desc) || isBlank(cat)) { errors.add("Row skipped: title, description and category required"); continue; }
+                String categoryId = categoryByName.get(cat.trim().toUpperCase());
+                if (categoryId == null) { errors.add("Row '"+title+"': unknown category '"+cat+"'"); continue; }
                 try {
                     p.setString(1, title); p.setString(2, desc);
                     String prio = strVal(row, "priority");
                     p.setString(3, isBlank(prio) ? "MEDIUM" : prio.toUpperCase());
+                    p.setString(4, categoryId);
                     p.executeUpdate(); imported++;
                 } catch (Exception ex) { errors.add("Row '"+title+"': "+ex.getMessage()); }
             }

@@ -93,11 +93,12 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div class="filter-bar">
         <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select>
         <select id="f-priority" onchange="applyFilters()"><option value="">All Priorities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        <select id="f-category" onchange="applyFilters()"><option value="">All Categories</option></select>
         <input id="f-search" type="search" placeholder="Search by title, description, or reported by…" oninput="onSearchInput()">
       </div>
       <table>
-        <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Reported By</th><th>Assigned To</th><th>Asset</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody id="t-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Reported By</th><th>Assigned To</th><th>Asset</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="t-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination">
         <span id="page-info">—</span>
@@ -113,9 +114,10 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title *</label><input id="add-title" placeholder="Brief description of the issue"></div>
     <div class="form-row"><label>Description *</label><textarea id="add-desc" placeholder="Detailed description…"></textarea></div>
     <div class="form-row half">
+      <div><label>Category *</label><select id="add-category"></select></div>
       <div><label>Priority</label><select id="add-priority"><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></div>
-      <div><label>Assigned To</label><select id="add-assignee"><option value="">— Unassigned —</option></select></div>
     </div>
+    <div class="form-row"><label>Assigned To</label><select id="add-assignee"><option value="">— Unassigned —</option></select></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn primary" onclick="submitAdd()">Create Ticket</button>
@@ -130,10 +132,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title</label><input id="edit-title"></div>
     <div class="form-row"><label>Description</label><textarea id="edit-desc" placeholder="Detailed description…"></textarea></div>
     <div class="form-row half">
+      <div><label>Category *</label><select id="edit-category"></select></div>
       <div><label>Status</label><select id="edit-status"><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select></div>
-      <div><label>Priority</label><select id="edit-priority"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
     </div>
-    <div class="form-row"><label>Assigned To</label><select id="edit-assignee"><option value="">— Unassigned —</option></select></div>
+    <div class="form-row half">
+      <div><label>Priority</label><select id="edit-priority"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
+      <div><label>Assigned To</label><select id="edit-assignee"><option value="">— Unassigned —</option></select></div>
+    </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -161,7 +166,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={tickets:[],staff:[],page:1,pageSize:20};
+var state={tickets:[],staff:[],categories:[],page:1,pageSize:20};
 var _searchDebounce=null;
 
 function api(func,body,cb){
@@ -180,10 +185,11 @@ function renderTickets(list,total){
   var body=document.getElementById('t-body');
   var n=(total!=null?total:list.length);
   var cnt=document.getElementById('t-count');if(cnt)cnt.textContent=n+' ticket'+(n!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="8" class="empty">No tickets found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="9" class="empty">No tickets found.</td></tr>';return;}
   body.innerHTML=list.map(function(t){
     return '<tr>'+
       '<td><strong>'+esc(t.title)+'</strong></td>'+
+      '<td>'+esc(t.category_name||'—')+'</td>'+
       '<td>'+(PPILL[t.priority]||esc(t.priority||'—'))+'</td>'+
       '<td>'+(SPILL[t.status]||esc(t.status||'—'))+'</td>'+
       '<td>'+esc(t.created_by_name||'—')+'</td>'+
@@ -239,9 +245,11 @@ function loadTickets(page){
   var body={page:state.page,limit:state.pageSize};
   var stVal=document.getElementById('f-status').value;
   var prVal=document.getElementById('f-priority').value;
+  var caVal=document.getElementById('f-category').value;
   var srVal=document.getElementById('f-search').value.trim();
   if(stVal)body.status=stVal;
   if(prVal)body.priority=prVal;
+  if(caVal)body.category_id=caVal;
   if(srVal)body.search=srVal;
   api('list_tickets',body,function(err,d){
     if(err)return;
@@ -265,6 +273,15 @@ function loadAll(){
       state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
     });
   });
+  api('list_ticket_categories',{},function(err,d){
+    if(err)return;state.categories=d.categories||[];
+    var filterSel=document.getElementById('f-category');
+    state.categories.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;filterSel.appendChild(o);});
+    ['add-category','edit-category'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.categories.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+    });
+  });
 }
 
 function openAdd(){['add-title','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
@@ -275,6 +292,7 @@ function openEdit(id){
   document.getElementById('edit-desc').value=t.description||'';
   setSelect('edit-status',t.status);setSelect('edit-priority',t.priority);
   setSelect('edit-assignee',t.assigned_to||'');
+  setSelect('edit-category',t.category_id||'');
   document.getElementById('modal-edit').classList.add('open');
 }
 function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}}
@@ -284,8 +302,11 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 function submitAdd(){
   var title=document.getElementById('add-title').value.trim();
   var desc=document.getElementById('add-desc').value.trim();
+  var categoryId=document.getElementById('add-category').value;
   if(!title||!desc){alert('Title and description are required.');return;}
+  if(!categoryId){alert('Category is required.');return;}
   api('add_ticket',{title:title,description:desc,priority:document.getElementById('add-priority').value,
+    category_id:categoryId,
     created_by:localStorage.getItem('user_id')||null,
     assigned_to:document.getElementById('add-assignee').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Ticket created');loadAll();
@@ -293,9 +314,12 @@ function submitAdd(){
 }
 function submitEdit(){
   var id=document.getElementById('edit-id').value;
+  var categoryId=document.getElementById('edit-category').value;
+  if(!categoryId){alert('Category is required.');return;}
   api('update_ticket',{id:id,status:document.getElementById('edit-status').value,
     priority:document.getElementById('edit-priority').value,
     description:document.getElementById('edit-desc').value.trim(),
+    category_id:categoryId,
     assigned_to:document.getElementById('edit-assignee').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Updated');loadAll();
   });
@@ -304,16 +328,18 @@ function submitEdit(){
 function downloadTemplate(){
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([
-    ['Title','Description','Priority'],
-    ['VPN access issue','User unable to connect to VPN since last update','HIGH']
+    ['Title','Description','Category','Priority'],
+    ['VPN access issue','User unable to connect to VPN since last update','Network','HIGH']
   ]);
-  ws['!cols']=[{wch:32},{wch:50},{wch:12}];
+  ws['!cols']=[{wch:32},{wch:50},{wch:18},{wch:12}];
   XLSX.utils.book_append_sheet(wb,ws,'Tickets');
+  var categoryNames=(state.categories||[]).map(function(c){return c.name;}).join(', ')||'(none defined — add categories under Platform & Access first)';
   var ref=XLSX.utils.aoa_to_sheet([
     ['Column','Valid Values'],
+    ['Category',categoryNames+' (must match an active category name exactly)'],
     ['Priority','CRITICAL, HIGH, MEDIUM, LOW (defaults to MEDIUM if blank)']
   ]);
-  ref['!cols']=[{wch:12},{wch:54}];
+  ref['!cols']=[{wch:12},{wch:64}];
   XLSX.utils.book_append_sheet(wb,ref,'Reference');
   XLSX.writeFile(wb,'helpdesk_tickets_template.xlsx');
 }
@@ -333,7 +359,7 @@ function submitImport(){
       var ws=wb.Sheets[wb.SheetNames[0]];
       var data=XLSX.utils.sheet_to_json(ws);
       if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{title:String(r['Title']||'').trim(),description:String(r['Description']||'').trim(),priority:String(r['Priority']||'').trim()};}).filter(function(r){return r.title&&r.description;});
+      var rows=data.map(function(r){return{title:String(r['Title']||'').trim(),description:String(r['Description']||'').trim(),category:String(r['Category']||'').trim(),priority:String(r['Priority']||'').trim()};}).filter(function(r){return r.title&&r.description;});
       if(!rows.length){alert('No valid rows found. Title and Description columns must be filled.');return;}
       var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
       api('import_tickets',{rows:rows},function(err,d){

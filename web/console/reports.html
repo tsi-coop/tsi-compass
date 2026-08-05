@@ -126,6 +126,16 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
         <button class="export-btn" id="ebtn-vendors" onclick="doExport('vendors')">&#8595; Export CSV</button>
       </div>
 
+      <div class="export-card">
+        <div class="export-icon">&#128221;</div>
+        <h3>Helpdesk Tickets</h3>
+        <p>All support tickets with category, priority, status, and assignment.</p>
+        <div class="export-filter"><label>Filter by Status</label>
+          <select id="ef-tix-status"><option value="">All Statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select>
+        </div>
+        <button class="export-btn" id="ebtn-tickets" onclick="doExport('tickets')">&#8595; Export CSV</button>
+      </div>
+
       <div class="export-card" style="border-top:3px solid var(--teal)">
         <div class="export-icon">&#128196;</div>
         <h3>Monthly Activity Report</h3>
@@ -170,7 +180,8 @@ var EXPORT_MAP={
   observations:{service:'audit',func:'list_observations',key:'observations',cols:['title','audit_name','priority','status','linked_risk_title','failed_control_title','created_at'],file:'audit-observations'},
   incidents:{service:'incidents',func:'list_incidents',key:'incidents',cols:['title','severity','status','rca_root_cause','rca_preventative_actions','created_at','resolved_at'],file:'incident-log'},
   assets:{service:'ops',func:'list_assets',key:'assets',cols:['name','category','criticality','patch_status','lifecycle_status','owner_name'],file:'asset-inventory'},
-  vendors:{service:'ops',func:'list_vendors',key:'vendors',cols:['name','agreement_details','license_expiry','baseline_risk_score','security_questionnaire_status'],file:'vendor-register'}
+  vendors:{service:'ops',func:'list_vendors',key:'vendors',cols:['name','agreement_details','license_expiry','baseline_risk_score','security_questionnaire_status'],file:'vendor-register'},
+  tickets:{service:'ops',func:'list_tickets',key:'tickets',cols:['title','category_name','priority','status','created_by_name','assigned_to_name','created_at'],file:'helpdesk-tickets'}
 };
 
 function getFilters(type){
@@ -181,6 +192,7 @@ function getFilters(type){
   if(type==='incidents'&&document.getElementById('ef-inc-severity').value)p.severity=document.getElementById('ef-inc-severity').value;
   if(type==='assets'&&document.getElementById('ef-ast-crit').value)p.criticality=document.getElementById('ef-ast-crit').value;
   if(type==='vendors'&&document.getElementById('ef-vnd-filter').value==='review_due')p.due='1';
+  if(type==='tickets'&&document.getElementById('ef-tix-status').value)p.status=document.getElementById('ef-tix-status').value;
   return p;
 }
 

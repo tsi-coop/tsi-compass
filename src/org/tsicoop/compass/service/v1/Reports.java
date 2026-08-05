@@ -340,13 +340,14 @@ public class Reports implements Action {
 
             // ── Helpdesk detail ──
             p = conn.prepareStatement(
-                "SELECT ht.title, ht.priority, ht.status, TO_CHAR(ht.created_at,'DD Mon YYYY'), COALESCE(u.username,'—') AS assigned " +
+                "SELECT ht.title, COALESCE(tc.name,'—') AS category, ht.priority, ht.status, TO_CHAR(ht.created_at,'DD Mon YYYY'), COALESCE(u.username,'—') AS assigned " +
                 "FROM helpdesk_tickets ht LEFT JOIN users u ON u.id=ht.assigned_to " +
+                "LEFT JOIN ticket_categories tc ON tc.id=ht.category_id " +
                 "WHERE ht.status IN ('OPEN','IN_PROGRESS') " +
                 "ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END LIMIT 25");
             rs = p.executeQuery();
             List<String[]> tickets = new ArrayList<>();
-            while (rs.next()) tickets.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)});
+            while (rs.next()) tickets.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)});
             detail.put("tickets", tickets);
             pool.cleanup(rs, p, null); rs = null; p = null;
 
@@ -522,8 +523,8 @@ public class Reports implements Action {
         doc.add(opsMet);
 
         Paragraph ticketLbl = new Paragraph("Open & in-progress helpdesk tickets", fNote); ticketLbl.setSpacingAfter(2); doc.add(ticketLbl);
-        addDetailTable(doc, new String[]{"Title", "Priority", "Status", "Created", "Assigned To"},
-            new float[]{3f, 1.1f, 1.2f, 1.3f, 1.5f}, d.get("tickets"), fHdr, fCell, fNote, TEAL, LINE, WASH, WHITE);
+        addDetailTable(doc, new String[]{"Title", "Category", "Priority", "Status", "Created", "Assigned To"},
+            new float[]{2.6f, 1.3f, 1.0f, 1.1f, 1.2f, 1.3f}, d.get("tickets"), fHdr, fCell, fNote, TEAL, LINE, WASH, WHITE);
 
         Paragraph chgLbl = new Paragraph("Active change requests", fNote); chgLbl.setSpacingBefore(6); chgLbl.setSpacingAfter(2); doc.add(chgLbl);
         addDetailTable(doc, new String[]{"Title", "Stage", "Status", "Created", "Requester"},

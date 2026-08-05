@@ -62,6 +62,15 @@ public class Platform implements Action {
                 case "save_role_permissions":
                     saveRolePermissions(req, res, input);
                     break;
+                case "list_ticket_categories":
+                    OutputProcessor.send(res, 200, listTicketCategories());
+                    break;
+                case "add_ticket_category":
+                    addTicketCategory(req, res, input);
+                    break;
+                case "update_ticket_category":
+                    updateTicketCategory(req, res, input);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -686,6 +695,114 @@ public class Platform implements Action {
             if (pool != null) {
                 try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Ticket Categories (Helpdesk)
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listTicketCategories() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        JSONArray categories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT id::text, name, is_active, created_at::text FROM ticket_categories ORDER BY name");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject c = new JSONObject();
+                c.put("id", rs.getString("id"));
+                c.put("name", rs.getString("name"));
+                c.put("is_active", rs.getBoolean("is_active"));
+                c.put("created_at", rs.getString("created_at"));
+                categories.add(c);
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("categories", categories);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addTicketCategory(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String name = (String) input.get("name");
+        if (isBlank(name)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "name is required", req.getRequestURI());
+            return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement("INSERT INTO ticket_categories (name) VALUES (?) RETURNING id::text");
+            pstmt.setString(1, name.trim());
+            rs = pstmt.executeQuery();
+            String newId = rs.next() ? rs.getString(1) : null;
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("id", newId);
+            OutputProcessor.send(res, 200, result);
+
+            JSONObject ctx = new JSONObject();
+            ctx.put("category_id", newId);
+            ctx.put("name", name.trim());
+            EventLog.log(InputProcessor.getEmail(req), "TICKET_CATEGORY_ADDED", ctx.toJSONString());
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unique") || msg.contains("duplicate")) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "A category with that name already exists", req.getRequestURI());
+            } else {
+                throw e;
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateTicketCategory(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        String name = (String) input.get("name");
+        Object isActiveObj = input.get("is_active");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "UPDATE ticket_categories SET name = COALESCE(?, name), is_active = COALESCE(?, is_active) WHERE id = ?"
+            );
+            pstmt.setString(1, isBlank(name) ? null : name.trim());
+            if (isActiveObj instanceof Boolean) pstmt.setBoolean(2, (Boolean) isActiveObj);
+            else pstmt.setNull(2, Types.BOOLEAN);
+            pstmt.setObject(3, UUID.fromString(id));
+            pstmt.executeUpdate();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+
+            JSONObject ctx = new JSONObject();
+            ctx.put("category_id", id);
+            if (!isBlank(name)) ctx.put("name", name.trim());
+            if (isActiveObj instanceof Boolean) ctx.put("is_active", isActiveObj);
+            EventLog.log(InputProcessor.getEmail(req), "TICKET_CATEGORY_UPDATED", ctx.toJSONString());
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unique") || msg.contains("duplicate")) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "A category with that name already exists", req.getRequestURI());
+            } else {
+                throw e;
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {} }
         }
     }
 }

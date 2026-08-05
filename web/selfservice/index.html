@@ -83,8 +83,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div class="section-head"><h2>Helpdesk Tickets</h2><div class="acts"><a class="btn primary" href="new-ticket.html">+ New Ticket</a></div></div>
       <div class="filter-bar"><input id="search-tickets" type="search" placeholder="Search tickets…" oninput="onTicketSearch()"></div>
       <table>
-        <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Submitted</th></tr></thead>
-        <tbody id="tickets-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Submitted</th></tr></thead>
+        <tbody id="tickets-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination"><span id="page-info-tickets">—</span><div class="page-btns" id="page-btns-tickets"></div></div>
     </div>
@@ -173,11 +173,12 @@ function loadTickets(page) {
   if (search) body.search = search;
   api('list_my_tickets', body, function(err, d) {
     var tbody = document.getElementById('tickets-body');
-    if (err) { tbody.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
+    if (err) { tbody.innerHTML = '<tr><td colspan="5" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.tickets || [];
-    if (!list.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No tickets submitted yet.</td></tr>'; document.getElementById('page-info-tickets').textContent = '—'; document.getElementById('page-btns-tickets').innerHTML = ''; return; }
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No tickets submitted yet.</td></tr>'; document.getElementById('page-info-tickets').textContent = '—'; document.getElementById('page-btns-tickets').innerHTML = ''; return; }
     tbody.innerHTML = list.map(function(t) {
       return '<tr><td><strong>' + esc(t.title) + '</strong></td>' +
+        '<td>' + esc(t.category_name || '—') + '</td>' +
         '<td><span class="tag">' + esc(t.priority) + '</span></td>' +
         '<td>' + (TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
         '<td>' + esc(t.created_at || '—') + '</td></tr>';

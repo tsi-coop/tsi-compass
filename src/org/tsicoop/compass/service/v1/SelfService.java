@@ -39,6 +39,7 @@ public class SelfService implements Action {
             switch (func.toLowerCase()) {
                 case "create_ticket":         createTicket(req, res, input, selfId);                break;
                 case "list_my_tickets":       OutputProcessor.send(res, 200, listMyTickets(selfId, input));       break;
+                case "list_ticket_categories": OutputProcessor.send(res, 200, listTicketCategories());            break;
                 case "create_change_request": createChangeRequest(req, res, input, selfId);         break;
                 case "list_my_changes":       OutputProcessor.send(res, 200, listMyChanges(selfId, input));       break;
                 case "list_pending_policies": OutputProcessor.send(res, 200, listPendingPolicies(selfId, input)); break;
@@ -73,18 +74,20 @@ public class SelfService implements Action {
 
     @SuppressWarnings("unchecked")
     private void createTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
-        String title    = (String) input.get("title");
-        String desc     = (String) input.get("description");
-        String priority = (String) input.get("priority");
-        if (isBlank(title) || isBlank(desc)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "title and description required", req.getRequestURI()); return;
+        String title      = (String) input.get("title");
+        String desc       = (String) input.get("description");
+        String priority   = (String) input.get("priority");
+        String categoryId = (String) input.get("category_id");
+        if (isBlank(title) || isBlank(desc) || isBlank(categoryId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "title, description and category_id required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,created_by) VALUES (?,?,?,?) RETURNING id::text");
+            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by) VALUES (?,?,?,?::uuid,?) RETURNING id::text");
             p.setString(1, title); p.setString(2, desc); p.setString(3, isBlank(priority) ? "MEDIUM" : priority);
-            p.setObject(4, selfId);
+            p.setString(4, categoryId);
+            p.setObject(5, selfId);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             String newId = null;
@@ -102,15 +105,15 @@ public class SelfService implements Action {
         String search = (String) input.get("search");
         long[] pg = parsePaging(input); long page = pg[0], limit = pg[1]; long offset = (page - 1) * limit;
 
-        StringBuilder where = new StringBuilder(" WHERE created_by = ?");
-        if (!isBlank(search)) where.append(" AND (title ILIKE ? OR description ILIKE ?)");
+        StringBuilder where = new StringBuilder(" WHERE ht.created_by = ?");
+        if (!isBlank(search)) where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ?)");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray(); long total = 0;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
 
-            p = conn.prepareStatement("SELECT COUNT(*) FROM helpdesk_tickets" + where);
+            p = conn.prepareStatement("SELECT COUNT(*) FROM helpdesk_tickets ht" + where);
             int idx = 1; p.setObject(idx++, selfId);
             if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
             rs = p.executeQuery();
@@ -119,8 +122,10 @@ public class SelfService implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT id::text, title, description, status, priority, created_at::text " +
-                "FROM helpdesk_tickets" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, tc.name AS category_name " +
+                "FROM helpdesk_tickets ht LEFT JOIN ticket_categories tc ON tc.id = ht.category_id" +
+                where +
+                " ORDER BY ht.created_at DESC LIMIT ? OFFSET ?"
             );
             idx = 1; p.setObject(idx++, selfId);
             if (!isBlank(search)) { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
@@ -128,12 +133,13 @@ public class SelfService implements Action {
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject t = new JSONObject();
-                t.put("id",          rs.getString("id"));
-                t.put("title",       rs.getString("title"));
-                t.put("description", rs.getString("description"));
-                t.put("status",      rs.getString("status"));
-                t.put("priority",    rs.getString("priority"));
-                t.put("created_at",  rs.getString("created_at"));
+                t.put("id",            rs.getString("id"));
+                t.put("title",         rs.getString("title"));
+                t.put("description",   rs.getString("description"));
+                t.put("status",        rs.getString("status"));
+                t.put("priority",      rs.getString("priority"));
+                t.put("created_at",    rs.getString("created_at"));
+                t.put("category_name", rs.getString("category_name"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -141,6 +147,19 @@ public class SelfService implements Action {
         result.put("total_count", total); result.put("page", page); result.put("page_size", limit);
         result.put("total_pages", (total + limit - 1) / limit);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listTicketCategories() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray categories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT id::text, name FROM ticket_categories WHERE is_active = TRUE ORDER BY name");
+            rs = p.executeQuery();
+            while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); categories.add(c); }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("categories", categories); return result;
     }
 
     // -------------------------------------------------------------------------
