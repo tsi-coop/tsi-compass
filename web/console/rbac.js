@@ -17,6 +17,7 @@
     'platform-audit.html':        'platform',
     'platform-apikeys.html':      'platform',
     'platform-ticket-categories.html': 'platform',
+    'platform-business-settings.html': 'platform',
     'governance.html':            'governance',
     'governance-policies.html':   'governance',
     'governance-committees.html': 'governance',

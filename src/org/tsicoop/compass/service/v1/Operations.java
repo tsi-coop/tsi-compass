@@ -23,9 +23,10 @@ public class Operations implements Action {
             if (func == null || func.trim().isEmpty()) {
                 OutputProcessor.errorResponse(res, 400, "Bad Request", "Missing _func", req.getRequestURI()); return;
             }
+            String role = InputProcessor.getRole(req);
             switch (func.toLowerCase()) {
                 case "get_ops_metrics":    OutputProcessor.send(res, 200, getOpsMetrics());       break;
-                case "list_changes":       OutputProcessor.send(res, 200, listChanges(input));    break;
+                case "list_changes":       OutputProcessor.send(res, 200, listChanges(input, role)); break;
                 case "add_change":         addChange(req, res, input);                            break;
                 case "update_change":      updateChange(req, res, input);                         break;
                 case "list_assets":        OutputProcessor.send(res, 200, listAssets(input));     break;
@@ -34,7 +35,7 @@ public class Operations implements Action {
                 case "list_vendors":       OutputProcessor.send(res, 200, listVendors(input));    break;
                 case "add_vendor":         addVendor(req, res, input);                            break;
                 case "update_vendor":      updateVendor(req, res, input);                         break;
-                case "list_tickets":       OutputProcessor.send(res, 200, listTickets(input));    break;
+                case "list_tickets":       OutputProcessor.send(res, 200, listTickets(input, role)); break;
                 case "add_ticket":         addTicket(req, res, input);                            break;
                 case "update_ticket":      updateTicket(req, res, input);                         break;
                 case "escalate_ticket":    escalateTicket(req, res, input);                       break;
@@ -96,7 +97,7 @@ public class Operations implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listChanges(JSONObject input) throws Exception {
+    private JSONObject listChanges(JSONObject input, String role) throws Exception {
         String status = (String) input.get("status");
         String stage  = (String) input.get("stage");
         String search = (String) input.get("search");
@@ -115,6 +116,9 @@ public class Operations implements Action {
         if (!isBlank(status)) where.append(" AND cr.status=?");
         if (!isBlank(stage))  where.append(" AND cr.stage=?");
         if (!isBlank(search)) where.append(" AND (cr.title ILIKE ? OR cr.description ILIKE ?)");
+        // Change requests awaiting Supervisor approval are invisible to IT/GRC
+        // queues entirely (not present-but-locked) until a Supervisor approves them.
+        if ("IT_STAFF".equals(role) || "GRC_OFFICER".equals(role)) where.append(" AND cr.approval_status != 'PENDING'");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
@@ -198,9 +202,15 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("UPDATE change_requests SET status=COALESCE(?,status), stage=COALESCE(?,stage) WHERE id=?");
+            // Excludes PENDING rows so IT/GRC can't act on a change request out-of-band
+            // (e.g. a stale tab) before a Supervisor has approved it.
+            p = conn.prepareStatement("UPDATE change_requests SET status=COALESCE(?,status), stage=COALESCE(?,stage) WHERE id=? AND approval_status != 'PENDING'");
             p.setString(1, newStatus); p.setString(2, newStage);
-            p.setObject(3, UUID.fromString(id)); p.executeUpdate();
+            p.setObject(3, UUID.fromString(id));
+            int updated = p.executeUpdate();
+            if (updated == 0) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Change request not found or awaiting supervisor approval", req.getRequestURI()); return;
+            }
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
 
@@ -466,7 +476,7 @@ public class Operations implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listTickets(JSONObject input) throws Exception {
+    private JSONObject listTickets(JSONObject input, String role) throws Exception {
         String status     = (String) input.get("status");
         String priority   = (String) input.get("priority");
         String categoryId = (String) input.get("category_id");
@@ -488,6 +498,9 @@ public class Operations implements Action {
         if (!isBlank(priority))   where.append(" AND ht.priority=?");
         if (!isBlank(categoryId)) where.append(" AND ht.category_id=?::uuid");
         if (!isBlank(search))     where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ? OR cb.username ILIKE ?)");
+        // Tickets awaiting Supervisor approval are invisible to IT/GRC queues
+        // entirely (not present-but-locked) until a Supervisor approves them.
+        if ("IT_STAFF".equals(role) || "GRC_OFFICER".equals(role)) where.append(" AND ht.approval_status != 'PENDING'");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
@@ -591,12 +604,18 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id) WHERE id=?");
+            // Excludes PENDING rows so IT/GRC can't act on a ticket out-of-band
+            // (e.g. a stale tab) before a Supervisor has approved it.
+            p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id) WHERE id=? AND approval_status != 'PENDING'");
             p.setString(1, newStatus); p.setString(2,(String)input.get("priority"));
             p.setString(3,(String)input.get("description"));
             String at=(String)input.get("assigned_to"); p.setString(4, isBlank(at)?null:at);
             String catId=(String)input.get("category_id"); p.setString(5, isBlank(catId)?null:catId);
-            p.setObject(6, UUID.fromString(id)); p.executeUpdate();
+            p.setObject(6, UUID.fromString(id));
+            int updated = p.executeUpdate();
+            if (updated == 0) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found or awaiting supervisor approval", req.getRequestURI()); return;
+            }
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
 
@@ -708,7 +727,7 @@ public class Operations implements Action {
         JSONArray staff = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' AND role != 'USER' ORDER BY username");
+            p = conn.prepareStatement("SELECT id::text, username FROM users WHERE status='ACTIVE' AND role IN ('IT_STAFF','GRC_OFFICER','ADMIN') ORDER BY username");
             rs = p.executeQuery();
             while (rs.next()) { JSONObject s=new JSONObject(); s.put("id",rs.getString(1)); s.put("username",rs.getString(2)); staff.add(s); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -729,8 +748,12 @@ public class Operations implements Action {
             p.setString(1, id); rs = p.executeQuery();
             String title = rs.next() ? rs.getString("title") : id;
             pool.cleanup(rs, p, null); rs = null; p = null;
-            p = conn.prepareStatement("DELETE FROM change_requests WHERE id=?::uuid");
-            p.setString(1, id); p.executeUpdate();
+            p = conn.prepareStatement("DELETE FROM change_requests WHERE id=?::uuid AND approval_status != 'PENDING'");
+            p.setString(1, id);
+            int deleted = p.executeUpdate();
+            if (deleted == 0) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Change request not found or awaiting supervisor approval", req.getRequestURI()); return;
+            }
             JSONObject ctx = new JSONObject(); ctx.put("change_id", id); ctx.put("change_title", title);
             EventLog.log(InputProcessor.getEmail(req), "CHANGE_REQUEST_DELETED", ctx.toJSONString());
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
@@ -795,8 +818,12 @@ public class Operations implements Action {
             p.setString(1, id); rs = p.executeQuery();
             String title = rs.next() ? rs.getString("title") : id;
             pool.cleanup(rs, p, null); rs = null; p = null;
-            p = conn.prepareStatement("DELETE FROM helpdesk_tickets WHERE id=?::uuid");
-            p.setString(1, id); p.executeUpdate();
+            p = conn.prepareStatement("DELETE FROM helpdesk_tickets WHERE id=?::uuid AND approval_status != 'PENDING'");
+            p.setString(1, id);
+            int deleted = p.executeUpdate();
+            if (deleted == 0) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found or awaiting supervisor approval", req.getRequestURI()); return;
+            }
             JSONObject ctx = new JSONObject(); ctx.put("ticket_id", id); ctx.put("ticket_title", title);
             EventLog.log(InputProcessor.getEmail(req), "TICKET_DELETED", ctx.toJSONString());
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);

@@ -685,7 +685,7 @@ public class Risk implements Action {
             pool = new PoolDB();
             conn = pool.getConnection();
             pstmt = conn.prepareStatement(
-                "SELECT id::text, username FROM users WHERE status = 'ACTIVE' AND role != 'USER' ORDER BY username"
+                "SELECT id::text, username FROM users WHERE status = 'ACTIVE' AND role NOT IN ('USER','SUPERVISOR') ORDER BY username"
             );
             rs = pstmt.executeQuery();
             while (rs.next()) {

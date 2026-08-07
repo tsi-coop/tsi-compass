@@ -98,6 +98,7 @@ tr:last-child td{border-bottom:none}
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
@@ -161,6 +162,7 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
+          <option value="SUPERVISOR">Supervisor</option>
           <option value="USER">Employee (Self-Service)</option>
         </select>
         <select id="f-status">
@@ -196,11 +198,18 @@ tr:last-child td{border-bottom:none}
       <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="pu-name" placeholder="Full name" required></div>
       <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="pu-email" type="email" placeholder="user@tsicoop.org" required></div>
       <div class="form-field"><label class="form-label">Role</label>
-        <select class="form-select" id="pu-role" required>
+        <select class="form-select" id="pu-role" required onchange="onProvisionRoleChange()">
           <option value="">Select role…</option>
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
+          <option value="SUPERVISOR">Supervisor</option>
+          <option value="USER">Employee (Self-Service)</option>
+        </select>
+      </div>
+      <div class="form-field" id="pu-supervisor-field" style="display:none"><label class="form-label">Reports To (Supervisor)</label>
+        <select class="form-select" id="pu-supervisor">
+          <option value="">Select supervisor…</option>
         </select>
       </div>
       <div class="form-field"><label class="form-label">Initial Password</label><input class="form-input" id="pu-password" type="password" placeholder="Min. 10 characters" required></div>
@@ -220,11 +229,17 @@ tr:last-child td{border-bottom:none}
       <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="eu-name" required></div>
       <div class="form-field"><label class="form-label">Work Email</label><input class="form-input" id="eu-email" type="email" required></div>
       <div class="form-field"><label class="form-label">Role</label>
-        <select class="form-select" id="eu-role">
+        <select class="form-select" id="eu-role" onchange="onEditRoleChange()">
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
+          <option value="SUPERVISOR">Supervisor</option>
           <option value="USER">Employee (Self-Service)</option>
+        </select>
+      </div>
+      <div class="form-field" id="eu-supervisor-field" style="display:none"><label class="form-label">Reports To (Supervisor)</label>
+        <select class="form-select" id="eu-supervisor">
+          <option value="">Select supervisor…</option>
         </select>
       </div>
       <div class="form-field"><label class="form-label">Account Status</label>
@@ -332,8 +347,34 @@ var ROLES = {
   ADMIN:       'Administrator',
   GRC_OFFICER: 'GRC Officer',
   IT_STAFF:    'IT Staff',
+  SUPERVISOR:  'Supervisor',
   USER:        'Employee (Self-Service)'
 };
+
+var supervisors = [];
+
+function loadSupervisors() {
+  api('list_supervisors', {}, function(err, data) {
+    if (err) return;
+    supervisors = data.supervisors || [];
+    [document.getElementById('pu-supervisor'), document.getElementById('eu-supervisor')].forEach(function(sel) {
+      if (!sel) return;
+      var current = sel.value;
+      sel.innerHTML = '<option value="">Select supervisor…</option>' +
+        supervisors.map(function(s) { return '<option value="' + esc(s.id) + '">' + esc(s.username) + '</option>'; }).join('');
+      sel.value = current;
+    });
+  });
+}
+
+function onProvisionRoleChange() {
+  document.getElementById('pu-supervisor-field').style.display =
+    (document.getElementById('pu-role').value === 'USER') ? '' : 'none';
+}
+function onEditRoleChange() {
+  document.getElementById('eu-supervisor-field').style.display =
+    (document.getElementById('eu-role').value === 'USER') ? '' : 'none';
+}
 
 function api(func, body, cb) {
   var payload = Object.assign({ _func: func }, body || {});
@@ -550,6 +591,8 @@ window.openEditModal = function(id) {
   document.getElementById('eu-email').value = user.email || '';
   document.getElementById('eu-role').value = user.role || 'IT_STAFF';
   document.getElementById('eu-status').value = user.status || 'ACTIVE';
+  document.getElementById('eu-supervisor').value = user.supervisor_id || '';
+  onEditRoleChange();
   openModal('modal-edit-user');
 };
 
@@ -576,6 +619,7 @@ window.activateUser = function(id) {
 
 window.openProvisionModal = function() {
   document.getElementById('form-provision').reset();
+  onProvisionRoleChange();
   openModal('modal-provision-user');
 };
 
@@ -590,11 +634,13 @@ document.getElementById('form-provision').addEventListener('submit', function(e)
   var parts = name.split(/\s+/);
   var username = parts.join('_').toLowerCase();
 
+  var puRole = document.getElementById('pu-role').value;
   api('provision_user', {
     username: username,
     email: document.getElementById('pu-email').value.trim(),
     password: document.getElementById('pu-password').value,
-    role: document.getElementById('pu-role').value
+    role: puRole,
+    supervisor_id: (puRole === 'USER') ? document.getElementById('pu-supervisor').value : ''
   }, function(err) {
     if (btn) { btn.textContent = orig; btn.disabled = false; }
     if (err) { showToast('Failed to provision user: ' + err, true); return; }
@@ -612,12 +658,14 @@ document.getElementById('form-edit-user').addEventListener('submit', function(e)
   var orig = btn ? btn.textContent : '';
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
 
+  var euRole = document.getElementById('eu-role').value;
   api('update_user', {
     id: editId,
     username: document.getElementById('eu-name').value.trim(),
     email: document.getElementById('eu-email').value.trim(),
-    role: document.getElementById('eu-role').value,
-    status: document.getElementById('eu-status').value
+    role: euRole,
+    status: document.getElementById('eu-status').value,
+    supervisor_id: (euRole === 'USER') ? document.getElementById('eu-supervisor').value : ''
   }, function(err) {
     if (btn) { btn.textContent = orig; btn.disabled = false; }
     if (err) { showToast('Failed to update user: ' + err, true); return; }
@@ -727,6 +775,7 @@ document.getElementById('f-search').addEventListener('input', function() {
   }
   loadMetrics();
   loadUsers(1);
+  loadSupervisors();
 })();
 </script>
 </body>

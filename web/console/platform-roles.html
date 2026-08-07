@@ -93,6 +93,7 @@ tr:last-child td{border-bottom:none}
       <a href="platform-roles.html" class="subnav active">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
       <a href="controls.html">Compliance &amp; Controls</a>
@@ -246,7 +247,8 @@ var ROLE_META = {
   ADMIN:       { label: 'Administrator', desc: 'Full platform access; manages users, org structure, and all modules' },
   GRC_OFFICER: { label: 'GRC Officer',   desc: 'Manages governance, risk, controls and compliance across all GRC modules' },
   IT_STAFF:    { label: 'IT Staff',      desc: 'Manages IT operations, incidents and helpdesk; no GRC module access' },
-  USER:        { label: 'Employee (Self-Service)', desc: 'Self-registered org employee; submits tickets/changes and completes attestations/training through the self-service portal only' }
+  SUPERVISOR:  { label: 'Supervisor',    desc: 'Business-side manager; provisions and manages their own team of employees and approves/rejects their tickets and change requests through the self-service portal' },
+  USER:        { label: 'Employee (Self-Service)', desc: 'Provisioned by an Admin or Supervisor; submits tickets/changes and completes attestations/training through the self-service portal only' }
 };
 
 // Return display label for a role key

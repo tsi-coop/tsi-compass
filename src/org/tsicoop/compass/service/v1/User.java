@@ -13,7 +13,6 @@ import org.tsicoop.compass.framework.PoolDB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.UUID;
 
 public class User implements Action {
 
@@ -29,9 +28,6 @@ public class User implements Action {
             switch (func.toLowerCase()) {
                 case "login":
                     login(req, res, input);
-                    break;
-                case "register":
-                    register(req, res, input);
                     break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
@@ -103,65 +99,6 @@ public class User implements Action {
             result.put("permissions", permissions);
             OutputProcessor.send(res, 200, result);
 
-        } finally {
-            if (pool != null) {
-                try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void register(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String name     = (String) input.get("name");
-        String email    = (String) input.get("email");
-        String password = (String) input.get("password");
-
-        if (isBlank(name) || isBlank(email) || isBlank(password)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "Name, email and password are required", req.getRequestURI());
-            return;
-        }
-        if (password.length() < 10) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "Password must be at least 10 characters", req.getRequestURI());
-            return;
-        }
-
-        String passwordHash = new PasswordHasher().hashPassword(password);
-
-        PoolDB pool = null;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            pool = new PoolDB();
-            conn = pool.getConnection();
-            pstmt = conn.prepareStatement(
-                "INSERT INTO users (email, password_hash, username, role, status) " +
-                "VALUES (?, ?, ?, 'USER', 'PENDING') RETURNING id::text"
-            );
-            pstmt.setString(1, email.toLowerCase().trim());
-            pstmt.setString(2, passwordHash);
-            pstmt.setString(3, name);
-            rs = pstmt.executeQuery();
-
-            JSONObject result = new JSONObject();
-            result.put("success", true);
-            String newId = null;
-            if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
-            result.put("message", "Registration submitted. An administrator will review and approve your account.");
-            OutputProcessor.send(res, 200, result);
-            if (newId != null) {
-                Notification.emit("USER_REGISTRATION", "platform", "New user registration",
-                    name + " (" + email + ") is awaiting approval", "platform-users.html", UUID.fromString(newId));
-            }
-
-        } catch (Exception e) {
-            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-            if (msg.contains("unique") || msg.contains("duplicate")) {
-                OutputProcessor.errorResponse(res, 409, "Conflict", "A user with that email already exists", req.getRequestURI());
-            } else {
-                throw e;
-            }
         } finally {
             if (pool != null) {
                 try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}

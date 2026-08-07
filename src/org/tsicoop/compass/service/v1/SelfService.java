@@ -56,6 +56,35 @@ public class SelfService implements Action {
 
     @Override public boolean validate(String m, HttpServletRequest q, HttpServletResponse r) { return "POST".equalsIgnoreCase(m); }
 
+    // Whether business_settings.require_supervisor_approval is 'true'. Defaults to
+    // false (existing behavior) if the row is missing.
+    private boolean requireSupervisorApproval(Connection conn) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT setting_value FROM business_settings WHERE setting_key = 'require_supervisor_approval'");
+            rs = p.executeQuery();
+            return rs.next() && "true".equalsIgnoreCase(rs.getString(1));
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    private UUID getSupervisorId(Connection conn, UUID userId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT supervisor_id FROM users WHERE id = ?");
+            p.setObject(1, userId);
+            rs = p.executeQuery();
+            if (!rs.next()) return null;
+            Object sup = rs.getObject("supervisor_id");
+            return sup == null ? null : UUID.fromString(sup.toString());
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
     // page/limit -> {page, limit}, page 1-based, limit capped at 100, default 20
     private long[] parsePaging(JSONObject input) {
         long page = 1L, limit = 20L;
@@ -84,18 +113,41 @@ public class SelfService implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by) VALUES (?,?,?,?::uuid,?) RETURNING id::text");
+
+            boolean needsApproval = requireSupervisorApproval(conn);
+            UUID supervisorId = null;
+            if (needsApproval) {
+                supervisorId = getSupervisorId(conn, selfId);
+                if (supervisorId == null) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request",
+                        "Your account has no assigned supervisor. Contact your administrator before submitting a ticket.",
+                        req.getRequestURI());
+                    return;
+                }
+            }
+
+            p = conn.prepareStatement(
+                "INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by,approval_status) " +
+                "VALUES (?,?,?,?::uuid,?,?) RETURNING id::text"
+            );
             p.setString(1, title); p.setString(2, desc); p.setString(3, isBlank(priority) ? "MEDIUM" : priority);
             p.setString(4, categoryId);
             p.setObject(5, selfId);
+            p.setString(6, needsApproval ? "PENDING" : "NOT_REQUIRED");
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             String newId = null;
             if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             OutputProcessor.send(res, 200, result);
             if (newId != null) {
-                Notification.emit("TICKET_CREATED", "helpdesk", "New helpdesk ticket",
-                    "\"" + title + "\" was submitted", "operations-helpdesk.html", UUID.fromString(newId));
+                if (needsApproval) {
+                    Notification.emitToUser("TICKET_PENDING_APPROVAL", "Ticket awaiting your approval",
+                        "\"" + title + "\" was submitted by a team member and needs your approval",
+                        "approvals.html", UUID.fromString(newId), supervisorId);
+                } else {
+                    Notification.emit("TICKET_CREATED", "helpdesk", "New helpdesk ticket",
+                        "\"" + title + "\" was submitted", "operations-helpdesk.html", UUID.fromString(newId));
+                }
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
@@ -122,7 +174,8 @@ public class SelfService implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, tc.name AS category_name " +
+                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, tc.name AS category_name, " +
+                "ht.approval_status, ht.rejection_reason " +
                 "FROM helpdesk_tickets ht LEFT JOIN ticket_categories tc ON tc.id = ht.category_id" +
                 where +
                 " ORDER BY ht.created_at DESC LIMIT ? OFFSET ?"
@@ -140,6 +193,8 @@ public class SelfService implements Action {
                 t.put("priority",      rs.getString("priority"));
                 t.put("created_at",    rs.getString("created_at"));
                 t.put("category_name", rs.getString("category_name"));
+                t.put("approval_status", rs.getString("approval_status"));
+                t.put("rejection_reason", rs.getString("rejection_reason"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -176,16 +231,39 @@ public class SelfService implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO change_requests (title,description,requester_id,status) VALUES (?,?,?,'SUBMITTED') RETURNING id::text");
+
+            boolean needsApproval = requireSupervisorApproval(conn);
+            UUID supervisorId = null;
+            if (needsApproval) {
+                supervisorId = getSupervisorId(conn, selfId);
+                if (supervisorId == null) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request",
+                        "Your account has no assigned supervisor. Contact your administrator before submitting a change request.",
+                        req.getRequestURI());
+                    return;
+                }
+            }
+
+            p = conn.prepareStatement(
+                "INSERT INTO change_requests (title,description,requester_id,status,approval_status) " +
+                "VALUES (?,?,?,'SUBMITTED',?) RETURNING id::text"
+            );
             p.setString(1, title); p.setString(2, desc); p.setObject(3, selfId);
+            p.setString(4, needsApproval ? "PENDING" : "NOT_REQUIRED");
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             String newId = null;
             if (rs.next()) { newId = rs.getString(1); result.put("id", newId); }
             OutputProcessor.send(res, 200, result);
             if (newId != null) {
-                Notification.emit("CHANGE_REQUEST_CREATED", "operations", "New change request",
-                    "\"" + title + "\" was submitted", "operations-changes.html", UUID.fromString(newId));
+                if (needsApproval) {
+                    Notification.emitToUser("CHANGE_REQUEST_PENDING_APPROVAL", "Change request awaiting your approval",
+                        "\"" + title + "\" was submitted by a team member and needs your approval",
+                        "approvals.html", UUID.fromString(newId), supervisorId);
+                } else {
+                    Notification.emit("CHANGE_REQUEST_CREATED", "operations", "New change request",
+                        "\"" + title + "\" was submitted", "operations-changes.html", UUID.fromString(newId));
+                }
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
@@ -212,7 +290,7 @@ public class SelfService implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT id::text, title, description, stage, status, created_at::text " +
+                "SELECT id::text, title, description, stage, status, created_at::text, approval_status, rejection_reason " +
                 "FROM change_requests" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
             );
             idx = 1; p.setObject(idx++, selfId);
@@ -227,6 +305,8 @@ public class SelfService implements Action {
                 c.put("stage",       rs.getString("stage"));
                 c.put("status",      rs.getString("status"));
                 c.put("created_at",  rs.getString("created_at"));
+                c.put("approval_status", rs.getString("approval_status"));
+                c.put("rejection_reason", rs.getString("rejection_reason"));
                 list.add(c);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }

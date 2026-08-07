@@ -41,7 +41,7 @@ Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM 
 |------|------|
 | **Installation Walkthrough** | [https://youtu.be/WRR5JjrhSmY](https://youtu.be/WRR5JjrhSmY) |
 | **Functional Overview** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
-| **Ticketing System Demo** | [https://www.youtube.com/watch?v=5DQmEyTMMQU](https://www.youtube.com/watch?v=5DQmEyTMMQU) |
+| **Ticketing System Demo - Supervisor Approval** | [https://youtu.be/SBxnE55q3Z8](https://youtu.be/SBxnE55q3Z8) |
 ---
 
 ## Changelog

@@ -24,6 +24,7 @@
 /api/v1/ropa=org.tsicoop.compass.service.v1.Ropa
 /api/v1/data=org.tsicoop.compass.service.v1.DataRegister
 /api/v1/selfservice=org.tsicoop.compass.service.v1.SelfService
+/api/v1/supervisor=org.tsicoop.compass.service.v1.Supervisor
 
 
 

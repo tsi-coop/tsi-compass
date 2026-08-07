@@ -60,6 +60,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <a href="new-change.html">New Change</a>
     <a href="policies.html">Policies</a>
     <a href="training.html">Training</a>
+    <a href="team.html" id="nav-team" style="display:none">My Team</a>
+    <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
   </nav>
   <div class="user">
     <span class="user-name" id="user-name">—</span>
@@ -125,6 +127,14 @@ function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replac
 var TICKET_PILL = { OPEN:'<span class="pill watch">Open</span>', IN_PROGRESS:'<span class="pill info">In Progress</span>', RESOLVED:'<span class="pill good">Resolved</span>', CLOSED:'<span class="pill neu">Closed</span>' };
 var CHANGE_PILL = { DRAFT:'<span class="pill neu">Draft</span>', SUBMITTED:'<span class="pill watch">Submitted</span>', APPROVED:'<span class="pill good">Approved</span>', REJECTED:'<span class="pill risk">Rejected</span>', COMPLETED:'<span class="pill info">Completed</span>' };
 
+// approval_status overrides the ticket/change's own status pill while a
+// Supervisor approval decision is outstanding or was declined.
+function statusPill(row, defaultPill) {
+  if (row.approval_status === 'PENDING') return '<span class="pill watch">Awaiting Supervisor Approval</span>';
+  if (row.approval_status === 'REJECTED') return '<span class="pill risk" title="' + esc(row.rejection_reason || '') + '">Rejected by Supervisor</span>';
+  return defaultPill;
+}
+
 function buildPageList(current, total) {
   if (total <= 7) { var arr = []; for (var i = 1; i <= total; i++) arr.push(i); return arr; }
   var set = [1, total, current];
@@ -180,7 +190,7 @@ function loadTickets(page) {
       return '<tr><td><strong>' + esc(t.title) + '</strong></td>' +
         '<td>' + esc(t.category_name || '—') + '</td>' +
         '<td><span class="tag">' + esc(t.priority) + '</span></td>' +
-        '<td>' + (TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
+        '<td>' + statusPill(t, TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
         '<td>' + esc(t.created_at || '—') + '</td></tr>';
     }).join('');
     renderPagination(d, 'page-info-tickets', 'page-btns-tickets', 'ticket', loadTickets);
@@ -199,7 +209,7 @@ function loadChanges(page) {
     tbody.innerHTML = list.map(function(c) {
       return '<tr><td><strong>' + esc(c.title) + '</strong></td>' +
         '<td><span class="tag">' + esc(c.stage || '—') + '</span></td>' +
-        '<td>' + (CHANGE_PILL[c.status] || esc(c.status)) + '</td>' +
+        '<td>' + statusPill(c, CHANGE_PILL[c.status] || esc(c.status)) + '</td>' +
         '<td>' + esc(c.created_at || '—') + '</td></tr>';
     }).join('');
     renderPagination(d, 'page-info-changes', 'page-btns-changes', 'change request', loadChanges);
@@ -222,6 +232,7 @@ function switchTab(name) {
   loadTickets(1);
 })();
 </script>
+<script src="nav.js"></script>
 <script src="../console/notifications.js"></script>
 </body>
 </html>

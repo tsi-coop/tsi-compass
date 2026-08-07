@@ -71,6 +71,15 @@ public class Platform implements Action {
                 case "update_ticket_category":
                     updateTicketCategory(req, res, input);
                     break;
+                case "list_supervisors":
+                    OutputProcessor.send(res, 200, listSupervisors());
+                    break;
+                case "get_business_settings":
+                    OutputProcessor.send(res, 200, getBusinessSettings());
+                    break;
+                case "save_business_settings":
+                    saveBusinessSettings(req, res, input);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -181,7 +190,7 @@ public class Platform implements Action {
             rs = null; pstmt = null;
 
             String dataSql =
-                "SELECT id::text, email, username, role, status, created_at::text FROM users" + where +
+                "SELECT id::text, email, username, role, status, created_at::text, supervisor_id::text FROM users" + where +
                 " ORDER BY created_at DESC LIMIT ? OFFSET ?";
             pstmt = conn.prepareStatement(dataSql);
             idx = 1;
@@ -204,6 +213,7 @@ public class Platform implements Action {
                 u.put("role",       rs.getString(4));
                 u.put("status",     rs.getString(5));
                 u.put("created_at", rs.getString(6));
+                u.put("supervisor_id", rs.getString(7));
                 users.add(u);
             }
         } finally {
@@ -228,6 +238,7 @@ public class Platform implements Action {
         String email    = (String) input.get("email");
         String password = (String) input.get("password");
         String role     = (String) input.get("role");
+        String supervisorId = (String) input.get("supervisor_id");
 
         if (isBlank(username) || isBlank(email) || isBlank(password) || isBlank(role)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "username, email, password and role are required", req.getRequestURI());
@@ -237,6 +248,8 @@ public class Platform implements Action {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "Password must be at least 10 characters", req.getRequestURI());
             return;
         }
+        // supervisor_id is only meaningful for USER accounts; ignore it for any other role.
+        if (!"USER".equals(role)) supervisorId = null;
 
         String passwordHash = new PasswordHasher().hashPassword(password);
 
@@ -248,15 +261,23 @@ public class Platform implements Action {
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
+
+            if (!isBlank(supervisorId) && !isSupervisor(conn, supervisorId)) {
+                OutputProcessor.errorResponse(res, 400, "Bad Request", "supervisor_id must reference a user with role SUPERVISOR", req.getRequestURI());
+                return;
+            }
+
             pstmt = conn.prepareStatement(
-                "INSERT INTO users (email, password_hash, username, role, status) " +
-                "VALUES (?, ?, ?, ?, 'ACTIVE') RETURNING id::text"
+                "INSERT INTO users (email, password_hash, username, role, status, supervisor_id) " +
+                "VALUES (?, ?, ?, ?, 'ACTIVE', ?) RETURNING id::text"
             );
             int idx = 1;
             pstmt.setString(idx++, email.toLowerCase().trim());
             pstmt.setString(idx++, passwordHash);
             pstmt.setString(idx++, username);
             pstmt.setString(idx++, role);
+            if (isBlank(supervisorId)) pstmt.setNull(idx++, Types.OTHER);
+            else pstmt.setObject(idx++, UUID.fromString(supervisorId));
 
             rs = pstmt.executeQuery();
             if (!rs.next()) {
@@ -276,6 +297,7 @@ public class Platform implements Action {
             ctx.put("email", email.toLowerCase().trim());
             ctx.put("username", username);
             ctx.put("role", role);
+            if (!isBlank(supervisorId)) ctx.put("supervisor_id", supervisorId);
             EventLog.log(InputProcessor.getEmail(req), "USER_PROVISIONED", ctx.toJSONString());
 
         } catch (Exception e) {
@@ -299,43 +321,15 @@ public class Platform implements Action {
         String email    = (String) input.get("email");
         String role     = (String) input.get("role");
         String status   = (String) input.get("status");
+        // supervisor_id: absent key = leave unchanged; present but "" = clear the
+        // assignment (offboarding/reassignment); present and non-blank = set it.
+        boolean supervisorIdProvided = input.containsKey("supervisor_id");
+        String supervisorId = supervisorIdProvided ? (String) input.get("supervisor_id") : null;
 
         if (isBlank(id)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
             return;
         }
-
-        StringBuilder sql = new StringBuilder("UPDATE users SET");
-        java.util.List<Object> params = new java.util.ArrayList<>();
-        boolean first = true;
-
-        if (!isBlank(username)) {
-            sql.append(first ? " " : ", ").append("username = ?");
-            params.add(username);
-            first = false;
-        }
-        if (!isBlank(email)) {
-            sql.append(first ? " " : ", ").append("email = ?");
-            params.add(email.toLowerCase().trim());
-            first = false;
-        }
-        if (!isBlank(role)) {
-            sql.append(first ? " " : ", ").append("role = ?");
-            params.add(role);
-            first = false;
-        }
-        if (!isBlank(status)) {
-            sql.append(first ? " " : ", ").append("status = ?");
-            params.add(status);
-            first = false;
-        }
-
-        if (first) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
-            return;
-        }
-
-        sql.append(" WHERE id = ?");
 
         PoolDB pool = null;
         Connection conn = null;
@@ -344,11 +338,55 @@ public class Platform implements Action {
         try {
             pool = new PoolDB();
             conn = pool.getConnection();
-            pstmt = conn.prepareStatement(sql.toString());
 
+            if (supervisorIdProvided && !isBlank(supervisorId) && !isSupervisor(conn, supervisorId)) {
+                OutputProcessor.errorResponse(res, 400, "Bad Request", "supervisor_id must reference a user with role SUPERVISOR", req.getRequestURI());
+                return;
+            }
+
+            StringBuilder sql = new StringBuilder("UPDATE users SET");
+            java.util.List<Object> params = new java.util.ArrayList<>();
+            boolean first = true;
+
+            if (!isBlank(username)) {
+                sql.append(first ? " " : ", ").append("username = ?");
+                params.add(username);
+                first = false;
+            }
+            if (!isBlank(email)) {
+                sql.append(first ? " " : ", ").append("email = ?");
+                params.add(email.toLowerCase().trim());
+                first = false;
+            }
+            if (!isBlank(role)) {
+                sql.append(first ? " " : ", ").append("role = ?");
+                params.add(role);
+                first = false;
+            }
+            if (!isBlank(status)) {
+                sql.append(first ? " " : ", ").append("status = ?");
+                params.add(status);
+                first = false;
+            }
+            if (supervisorIdProvided) {
+                sql.append(first ? " " : ", ").append("supervisor_id = ?");
+                params.add(isBlank(supervisorId) ? null : UUID.fromString(supervisorId));
+                first = false;
+            }
+
+            if (first) {
+                OutputProcessor.errorResponse(res, 400, "Bad Request", "No fields to update", req.getRequestURI());
+                return;
+            }
+
+            sql.append(" WHERE id = ?");
+
+            pstmt = conn.prepareStatement(sql.toString());
             int idx = 1;
-            for (int i = 0; i < params.size(); i++) {
-                pstmt.setString(idx++, (String) params.get(i));
+            for (Object param : params) {
+                if (param == null) pstmt.setNull(idx++, Types.OTHER);
+                else if (param instanceof UUID) pstmt.setObject(idx++, param);
+                else pstmt.setString(idx++, (String) param);
             }
             pstmt.setObject(idx++, UUID.fromString(id));
 
@@ -365,6 +403,7 @@ public class Platform implements Action {
             if (!isBlank(email))    ctx.put("email", email.toLowerCase().trim());
             if (!isBlank(role))     ctx.put("role", role);
             if (!isBlank(status))   ctx.put("status", status);
+            if (supervisorIdProvided) ctx.put("supervisor_id", isBlank(supervisorId) ? null : supervisorId);
             EventLog.log(InputProcessor.getEmail(req), "USER_UPDATED", ctx.toJSONString());
 
         } catch (Exception e) {
@@ -378,6 +417,19 @@ public class Platform implements Action {
             if (pool != null) {
                 try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
             }
+        }
+    }
+
+    private boolean isSupervisor(Connection conn, String userId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT role FROM users WHERE id = ?");
+            p.setObject(1, UUID.fromString(userId));
+            rs = p.executeQuery();
+            return rs.next() && "SUPERVISOR".equals(rs.getString(1));
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
         }
     }
 
@@ -573,7 +625,7 @@ public class Platform implements Action {
     };
 
     private static final String[] ROLES = {
-        "ADMIN", "GRC_OFFICER", "IT_STAFF", "USER"
+        "ADMIN", "GRC_OFFICER", "IT_STAFF", "USER", "SUPERVISOR"
     };
 
     @SuppressWarnings("unchecked")
@@ -803,6 +855,106 @@ public class Platform implements Action {
             }
         } finally {
             if (pool != null) { try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {} }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supervisors & Business Settings
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listSupervisors() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        JSONArray supervisors = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT id::text, username FROM users WHERE role = 'SUPERVISOR' AND status = 'ACTIVE' ORDER BY username"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject s = new JSONObject();
+                s.put("id", rs.getString("id"));
+                s.put("username", rs.getString("username"));
+                supervisors.add(s);
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("supervisors", supervisors);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject getBusinessSettings() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        JSONArray settings = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement("SELECT setting_key, setting_value FROM business_settings ORDER BY setting_key");
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject s = new JSONObject();
+                s.put("key", rs.getString("setting_key"));
+                s.put("value", rs.getString("setting_value"));
+                settings.add(s);
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("settings", settings);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void saveBusinessSettings(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        Object settingsObj = input.get("settings");
+        if (!(settingsObj instanceof JSONArray)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "settings array is required", req.getRequestURI());
+            return;
+        }
+
+        JSONArray settings = (JSONArray) settingsObj;
+        PoolDB pool = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB();
+            conn = pool.getConnection();
+            conn.setAutoCommit(false);
+            for (Object obj : settings) {
+                if (!(obj instanceof JSONObject)) continue;
+                JSONObject s = (JSONObject) obj;
+                String key   = (String) s.get("key");
+                String value = (String) s.get("value");
+                if (isBlank(key) || value == null) continue;
+                pstmt = conn.prepareStatement(
+                    "INSERT INTO business_settings (setting_key, setting_value, updated_at) VALUES (?, ?, NOW()) " +
+                    "ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()"
+                );
+                pstmt.setString(1, key);
+                pstmt.setString(2, value);
+                pstmt.executeUpdate();
+                try { pool.cleanup(null, pstmt, null); } catch (Exception ignored) {}
+                pstmt = null;
+            }
+            conn.commit();
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+
+            EventLog.log(InputProcessor.getEmail(req), "BUSINESS_SETTINGS_UPDATED", input.toJSONString());
+        } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
+            throw e;
+        } finally {
+            if (pool != null) {
+                try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {}
+            }
         }
     }
 }
