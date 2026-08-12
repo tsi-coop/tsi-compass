@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – Vendor Register</title>
+<title>TSI Compass – CBOM</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
@@ -32,9 +32,10 @@ table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;f
 td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .pill.good{background:#e6f4ed;color:var(--green)}.pill.watch{background:#fef3cd;color:var(--amber)}.pill.risk{background:#fde8e8;color:var(--red)}.pill.info{background:#e8eeff;color:var(--blue)}.pill.neu{background:#f0f4f8;color:var(--muted)}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin:1px}
 .row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
 .modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
 .form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
@@ -58,16 +59,19 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   <aside class="side">
     <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
     <nav class="nav">
-      <a href="dashboard.html">Executive Dashboard</a><a href="platform.html">Platform &amp; Access</a>
-      <a href="governance.html">Governance &amp; Policy</a><a href="risks.html">Risk &amp; Vulnerability</a>
-      <a href="controls.html">Compliance &amp; Controls</a><a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
-      <a href="operations-changes.html" class="subnav">Change Management</a>
-      <a href="operations-assets.html" class="subnav">Asset Inventory</a>
-      <a href="operations-vendors.html" class="subnav active">Vendor Register</a>
-      <a href="operations-helpdesk.html" class="subnav">Helpdesk</a>
-      <a href="data-register.html">Data Register</a><a href="supplychain.html">Supply Chain</a>
-      <a href="incidents.html">Incidents &amp; Awareness</a><a href="reports.html">Reports &amp; Exports</a>
+      <a href="data-register.html">Data Register</a>
+      <a href="supplychain.html">Supply Chain</a>
+      <a href="supplychain-sbom.html" class="subnav">SBOM</a>
+      <a href="supplychain-cbom.html" class="subnav active">CBOM</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
     </nav>
     <div class="side-foot">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -80,20 +84,19 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     </div>
   </aside>
   <main class="main">
-    <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Vendor Register</div>
+    <div class="breadcrumb"><a href="supplychain.html">Supply Chain</a> / CBOM</div>
     <div class="page-header">
-      <div><div class="eyebrow">IT Operations</div><h1>Vendor Register</h1><p class="subtitle">Track vendors, agreement details, license expiry, security questionnaire status, and risk scores.</p></div>
+      <div><div class="eyebrow">Supply Chain</div><h1>CBOM — Cryptography Bill of Materials</h1><p class="subtitle">Register of cryptographic assets — algorithms, certificates, keys, protocols — with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Vendors</h2><div style="display:flex;align-items:center;gap:12px"><span id="vnd-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Vendor</button></div></div>
+      <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="cb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>
       <div class="filter-bar">
-        <select id="f-due" onchange="applyFilters()"><option value="">All Vendors</option><option value="1">Review Due (90 days)</option></select>
-        <select id="f-qs" onchange="applyFilters()"><option value="">All Questionnaire Statuses</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
-        <input id="f-search" type="search" placeholder="Search vendors…" oninput="onSearchInput()">
+        <select id="f-type" onchange="applyFilters()"><option value="">All Types</option><option>ALGORITHM</option><option>CERTIFICATE</option><option>KEY</option><option>PROTOCOL</option><option>LIBRARY</option></select>
+        <input id="f-search" type="search" placeholder="Search components…" oninput="onSearchInput()">
       </div>
       <table>
-        <thead><tr><th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th></tr></thead>
-        <tbody id="vnd-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Name</th><th>Type</th><th>Algorithm</th><th>Key Size</th><th>Protocol</th><th>Cert Expiry</th><th>Linked Asset</th><th>Actions</th></tr></thead>
+        <tbody id="cb-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
     </div>
@@ -102,35 +105,48 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
-    <h2>Add Vendor</h2>
-    <div class="form-row"><label>Vendor Name</label><input id="add-name" required></div>
-    <div class="form-row"><label>Agreement Details</label><textarea id="add-agreement"></textarea></div>
+    <h2>Add CBOM Component</h2>
+    <div class="form-row"><label>Name</label><input id="add-name" required></div>
     <div class="form-row half">
-      <div><label>License Expiry</label><input id="add-expiry" type="date"></div>
-      <div><label>Baseline Risk Score (1–25)</label><input id="add-risk" type="number" min="1" max="25"></div>
+      <div><label>Type</label><select id="add-type"><option>ALGORITHM</option><option>CERTIFICATE</option><option>KEY</option><option>PROTOCOL</option><option>LIBRARY</option></select></div>
+      <div><label>Algorithm</label><input id="add-algorithm" placeholder="e.g. AES-256-GCM"></div>
     </div>
-    <div class="form-row"><label>Security Questionnaire Status</label>
-      <select id="add-qs"><option value="">— Not applicable —</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
+    <div class="form-row half">
+      <div><label>Key Size (bits)</label><input id="add-keysize" type="number" min="0"></div>
+      <div><label>Protocol</label><input id="add-protocol" placeholder="e.g. TLS 1.3"></div>
     </div>
+    <div class="form-row half">
+      <div><label>Certificate Expiry</label><input id="add-expiry" type="date"></div>
+      <div><label>Standard</label><input id="add-standard" placeholder="e.g. FIPS 140-2"></div>
+    </div>
+    <div class="form-row"><label>Linked Asset</label><select id="add-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
-      <button class="btn primary" onclick="submitAdd()">Add Vendor</button>
+      <button class="btn primary" onclick="submitAdd()">Add Component</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-edit">
   <div class="modal">
-    <h2>Edit Vendor</h2>
+    <h2>Edit CBOM Component</h2>
     <input type="hidden" id="edit-id">
-    <div class="form-row"><label>Vendor Name</label><input id="edit-name"></div>
+    <div class="form-row"><label>Name</label><input id="edit-name"></div>
     <div class="form-row half">
-      <div><label>License Expiry</label><input id="edit-expiry" type="date"></div>
-      <div><label>Risk Score (1–25)</label><input id="edit-risk" type="number" min="1" max="25"></div>
+      <div><label>Type</label><select id="edit-type"><option>ALGORITHM</option><option>CERTIFICATE</option><option>KEY</option><option>PROTOCOL</option><option>LIBRARY</option></select></div>
+      <div><label>Algorithm</label><input id="edit-algorithm"></div>
     </div>
-    <div class="form-row"><label>Security Questionnaire Status</label>
-      <select id="edit-qs"><option value="">— Not applicable —</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
+    <div class="form-row half">
+      <div><label>Key Size (bits)</label><input id="edit-keysize" type="number" min="0"></div>
+      <div><label>Protocol</label><input id="edit-protocol"></div>
     </div>
+    <div class="form-row half">
+      <div><label>Certificate Expiry</label><input id="edit-expiry" type="date"></div>
+      <div><label>Standard</label><input id="edit-standard"></div>
+    </div>
+    <div class="form-row"><label>Linked Asset</label><select id="edit-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Description</label><textarea id="edit-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -140,8 +156,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 
 <div class="modal-overlay" id="modal-import">
   <div class="modal">
-    <h2>Import Vendor Register</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import vendors. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
+    <h2>Import CBOM Components</h2>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import components. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
     <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
     <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
     <div class="modal-foot">
@@ -158,40 +174,44 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={vendors:[],page:1,pageSize:20};
+var state={components:[],assets:[],page:1,pageSize:20};
 var _searchDebounce=null;
 
 function api(func,body,cb){
-  fetch('/api/v1/ops',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  fetch('/api/v1/supplychain',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
   body:JSON.stringify(Object.assign({_func:func},body||{}))})
   .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
   .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
   .catch(function(e){cb(e.message,null);});
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-var QS_PILL={SENT:'<span class="pill watch">Sent</span>',RECEIVED:'<span class="pill info">Received</span>',EVALUATED:'<span class="pill good">Evaluated</span>',NOT_APPLICABLE:'<span class="pill neu">N/A</span>'};
 
-function riskColor(score){
-  if(!score)return'var(--muted)';
-  if(score>=15)return'var(--red)';
-  if(score>=8)return'var(--amber)';
-  return'var(--green)';
+function expiryPill(dateStr){
+  if(!dateStr)return '<span class="pill neu">—</span>';
+  var d=new Date(dateStr+'T00:00:00');
+  var today=new Date();today.setHours(0,0,0,0);
+  var diffDays=Math.round((d-today)/86400000);
+  var label=dateStr;
+  if(diffDays<0)return '<span class="pill risk">'+esc(label)+' (expired)</span>';
+  if(diffDays<=30)return '<span class="pill watch">'+esc(label)+' (soon)</span>';
+  return '<span class="pill good">'+esc(label)+'</span>';
 }
 
-function renderVendors(list,total){
-  var body=document.getElementById('vnd-body');
+function renderComponents(list,total){
+  var body=document.getElementById('cb-body');
   var n=(total!=null?total:list.length);
-  var cnt=document.getElementById('vnd-count');if(cnt)cnt.textContent=n+' vendor'+(n!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="6" class="empty">No vendors found.</td></tr>';return;}
-  body.innerHTML=list.map(function(v){
-    var duePill=v.review_due?'<span class="pill watch">Due</span>':'<span class="pill neu">OK</span>';
+  var cnt=document.getElementById('cb-count');if(cnt)cnt.textContent=n+' component'+(n!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="8" class="empty">No CBOM components found.</td></tr>';return;}
+  body.innerHTML=list.map(function(c){
     return '<tr>'+
-      '<td><strong>'+esc(v.name)+'</strong></td>'+
-      '<td>'+esc(v.license_expiry||'—')+'</td>'+
-      '<td style="font-size:16px;font-weight:900;color:'+riskColor(v.baseline_risk_score)+'">'+esc(v.baseline_risk_score||'—')+'</td>'+
-      '<td>'+(QS_PILL[v.security_questionnaire_status]||'<span class="pill neu">—</span>')+'</td>'+
-      '<td>'+duePill+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVendor(\''+v.id+'\',\''+esc(v.name)+'\')">Delete</button>':'')+'</div></td>'+
+      '<td><strong>'+esc(c.name)+'</strong></td>'+
+      '<td><span class="tag">'+esc(c.crypto_type)+'</span></td>'+
+      '<td>'+esc(c.algorithm||'—')+'</td>'+
+      '<td>'+(c.key_size!=null?esc(String(c.key_size)):'—')+'</td>'+
+      '<td>'+esc(c.protocol||'—')+'</td>'+
+      '<td>'+expiryPill(c.certificate_expiry)+'</td>'+
+      '<td>'+esc(c.asset_name||'—')+'</td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteComponent(\''+c.id+'\',\''+esc(c.name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -203,7 +223,7 @@ function renderPagination(data){
   var totalPages=data.total_pages||Math.ceil(total/pageSize)||1;
   var from=total===0?0:(page-1)*pageSize+1;
   var to=Math.min(page*pageSize,total);
-  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' vendor'+(total!==1?'s':'');
+  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' component'+(total!==1?'s':'');
   var btnsEl=document.getElementById('page-btns');
   btnsEl.innerHTML='';
   if(totalPages<=1)return;
@@ -212,7 +232,7 @@ function renderPagination(data){
     btn.className='page-btn'+(p===page?' active':'');
     btn.textContent=p==='…'?'…':String(p);
     if(p==='…'){btn.disabled=true;}
-    else{(function(pg){btn.onclick=function(){loadVendors(pg);};})(p);}
+    else{(function(pg){btn.onclick=function(){loadComponents(pg);};})(p);}
     btnsEl.appendChild(btn);
   });
 }
@@ -233,40 +253,51 @@ function buildPageList(current,total){
   return result.slice(0,9);
 }
 
-function loadVendors(page){
+function loadComponents(page){
   state.page=page||1;
   var body={page:state.page,limit:state.pageSize};
-  var dueVal=document.getElementById('f-due').value;
-  var qsVal=document.getElementById('f-qs').value;
+  var typeVal=document.getElementById('f-type').value;
   var srVal=document.getElementById('f-search').value.trim();
-  if(dueVal==='1')body.due='1';
-  if(qsVal)body.questionnaire_status=qsVal;
+  if(typeVal)body.crypto_type=typeVal;
   if(srVal)body.search=srVal;
-  api('list_vendors',body,function(err,d){
+  api('list_cbom_components',body,function(err,d){
     if(err)return;
-    state.vendors=d.vendors||[];
-    renderVendors(state.vendors,d.total_count);
+    state.components=d.cbom_components||[];
+    renderComponents(state.components,d.total_count);
     renderPagination(d);
   });
 }
-function applyFilters(){loadVendors(1);}
+function applyFilters(){loadComponents(1);}
 function onSearchInput(){
   clearTimeout(_searchDebounce);
-  _searchDebounce=setTimeout(function(){loadVendors(1);},300);
+  _searchDebounce=setTimeout(function(){loadComponents(1);},300);
 }
 
 function loadAll(){
-  loadVendors(1);
+  loadComponents(1);
+  api('list_it_assets',{},function(err,d){
+    if(err)return;state.assets=d.assets||[];
+    ['add-asset','edit-asset'].forEach(function(id){
+      var sel=document.getElementById(id);
+      while(sel.options.length>1)sel.remove(1);
+      state.assets.forEach(function(a){var o=document.createElement('option');o.value=a.id;o.textContent=a.name;sel.appendChild(o);});
+    });
+  });
 }
 
-function openAdd(){['add-name','add-agreement','add-expiry','add-risk'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
+function openAdd(){['add-name','add-algorithm','add-keysize','add-protocol','add-expiry','add-standard','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('add-asset').value='';document.getElementById('modal-add').classList.add('open');}
 function openEdit(id){
-  var v=state.vendors.find(function(x){return x.id===id;});if(!v)return;
-  document.getElementById('edit-id').value=v.id;
-  document.getElementById('edit-name').value=v.name||'';
-  document.getElementById('edit-expiry').value=v.license_expiry||'';
-  document.getElementById('edit-risk').value=v.baseline_risk_score||'';
-  setSelect('edit-qs',v.security_questionnaire_status||'');
+  var c=state.components.find(function(x){return x.id===id;});if(!c)return;
+  document.getElementById('edit-id').value=c.id;
+  document.getElementById('edit-name').value=c.name||'';
+  document.getElementById('edit-algorithm').value=c.algorithm||'';
+  document.getElementById('edit-keysize').value=c.key_size!=null?c.key_size:'';
+  document.getElementById('edit-protocol').value=c.protocol||'';
+  document.getElementById('edit-expiry').value=c.certificate_expiry||'';
+  document.getElementById('edit-standard').value=c.standard||'';
+  document.getElementById('edit-desc').value=c.description||'';
+  setSelect('edit-type',c.crypto_type);
+  document.getElementById('edit-asset').value=c.asset_id||'';
   document.getElementById('modal-edit').classList.add('open');
 }
 function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}}
@@ -275,41 +306,41 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 
 function submitAdd(){
   var name=document.getElementById('add-name').value.trim();
-  if(!name){alert('Vendor name is required.');return;}
-  api('add_vendor',{name:name,agreement_details:document.getElementById('add-agreement').value,
-    license_expiry:document.getElementById('add-expiry').value||null,
-    baseline_risk_score:document.getElementById('add-risk').value?parseInt(document.getElementById('add-risk').value):null,
-    security_questionnaire_status:document.getElementById('add-qs').value||null},function(err){
-    if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Vendor added');loadAll();
+  if(!name){alert('Name is required.');return;}
+  api('add_cbom_component',{name:name,crypto_type:document.getElementById('add-type').value,algorithm:document.getElementById('add-algorithm').value,
+    key_size:document.getElementById('add-keysize').value||null,protocol:document.getElementById('add-protocol').value,
+    certificate_expiry:document.getElementById('add-expiry').value||null,standard:document.getElementById('add-standard').value,
+    asset_id:document.getElementById('add-asset').value||null,description:document.getElementById('add-desc').value},function(err){
+    if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Component added');loadAll();
   });
 }
 function submitEdit(){
   var id=document.getElementById('edit-id').value;
-  api('update_vendor',{id:id,name:document.getElementById('edit-name').value,
-    license_expiry:document.getElementById('edit-expiry').value||null,
-    baseline_risk_score:document.getElementById('edit-risk').value?parseInt(document.getElementById('edit-risk').value):null,
-    security_questionnaire_status:document.getElementById('edit-qs').value||null},function(err){
-    if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Vendor updated');loadAll();
+  api('update_cbom_component',{id:id,name:document.getElementById('edit-name').value,crypto_type:document.getElementById('edit-type').value,
+    algorithm:document.getElementById('edit-algorithm').value,key_size:document.getElementById('edit-keysize').value||null,
+    protocol:document.getElementById('edit-protocol').value,certificate_expiry:document.getElementById('edit-expiry').value||null,
+    standard:document.getElementById('edit-standard').value,asset_id:document.getElementById('edit-asset').value||null,
+    description:document.getElementById('edit-desc').value},function(err){
+    if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Component updated');loadAll();
   });
 }
 
 function downloadTemplate(){
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([
-    ['Name','Agreement Details','License Expiry','Baseline Risk Score','Security Questionnaire Status'],
-    ['Acme Corp','Annual SLA agreement','2026-12-31','8','EVALUATED']
+    ['Name','Crypto Type','Algorithm','Key Size','Protocol','Certificate Expiry','Standard','Description'],
+    ['Web TLS Certificate','CERTIFICATE','RSA','2048','TLS 1.3','2027-01-15','FIPS 140-2','Public-facing web server certificate']
   ]);
-  ws['!cols']=[{wch:28},{wch:36},{wch:18},{wch:22},{wch:30}];
-  XLSX.utils.book_append_sheet(wb,ws,'Vendors');
+  ws['!cols']=[{wch:24},{wch:14},{wch:16},{wch:10},{wch:12},{wch:16},{wch:16},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,ws,'CBOM');
   var ref=XLSX.utils.aoa_to_sheet([
-    ['Column','Notes'],
-    ['License Expiry','Format: YYYY-MM-DD (e.g. 2026-06-30)'],
-    ['Baseline Risk Score','Number from 1 (lowest) to 25 (highest)'],
-    ['Security Questionnaire Status','SENT, RECEIVED, EVALUATED, NOT_APPLICABLE']
+    ['Column','Valid Values'],
+    ['Crypto Type','ALGORITHM, CERTIFICATE, KEY, PROTOCOL, LIBRARY'],
+    ['Certificate Expiry','YYYY-MM-DD']
   ]);
-  ref['!cols']=[{wch:28},{wch:50}];
+  ref['!cols']=[{wch:18},{wch:64}];
   XLSX.utils.book_append_sheet(wb,ref,'Reference');
-  XLSX.writeFile(wb,'vendor_register_template.xlsx');
+  XLSX.writeFile(wb,'cbom_template.xlsx');
 }
 function openImport(){
   document.getElementById('import-file').value='';
@@ -328,15 +359,15 @@ function submitImport(){
       var data=XLSX.utils.sheet_to_json(ws);
       if(!data.length){alert('No data rows found in the file.');return;}
       var rows=data.map(function(r){
-        var exp=r['License Expiry'];
-        var expStr='';
-        if(exp instanceof Date){expStr=exp.toISOString().substring(0,10);}
-        else if(exp){expStr=String(exp).trim();}
-        return{name:String(r['Name']||'').trim(),agreement_details:String(r['Agreement Details']||'').trim(),license_expiry:expStr||null,baseline_risk_score:r['Baseline Risk Score']!=null?r['Baseline Risk Score']:null,security_questionnaire_status:String(r['Security Questionnaire Status']||'').trim()};
-      }).filter(function(r){return r.name;});
-      if(!rows.length){alert('No valid rows found. Name column must be filled.');return;}
+        var exp=r['Certificate Expiry'];
+        if(exp instanceof Date){var mm=String(exp.getMonth()+1).padStart(2,'0'),dd=String(exp.getDate()).padStart(2,'0');exp=exp.getFullYear()+'-'+mm+'-'+dd;}
+        return{name:String(r['Name']||'').trim(),crypto_type:String(r['Crypto Type']||'').trim(),algorithm:String(r['Algorithm']||'').trim(),
+          key_size:String(r['Key Size']||'').trim(),protocol:String(r['Protocol']||'').trim(),certificate_expiry:String(exp||'').trim(),
+          standard:String(r['Standard']||'').trim(),description:String(r['Description']||'').trim()};
+      }).filter(function(r){return r.name&&r.crypto_type;});
+      if(!rows.length){alert('No valid rows found. Name and Crypto Type columns must be filled.');return;}
       var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
-      api('import_vendors',{rows:rows},function(err,d){
+      api('import_cbom_components',{rows:rows},function(err,d){
         if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
         el.style.color='var(--teal)';
         el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
@@ -347,10 +378,10 @@ function submitImport(){
   reader.readAsBinaryString(fi.files[0]);
 }
 
-function deleteVendor(id,name){
-  if(!confirm('Delete vendor "'+name+'"? This cannot be undone.'))return;
-  api('delete_vendor',{id:id},function(err){
-    if(err){alert('Error: '+err);return;}showToast('Vendor deleted');loadAll();
+function deleteComponent(id,name){
+  if(!confirm('Delete component "'+name+'"? This cannot be undone.'))return;
+  api('delete_cbom_component',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Component deleted');loadAll();
   });
 }
 
