@@ -40,6 +40,7 @@ public class SelfService implements Action {
                 case "create_ticket":         createTicket(req, res, input, selfId);                break;
                 case "list_my_tickets":       OutputProcessor.send(res, 200, listMyTickets(selfId, input));       break;
                 case "list_ticket_categories": OutputProcessor.send(res, 200, listTicketCategories());            break;
+                case "list_ticket_subcategories": OutputProcessor.send(res, 200, listTicketSubcategories(input)); break;
                 case "create_change_request": createChangeRequest(req, res, input, selfId);         break;
                 case "list_my_changes":       OutputProcessor.send(res, 200, listMyChanges(selfId, input));       break;
                 case "list_pending_policies": OutputProcessor.send(res, 200, listPendingPolicies(selfId, input)); break;
@@ -103,16 +104,25 @@ public class SelfService implements Action {
 
     @SuppressWarnings("unchecked")
     private void createTicket(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
-        String title      = (String) input.get("title");
-        String desc       = (String) input.get("description");
-        String priority   = (String) input.get("priority");
-        String categoryId = (String) input.get("category_id");
+        String title         = (String) input.get("title");
+        String desc          = (String) input.get("description");
+        String priority      = (String) input.get("priority");
+        String categoryId    = (String) input.get("category_id");
+        String subcategoryId = (String) input.get("subcategory_id");
         if (isBlank(title) || isBlank(desc) || isBlank(categoryId)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "title, description and category_id required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            // A subcategory must belong to the chosen category and still be
+            // active — the request body can't be trusted to keep them paired.
+            if (!isBlank(subcategoryId) && !subcategoryBelongsToCategory(conn, subcategoryId, categoryId)) {
+                OutputProcessor.errorResponse(res, 400, "Bad Request",
+                    "subcategory_id does not belong to an active subcategory of category_id", req.getRequestURI());
+                return;
+            }
 
             boolean needsApproval = requireSupervisorApproval(conn);
             UUID supervisorId = null;
@@ -127,13 +137,14 @@ public class SelfService implements Action {
             }
 
             p = conn.prepareStatement(
-                "INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by,approval_status) " +
-                "VALUES (?,?,?,?::uuid,?,?) RETURNING id::text"
+                "INSERT INTO helpdesk_tickets (title,description,priority,category_id,subcategory_id,created_by,approval_status) " +
+                "VALUES (?,?,?,?::uuid,?::uuid,?,?) RETURNING id::text"
             );
             p.setString(1, title); p.setString(2, desc); p.setString(3, isBlank(priority) ? "MEDIUM" : priority);
             p.setString(4, categoryId);
-            p.setObject(5, selfId);
-            p.setString(6, needsApproval ? "PENDING" : "NOT_REQUIRED");
+            p.setString(5, isBlank(subcategoryId) ? null : subcategoryId);
+            p.setObject(6, selfId);
+            p.setString(7, needsApproval ? "PENDING" : "NOT_REQUIRED");
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             String newId = null;
@@ -175,8 +186,10 @@ public class SelfService implements Action {
 
             p = conn.prepareStatement(
                 "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, tc.name AS category_name, " +
-                "ht.approval_status, ht.rejection_reason " +
-                "FROM helpdesk_tickets ht LEFT JOIN ticket_categories tc ON tc.id = ht.category_id" +
+                "tsc.name AS subcategory_name, " +
+                "ht.approval_status, ht.rejection_reason, ht.resolution_notes " +
+                "FROM helpdesk_tickets ht LEFT JOIN ticket_categories tc ON tc.id = ht.category_id " +
+                "LEFT JOIN ticket_subcategories tsc ON tsc.id = ht.subcategory_id" +
                 where +
                 " ORDER BY ht.created_at DESC LIMIT ? OFFSET ?"
             );
@@ -193,8 +206,10 @@ public class SelfService implements Action {
                 t.put("priority",      rs.getString("priority"));
                 t.put("created_at",    rs.getString("created_at"));
                 t.put("category_name", rs.getString("category_name"));
+                t.put("subcategory_name", rs.getString("subcategory_name"));
                 t.put("approval_status", rs.getString("approval_status"));
                 t.put("rejection_reason", rs.getString("rejection_reason"));
+                t.put("resolution_notes", rs.getString("resolution_notes"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -215,6 +230,44 @@ public class SelfService implements Action {
             while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); categories.add(c); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
         JSONObject result = new JSONObject(); result.put("success", true); result.put("categories", categories); return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listTicketSubcategories(JSONObject input) throws Exception {
+        String categoryId = (String) input.get("category_id");
+        if (isBlank(categoryId)) {
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("subcategories", new JSONArray()); return result;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray subcategories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT id::text, name FROM ticket_subcategories WHERE category_id = ?::uuid AND is_active = TRUE ORDER BY name"
+            );
+            p.setString(1, categoryId);
+            rs = p.executeQuery();
+            while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); subcategories.add(c); }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("subcategories", subcategories); return result;
+    }
+
+    // Returns true only when subcategoryId names an active subcategory row
+    // whose category_id equals categoryId — used to validate create_ticket
+    // input server-side rather than trusting the paired ids from the client.
+    private boolean subcategoryBelongsToCategory(Connection conn, String subcategoryId, String categoryId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement(
+                "SELECT 1 FROM ticket_subcategories WHERE id = ?::uuid AND category_id = ?::uuid AND is_active = TRUE"
+            );
+            p.setString(1, subcategoryId); p.setString(2, categoryId);
+            rs = p.executeQuery();
+            return rs.next();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
     }
 
     // -------------------------------------------------------------------------

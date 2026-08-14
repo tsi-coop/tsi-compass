@@ -60,14 +60,14 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <a href="approvals.html" id="nav-approvals">Approvals</a>
   </nav>
   <div class="user">
-    <span class="user-name" id="user-name">—</span>
+    <span class="user-name" id="user-name">-</span>
     <a href="../index.html" class="signout" onclick="localStorage.clear();return true;" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
   </div>
 </header>
 <main class="main">
   <div class="page-header">
     <div>
-      <div class="eyebrow">Supervisor Portal</div>
+      <div class="eyebrow">Manager Portal</div>
       <h1>My Team</h1>
       <p class="subtitle">Provision and manage the employee accounts that report to you.</p>
     </div>
@@ -159,7 +159,7 @@ function api(func, body, cb) {
 }
 
 function fmtDate(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   try { return new Date(s).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}); } catch(e){ return s; }
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – API Keys</title>
+<title>TSI Compass – Asset Categories</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
@@ -34,28 +34,19 @@ table{width:100%;border-collapse:collapse}
 th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px 12px;border-bottom:1px solid var(--line)}
 td{padding:12px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;background:var(--wash);padding:2px 6px;border-radius:4px}
+.row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .modal-head h2{margin:0;font-size:18px;font-weight:900}
 .modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);padding:0;line-height:1}
 .modal-close:hover{color:var(--ink)}
 .form-row{display:grid;gap:5px;margin-bottom:14px}
 .form-row label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.form-row input,.form-row textarea{height:36px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:0 10px;color:var(--ink);background:#fff;font-family:inherit;width:100%}
-.form-row textarea{height:68px;padding:8px 10px;resize:vertical}
-.form-row input:focus,.form-row textarea:focus{outline:none;border-color:var(--teal)}
+.form-row input{height:36px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:0 10px;color:var(--ink);background:#fff;font-family:inherit;width:100%}
+.form-row input:focus{outline:none;border-color:var(--teal)}
 .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.warn-banner{background:#fff4df;border:1px solid #f6c660;border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:#7c5200;line-height:1.5}
-.warn-banner strong{display:block;margin-bottom:3px;font-size:13px}
-.reveal-row{display:grid;gap:5px;margin-bottom:14px}
-.reveal-row label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.copy-wrap{display:flex;gap:6px}
-.copy-wrap input{flex:1;height:36px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;font-family:ui-monospace,monospace;background:var(--wash);color:var(--ink)}
-.copy-btn{height:36px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--teal)}
-.copy-btn:hover{background:var(--wash)}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
 @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}}
@@ -72,9 +63,9 @@ tbody tr:last-child td{border-bottom:none}
       <a href="platform-users.html" class="subnav">User Management</a>
       <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
-      <a href="platform-apikeys.html" class="subnav active">API Keys</a>
+      <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
-      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
+      <a href="platform-asset-categories.html" class="subnav active">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -103,30 +94,30 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page-header">
       <div>
         <div class="eyebrow">Platform &amp; Access</div>
-        <h1>API Keys</h1>
-        <p class="subtitle">Generate machine credentials for external integrations. The secret is shown once at creation and never stored in plain text.</p>
-      </div>
-      <div id="admin-actions" style="display:none">
-        <button class="btn primary" onclick="openGenerate()">+ Generate API Key</button>
+        <h1>Asset Categories</h1>
+        <p class="subtitle">Define the categories IT Operations chooses from when registering an IT asset. Retire a category instead of deleting it - assets already tagged with it keep their label.</p>
       </div>
     </div>
 
     <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="margin:0;font-size:15px;font-weight:800">Categories</h2>
+        <div id="admin-actions" style="display:none">
+          <button class="btn primary" onclick="openAdd()">+ Add Category</button>
+        </div>
+      </div>
       <div style="overflow-x:auto">
         <table>
           <thead>
             <tr>
               <th>Name</th>
-              <th>Key Prefix</th>
-              <th>Created By</th>
-              <th>Created</th>
-              <th>Last Used</th>
               <th>Status</th>
+              <th>Created</th>
               <th></th>
             </tr>
           </thead>
-          <tbody id="keys-tbody">
-            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>
+          <tbody id="cat-tbody">
+            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -134,58 +125,44 @@ tbody tr:last-child td{border-bottom:none}
   </main>
 </div>
 
-<!-- Generate modal -->
-<div id="modal-generate" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-generate')">
+<!-- Add modal -->
+<div id="modal-add" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add')">
   <div class="modal-box">
     <div class="modal-head">
-      <h2>Generate API Key</h2>
-      <button class="modal-close" onclick="closeModal('modal-generate')">&#x2715;</button>
+      <h2>Add Category</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">&#x2715;</button>
     </div>
-    <form id="form-generate" onsubmit="submitGenerate(event)">
+    <form id="form-add" onsubmit="submitAdd(event)">
       <div class="form-row">
-        <label>Key Name <span style="color:var(--red)">*</span></label>
-        <input id="gen-name" type="text" placeholder="e.g. CI Pipeline, Reporting Bot" required>
-      </div>
-      <div class="form-row">
-        <label>Description</label>
-        <textarea id="gen-desc" placeholder="What will this key be used for?"></textarea>
+        <label>Category Name <span style="color:var(--red)">*</span></label>
+        <input id="add-name" type="text" placeholder="e.g. Server, Laptop, Network Device" required>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn" onclick="closeModal('modal-generate')">Cancel</button>
-        <button type="submit" class="btn primary" id="gen-submit-btn">Generate</button>
+        <button type="button" class="btn" onclick="closeModal('modal-add')">Cancel</button>
+        <button type="submit" class="btn primary" id="add-submit-btn">Add Category</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- One-time reveal modal (no click-outside-to-close) -->
-<div id="modal-reveal" class="modal-overlay">
+<!-- Rename modal -->
+<div id="modal-rename" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-rename')">
   <div class="modal-box">
     <div class="modal-head">
-      <h2>API Key Generated</h2>
+      <h2>Rename Category</h2>
+      <button class="modal-close" onclick="closeModal('modal-rename')">&#x2715;</button>
     </div>
-    <div class="warn-banner">
-      <strong>Copy these credentials now.</strong>
-      The API Secret will never be shown again. If lost, you must generate a new key pair.
-    </div>
-    <div class="reveal-row">
-      <label>API Key</label>
-      <div class="copy-wrap">
-        <input id="reveal-key" type="text" readonly>
-        <button class="copy-btn" onclick="copyField('reveal-key')">Copy</button>
+    <form id="form-rename" onsubmit="submitRename(event)">
+      <input type="hidden" id="rename-id">
+      <div class="form-row">
+        <label>Category Name <span style="color:var(--red)">*</span></label>
+        <input id="rename-name" type="text" required>
       </div>
-    </div>
-    <div class="reveal-row">
-      <label>API Secret</label>
-      <div class="copy-wrap">
-        <input id="reveal-secret" type="text" readonly>
-        <button class="copy-btn" onclick="copyField('reveal-secret')">Copy</button>
+      <div class="form-actions">
+        <button type="button" class="btn" onclick="closeModal('modal-rename')">Cancel</button>
+        <button type="submit" class="btn primary" id="rename-submit-btn">Save</button>
       </div>
-    </div>
-    <div style="margin-top:8px;margin-bottom:4px;font-size:12px;color:var(--muted)">Use these in the <code>X-API-Key</code> and <code>X-API-Secret</code> request headers.</div>
-    <div class="form-actions" style="margin-top:18px">
-      <button class="btn primary" onclick="closeReveal()">I have saved these credentials</button>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -198,6 +175,7 @@ if (!TOKEN) { window.location.replace('../index.html'); }
 
 var ROLE = localStorage.getItem('role') || '';
 var isAdmin = ROLE === 'ADMIN';
+var state = { categories: [] };
 
 (function() {
   var n = localStorage.getItem('username') || '';
@@ -224,7 +202,7 @@ function showToast(msg, err) {
 
 function api(func, body, cb) {
   var payload = Object.assign({ _func: func }, body || {});
-  fetch('/api/v1/admin/apikey', {
+  fetch('/api/v1/admin/platform', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
     body: JSON.stringify(payload)
@@ -246,94 +224,99 @@ function fmtDate(s) {
   try { return new Date(s).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}); } catch(e){ return s; }
 }
 
-function loadKeys() {
-  api('list_api_keys', {}, function(err, d) {
-    var tbody = document.getElementById('keys-tbody');
+function loadCategories() {
+  api('list_asset_categories', {}, function(err, d) {
+    var tbody = document.getElementById('cat-tbody');
     if (!tbody) return;
-    if (err || !d || !d.api_keys) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">Failed to load keys</td></tr>';
+    if (err || !d || !d.categories) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">Failed to load categories</td></tr>';
       return;
     }
-    var keys = d.api_keys;
-    if (!keys.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">No API keys generated yet.' + (isAdmin ? ' Click <strong>+ Generate API Key</strong> to create one.' : '') + '</td></tr>';
+    state.categories = d.categories;
+    if (!state.categories.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">No categories defined yet.' + (isAdmin ? ' Click <strong>+ Add Category</strong> to create one.' : '') + '</td></tr>';
       return;
     }
-    tbody.innerHTML = keys.map(function(k) {
-      var statusPill = k.status === 'ACTIVE'
-        ? '<span class="pill good">Active</span>'
-        : '<span class="pill neu">Revoked</span>';
-      var actions = (isAdmin && k.status === 'ACTIVE')
-        ? '<button class="btn sm danger" onclick="revokeKey(\'' + esc(k.id) + '\',\'' + esc(k.name) + '\')">Revoke</button>'
+    tbody.innerHTML = state.categories.map(function(c) {
+      var statusPill = c.is_active ? '<span class="pill good">Active</span>' : '<span class="pill neu">Inactive</span>';
+      var actions = isAdmin
+        ? '<div class="row-actions">' +
+          '<button class="btn sm" onclick="openRename(\'' + esc(c.id) + '\')">Rename</button>' +
+          '<button class="btn sm' + (c.is_active ? ' danger' : '') + '" onclick="toggleActive(\'' + esc(c.id) + '\',\'' + esc(c.name) + '\',' + (!c.is_active) + ')">' + (c.is_active ? 'Deactivate' : 'Activate') + '</button>' +
+          '</div>'
         : '';
       return '<tr>' +
-        '<td><strong>' + esc(k.name) + '</strong>' + (k.description ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + esc(k.description) + '</div>' : '') + '</td>' +
-        '<td><span class="mono">' + esc(k.key_prefix) + '…</span></td>' +
-        '<td>' + esc(k.created_by_name || k.created_by_email || '-') + '</td>' +
-        '<td>' + fmtDate(k.created_at) + '</td>' +
-        '<td>' + fmtDate(k.last_used_at) + '</td>' +
+        '<td><strong>' + esc(c.name) + '</strong></td>' +
         '<td>' + statusPill + '</td>' +
+        '<td>' + fmtDate(c.created_at) + '</td>' +
         '<td>' + actions + '</td>' +
         '</tr>';
     }).join('');
   });
 }
 
-function openGenerate() {
-  document.getElementById('gen-name').value = '';
-  document.getElementById('gen-desc').value = '';
-  document.getElementById('modal-generate').classList.add('open');
+function openAdd() {
+  document.getElementById('add-name').value = '';
+  document.getElementById('modal-add').classList.add('open');
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
-function submitGenerate(e) {
+function submitAdd(e) {
   e.preventDefault();
-  var name = document.getElementById('gen-name').value.trim();
-  var desc = document.getElementById('gen-desc').value.trim();
-  var btn = document.getElementById('gen-submit-btn');
-  btn.disabled = true; btn.textContent = 'Generating…';
-  api('generate_api_key', { name: name, description: desc || null }, function(err, d) {
-    btn.disabled = false; btn.textContent = 'Generate';
+  var name = document.getElementById('add-name').value.trim();
+  if (!name) return;
+  var btn = document.getElementById('add-submit-btn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  api('add_asset_category', { name: name }, function(err) {
+    btn.disabled = false; btn.textContent = 'Add Category';
     if (err) { showToast('Error: ' + err, true); return; }
-    closeModal('modal-generate');
-    document.getElementById('reveal-key').value    = d.api_key;
-    document.getElementById('reveal-secret').value = d.api_secret;
-    document.getElementById('modal-reveal').classList.add('open');
-    loadKeys();
+    closeModal('modal-add');
+    showToast('Category added');
+    loadCategories();
   });
 }
 
-function closeReveal() {
-  document.getElementById('reveal-key').value    = '';
-  document.getElementById('reveal-secret').value = '';
-  document.getElementById('modal-reveal').classList.remove('open');
+function openRename(id) {
+  var c = state.categories.find(function(x){ return x.id === id; });
+  if (!c) return;
+  document.getElementById('rename-id').value = c.id;
+  document.getElementById('rename-name').value = c.name;
+  document.getElementById('modal-rename').classList.add('open');
 }
 
-function revokeKey(id, name) {
-  if (!confirm('Revoke API key "' + name + '"? It will stop working immediately.')) return;
-  api('revoke_api_key', { id: id }, function(err) {
+function submitRename(e) {
+  e.preventDefault();
+  var id = document.getElementById('rename-id').value;
+  var name = document.getElementById('rename-name').value.trim();
+  if (!name) return;
+  var btn = document.getElementById('rename-submit-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  api('update_asset_category', { id: id, name: name }, function(err) {
+    btn.disabled = false; btn.textContent = 'Save';
     if (err) { showToast('Error: ' + err, true); return; }
-    showToast('API key revoked');
-    loadKeys();
+    closeModal('modal-rename');
+    showToast('Category renamed');
+    loadCategories();
   });
 }
 
-function copyField(id) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  el.select(); el.setSelectionRange(0, 99999);
-  try {
-    document.execCommand('copy');
-    showToast('Copied to clipboard');
-  } catch(e) {
-    navigator.clipboard && navigator.clipboard.writeText(el.value).then(function(){ showToast('Copied to clipboard'); });
-  }
+function toggleActive(id, name, newActive) {
+  var msg = newActive
+    ? 'Activate "' + name + '"? It will reappear in the asset category dropdowns.'
+    : 'Deactivate "' + name + '"? It will no longer be offered for new or edited assets, but existing assets keep this category.';
+  if (!confirm(msg)) return;
+  api('update_asset_category', { id: id, is_active: newActive }, function(err) {
+    if (err) { showToast('Error: ' + err, true); return; }
+    showToast(newActive ? 'Category activated' : 'Category deactivated');
+    loadCategories();
+  });
 }
 
-loadKeys();
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+loadCategories();
 </script>
 </body>
 </html>

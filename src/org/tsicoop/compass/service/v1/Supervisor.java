@@ -283,8 +283,11 @@ public class Supervisor implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT ht.id::text, ht.title, ht.description, ht.priority, ht.created_at::text, u.username AS requester_name " +
+                "SELECT ht.id::text, ht.title, ht.description, ht.priority, ht.created_at::text, u.username AS requester_name, " +
+                "tc.name AS category_name, tsc.name AS subcategory_name " +
                 "FROM helpdesk_tickets ht JOIN users u ON u.id = ht.created_by " +
+                "LEFT JOIN ticket_categories tc ON tc.id = ht.category_id " +
+                "LEFT JOIN ticket_subcategories tsc ON tsc.id = ht.subcategory_id " +
                 "WHERE u.supervisor_id = ? AND ht.approval_status = 'PENDING' " +
                 "ORDER BY ht.created_at ASC LIMIT ? OFFSET ?"
             );
@@ -298,6 +301,8 @@ public class Supervisor implements Action {
                 t.put("priority",       rs.getString("priority"));
                 t.put("created_at",     rs.getString("created_at"));
                 t.put("requester_name", rs.getString("requester_name"));
+                t.put("category_name",  rs.getString("category_name"));
+                t.put("subcategory_name", rs.getString("subcategory_name"));
                 list.add(t);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }

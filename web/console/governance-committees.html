@@ -134,7 +134,7 @@ tr:last-child td{border-bottom:none}
           <tr><td colspan="6" class="empty">Loading meetings…</td></tr>
         </tbody>
       </table>
-      <div class="pagination"><span id="page-info-meetings">—</span><div class="page-btns" id="page-btns-meetings"></div></div>
+      <div class="pagination"><span id="page-info-meetings">-</span><div class="page-btns" id="page-btns-meetings"></div></div>
     </div>
 
     <div class="card">
@@ -151,7 +151,7 @@ tr:last-child td{border-bottom:none}
       <div id="action-list" class="item-list">
         <div class="empty">Loading action items…</div>
       </div>
-      <div class="pagination"><span id="page-info-actions">—</span><div class="page-btns" id="page-btns-actions"></div></div>
+      <div class="pagination"><span id="page-info-actions">-</span><div class="page-btns" id="page-btns-actions"></div></div>
     </div>
   </main>
 </div>
@@ -326,7 +326,7 @@ function esc(s) {
 }
 
 function fmtDate(iso) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   var d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
@@ -384,7 +384,7 @@ function populateMeetingSelects() {
       if (i === 0 && m.status === 'CONDUCTED' && m.has_minutes) return;
       var o = document.createElement('option');
       o.value = m.id;
-      o.textContent = m.committee_name + ' — ' + fmtDate(m.scheduled_at);
+      o.textContent = m.committee_name + ' - ' + fmtDate(m.scheduled_at);
       sel.appendChild(o);
     });
   });
@@ -420,15 +420,15 @@ function renderMeetings() {
   tbody.innerHTML = state.meetings.map(function(m){
     var canLog = (m.status === 'SCHEDULED' || m.status === 'TENTATIVE') || (m.status === 'CONDUCTED' && !m.has_minutes);
     var actionBtn = (m.status !== 'CONDUCTED' && m.status !== 'CANCELLED')
-      ? '<button class="lk" onclick="openLogMinutes(\''+esc(m.id)+'\',\''+esc(m.committee_name+' — '+fmtDate(m.scheduled_at))+'\')">Log Minutes</button>'
+      ? '<button class="lk" onclick="openLogMinutes(\''+esc(m.id)+'\',\''+esc(m.committee_name+' - '+fmtDate(m.scheduled_at))+'\')">Log Minutes</button>'
       : '';
     var editBtn = '<button class="lk" style="margin-left:10px" onclick="openEditMeeting(\''+esc(m.id)+'\')">Edit</button>';
     var delBtn = isAdmin ? '<button class="lk" style="margin-left:10px;color:var(--red)" onclick="deleteMeeting(\''+esc(m.id)+'\')">Delete</button>' : '';
     return '<tr>' +
       '<td>'+esc(fmtDate(m.scheduled_at))+'</td>' +
       '<td><strong>'+esc(m.committee_name)+'</strong></td>' +
-      '<td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.agenda||'—')+'</td>' +
-      '<td>'+esc(m.venue||'—')+'</td>' +
+      '<td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.agenda||'-')+'</td>' +
+      '<td>'+esc(m.venue||'-')+'</td>' +
       '<td>'+meetingStatusPill(m.status)+'</td>' +
       '<td style="white-space:nowrap">'+actionBtn+editBtn+delBtn+'</td>' +
       '</tr>';
@@ -450,7 +450,7 @@ function renderActionItems() {
     return '<div class="item">' +
       '<div class="item-body">' +
         '<strong>'+esc(a.deliverable)+'</strong>' +
-        '<span>Assigned to: '+assignee+' &middot; Due: '+esc(a.due_date||'—')+' &middot; From: '+src+'</span>' +
+        '<span>Assigned to: '+assignee+' &middot; Due: '+esc(a.due_date||'-')+' &middot; From: '+src+'</span>' +
       '</div>' +
       '<div class="item-actions">' +
         actionStatusPill(a.status) +
@@ -743,7 +743,7 @@ function showImportPreview() {
     var assigneeCell = r.assignee_name
       ? (assigneeId
           ? '<span style="color:var(--green);font-weight:700">'+esc(r.assignee_name)+'</span>'
-          : esc(r.assignee_name) + ' <span style="color:var(--amber);font-size:10px">(not found — will be unassigned)</span>')
+          : esc(r.assignee_name) + ' <span style="color:var(--amber);font-size:10px">(not found - will be unassigned)</span>')
       : '<span style="color:var(--muted)">Unassigned</span>';
 
     var statusCell = rowErr
@@ -752,9 +752,9 @@ function showImportPreview() {
 
     var bg = rowErr ? 'background:#fef9f9' : '';
     html += '<tr style="'+bg+'">' +
-      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.deliverable||'—')+'</td>' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.deliverable||'-')+'</td>' +
       '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+assigneeCell+'</td>' +
-      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.due_date||'—')+'</td>' +
+      '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+esc(r.due_date||'-')+'</td>' +
       '<td style="padding:7px 10px;border-bottom:1px solid #edf2f6">'+statusCell+'</td>' +
     '</tr>';
   });
@@ -765,7 +765,7 @@ function showImportPreview() {
   }).length;
 
   document.getElementById('import-summary').textContent =
-    importRows.length + ' row' + (importRows.length !== 1 ? 's' : '') + ' found — ' +
+    importRows.length + ' row' + (importRows.length !== 1 ? 's' : '') + ' found - ' +
     validCount + ' ready to import' + (importRows.length - validCount ? ', ' + (importRows.length - validCount) + ' will be skipped.' : '.');
   document.getElementById('import-preview-table').innerHTML = html;
 

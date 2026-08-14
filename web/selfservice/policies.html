@@ -57,7 +57,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
   </nav>
   <div class="user">
-    <span class="user-name" id="user-name">—</span>
+    <span class="user-name" id="user-name">-</span>
     <a href="../index.html" class="signout" onclick="localStorage.clear();return true;" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
   </div>
 </header>
@@ -75,7 +75,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <thead><tr><th>Title</th><th>Type</th><th>Version</th><th></th></tr></thead>
       <tbody id="pending-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
-    <div class="pagination"><span id="page-info-pending">—</span><div class="page-btns" id="page-btns-pending"></div></div>
+    <div class="pagination"><span id="page-info-pending">-</span><div class="page-btns" id="page-btns-pending"></div></div>
   </div>
 
   <div class="section-card">
@@ -85,7 +85,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <thead><tr><th>Title</th><th>Type</th><th>Version</th><th>Acknowledged</th></tr></thead>
       <tbody id="ack-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
-    <div class="pagination"><span id="page-info-ack">—</span><div class="page-btns" id="page-btns-ack"></div></div>
+    <div class="pagination"><span id="page-info-ack">-</span><div class="page-btns" id="page-btns-ack"></div></div>
   </div>
 </main>
 
@@ -162,11 +162,11 @@ function loadPending(page) {
     if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.policies || [];
     if (cnt) cnt.textContent = (d.total_count || 0) + ' pending';
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">Nothing pending — you\'re all caught up.</td></tr>'; document.getElementById('page-info-pending').textContent = '—'; document.getElementById('page-btns-pending').innerHTML = ''; return; }
+    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">Nothing pending - you\'re all caught up.</td></tr>'; document.getElementById('page-info-pending').textContent = '-'; document.getElementById('page-btns-pending').innerHTML = ''; return; }
     body.innerHTML = list.map(function(p) {
       return '<tr><td><strong>' + esc(p.title) + '</strong></td>' +
         '<td><span class="tag">' + esc(p.type) + '</span></td>' +
-        '<td>' + esc(p.version || '—') + '</td>' +
+        '<td>' + esc(p.version || '-') + '</td>' +
         '<td><button class="btn primary" onclick="acknowledge(\'' + p.id + '\', this)">Acknowledge</button></td></tr>';
     }).join('');
     renderPagination(d, 'page-info-pending', 'page-btns-pending', 'policy', loadPending);
@@ -182,12 +182,12 @@ function loadAck(page) {
     var body = document.getElementById('ack-body');
     if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.attestations || [];
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No acknowledged policies yet.</td></tr>'; document.getElementById('page-info-ack').textContent = '—'; document.getElementById('page-btns-ack').innerHTML = ''; return; }
+    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No acknowledged policies yet.</td></tr>'; document.getElementById('page-info-ack').textContent = '-'; document.getElementById('page-btns-ack').innerHTML = ''; return; }
     body.innerHTML = list.map(function(p) {
       return '<tr><td><strong>' + esc(p.title) + '</strong></td>' +
         '<td><span class="tag">' + esc(p.type) + '</span></td>' +
-        '<td>' + esc(p.version || '—') + '</td>' +
-        '<td><span class="pill good">' + esc(p.acknowledged_at || '—') + '</span></td></tr>';
+        '<td>' + esc(p.version || '-') + '</td>' +
+        '<td><span class="pill good">' + esc(p.acknowledged_at || '-') + '</span></td></tr>';
     }).join('');
     renderPagination(d, 'page-info-ack', 'page-btns-ack', 'policy', loadAck);
   });

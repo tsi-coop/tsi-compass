@@ -135,22 +135,22 @@ tr:hover td{background:#fafcfd}
     <div class="grid col4 mb">
       <div class="card stripe-red">
         <div class="metric-label">Critical</div>
-        <div class="metric-value" id="m-crit">—</div>
+        <div class="metric-value" id="m-crit">-</div>
         <div class="metric-note">Immediate action required</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">High</div>
-        <div class="metric-value" id="m-high">—</div>
+        <div class="metric-value" id="m-high">-</div>
         <div class="metric-note">Remediate within 30 days</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Medium / Low</div>
-        <div class="metric-value" id="m-medlow">—</div>
+        <div class="metric-value" id="m-medlow">-</div>
         <div class="metric-note">Scheduled remediation</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Resolved (YTD)</div>
-        <div class="metric-value" id="m-resolved">—</div>
+        <div class="metric-value" id="m-resolved">-</div>
         <div class="metric-note">Verified closed findings</div>
       </div>
     </div>
@@ -193,7 +193,7 @@ tr:hover td{background:#fafcfd}
         </tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -385,10 +385,10 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
 function hideErr(id){var el=document.getElementById(id);if(el)el.style.display='none';}
-function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'-';}
 
 function fmtDate(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   var d = new Date(s);
   if (isNaN(d)) return s.slice(0, 10);
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
@@ -435,7 +435,7 @@ function renderVulns(list, total) {
     html += '<td><strong>' + esc(v.vuln_code) + '</strong></td>';
     html += '<td>' + esc(v.title) + '</td>';
     html += '<td><span class="sev-'+v.severity+'">'+v.severity.charAt(0)+v.severity.slice(1).toLowerCase()+'</span></td>';
-    html += '<td>' + esc(v.engagement_name || v.source || '—') + '</td>';
+    html += '<td>' + esc(v.engagement_name || v.source || '-') + '</td>';
     html += '<td>' + esc(v.affected_asset) + '</td>';
     html += '<td>' + fmtDate(v.created_at) + '</td>';
     html += '<td' + dueStyle + '>' + fmtDate(due) + '</td>';
@@ -465,7 +465,7 @@ function renderEngagements() {
     var dates = '';
     if (e.start_date || e.end_date) {
       dates = (e.start_date ? fmtDate(e.start_date) : '?') + ' – ' + (e.end_date ? fmtDate(e.end_date) : 'ongoing');
-    } else { dates = '—'; }
+    } else { dates = '-'; }
     html += '<tr>';
     html += '<td><strong>' + esc(e.name) + '</strong></td>';
     html += '<td>' + esc(TYPE_LABEL[e.type] || e.type) + '</td>';
@@ -709,7 +709,7 @@ function downloadVaptTemplate() {
   var due60 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 60).toISOString().slice(0,10);
   var rows = [
     ['Title','Severity','Affected Asset','Source / Scan Tool','Remediation Due (YYYY-MM-DD)','Assigned To (Username)','Description'],
-    ['SQL Injection in login form','HIGH','app.tsicooperative.org/login','Manual Pentest',due30,sampleAssignee,'Parameter is not sanitised — allows authentication bypass.'],
+    ['SQL Injection in login form','HIGH','app.tsicooperative.org/login','Manual Pentest',due30,sampleAssignee,'Parameter is not sanitised - allows authentication bypass.'],
     ['Outdated TLS 1.0 enabled on web server','MEDIUM','web01.internal','Nessus',due60,'','Disable TLS 1.0 and 1.1 in server configuration.']
   ];
   var ws = XLSX.utils.aoa_to_sheet(rows);
@@ -814,7 +814,7 @@ function showVaptImportPreview(rows) {
   });
 
   document.getElementById('vapt-import-body').innerHTML = bodyHtml;
-  document.getElementById('vapt-import-summary').textContent = dataRows.length + ' rows parsed — ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
+  document.getElementById('vapt-import-summary').textContent = dataRows.length + ' rows parsed - ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
   var errEl = document.getElementById('vapt-import-error');
   if (valid === 0) {
     errEl.textContent = 'No valid rows to import. Please fix the errors and re-upload.';

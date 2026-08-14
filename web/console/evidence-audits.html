@@ -101,7 +101,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Title</th><th>Framework</th><th>Lead Auditor</th><th>Scheduled</th><th>Observations</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="aud-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -112,8 +112,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title</label><input id="add-title" required></div>
     <div class="form-row"><label>Scope</label><textarea id="add-scope" required></textarea></div>
     <div class="form-row half">
-      <div><label>Framework</label><select id="add-fw"><option value="">— None —</option></select></div>
-      <div><label>Lead Auditor</label><select id="add-auditor"><option value="">— Select —</option></select></div>
+      <div><label>Framework</label><select id="add-fw"><option value="">- None -</option></select></div>
+      <div><label>Lead Auditor</label><select id="add-auditor"><option value="">- Select -</option></select></div>
     </div>
     <div class="form-row half">
       <div><label>Start Date</label><input id="add-start" type="date" required></div>
@@ -134,7 +134,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Scope</label><textarea id="edit-scope"></textarea></div>
     <div class="form-row half">
       <div><label>Status</label><select id="edit-status"><option>SCHEDULED</option><option>IN_PROGRESS</option><option>DRAFT_REPORT</option><option>FINAL_REPORT</option><option>CLOSED</option></select></div>
-      <div><label>Lead Auditor</label><select id="edit-auditor"><option value="">— Select —</option></select></div>
+      <div><label>Lead Auditor</label><select id="edit-auditor"><option value="">- Select -</option></select></div>
     </div>
     <div class="form-row half">
       <div><label>Start Date</label><input id="edit-start" type="date"></div>
@@ -174,9 +174,9 @@ function renderAudits(list,total){
   body.innerHTML=list.map(function(a){
     return '<tr>'+
       '<td><strong>'+esc(a.title)+'</strong></td>'+
-      '<td>'+esc(a.framework_name||'—')+'</td>'+
-      '<td>'+esc(a.lead_auditor_name||'—')+'</td>'+
-      '<td>'+esc(a.scheduled_start||'—')+' → '+esc(a.scheduled_end||'—')+'</td>'+
+      '<td>'+esc(a.framework_name||'-')+'</td>'+
+      '<td>'+esc(a.lead_auditor_name||'-')+'</td>'+
+      '<td>'+esc(a.scheduled_start||'-')+' → '+esc(a.scheduled_end||'-')+'</td>'+
       '<td><a href="evidence-findings.html" style="color:var(--teal);font-size:12px">'+esc(a.observation_count||0)+' findings</a></td>'+
       '<td>'+(STATUS_PILL[a.status]||esc(a.status))+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteAudit(\''+a.id+'\',\''+esc(a.title)+'\')">Delete</button>':'')+'</div></td>'+

@@ -104,7 +104,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Finding</th><th>Audit</th><th>Priority</th><th>Linked Risk</th><th>Control</th><th>Remediation</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="obs-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -115,12 +115,12 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title</label><input id="add-title" required></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
     <div class="form-row half">
-      <div><label>Audit</label><select id="add-audit"><option value="">— Select —</option></select></div>
+      <div><label>Audit</label><select id="add-audit"><option value="">- Select -</option></select></div>
       <div><label>Priority</label><select id="add-priority"><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
     </div>
     <div class="form-row half">
-      <div><label>Linked Risk</label><select id="add-risk"><option value="">— None —</option></select></div>
-      <div><label>Failed Control</label><select id="add-control"><option value="">— None —</option></select></div>
+      <div><label>Linked Risk</label><select id="add-risk"><option value="">- None -</option></select></div>
+      <div><label>Failed Control</label><select id="add-control"><option value="">- None -</option></select></div>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -149,7 +149,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <div class="modal-overlay" id="modal-import">
   <div class="modal">
     <h2>Import Observations</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import observations. Click <strong>&#8595; Template</strong> first — it includes a live list of your current audits for reference.</p>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import observations. Click <strong>&#8595; Template</strong> first - it includes a live list of your current audits for reference.</p>
     <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
     <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
     <div class="modal-foot">
@@ -188,10 +188,10 @@ function renderObs(list,total){
   body.innerHTML=list.map(function(o){
     return '<tr>'+
       '<td><strong>'+esc(o.title)+'</strong></td>'+
-      '<td>'+esc(o.audit_title||'—')+'</td>'+
+      '<td>'+esc(o.audit_title||'-')+'</td>'+
       '<td>'+(PRIORITY_PILL[o.priority]||esc(o.priority))+'</td>'+
-      '<td>'+esc(o.risk_code||o.linked_risk_title||'—')+'</td>'+
-      '<td>'+esc(o.failed_control_code||'—')+'</td>'+
+      '<td>'+esc(o.risk_code||o.linked_risk_title||'-')+'</td>'+
+      '<td>'+esc(o.failed_control_code||'-')+'</td>'+
       '<td>'+esc(o.remediation_status||'No plan')+'</td>'+
       '<td>'+(STATUS_PILL[o.status]||esc(o.status))+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+o.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteObservation(\''+o.id+'\',\''+esc(o.title)+'\')">Delete</button>':'')+'</div></td>'+
@@ -327,7 +327,7 @@ function downloadTemplate(){
       ['Priority','HIGH, MEDIUM, LOW  (defaults to MEDIUM if blank)'],
       ['Audit Title','Must match an existing audit title exactly (see Audits sheet). Leave blank to import without linking.'],
       ['',''],
-      ['','— Existing Audits —']
+      ['','- Existing Audits -']
     ];
     audits.forEach(function(a){refData.push([a.title,'Status: '+(a.status||'')+'  |  Start: '+(a.scheduled_start||'')]);});
     var ref=XLSX.utils.aoa_to_sheet(refData);

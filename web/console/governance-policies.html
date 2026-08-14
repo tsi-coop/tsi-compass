@@ -176,7 +176,7 @@ tr:last-child td{border-bottom:none}
           <tr><td colspan="9" class="empty">Loading policies…</td></tr>
         </tbody>
       </table>
-      <div class="pagination"><span id="page-info-policies">—</span><div class="page-btns" id="page-btns-policies"></div></div>
+      <div class="pagination"><span id="page-info-policies">-</span><div class="page-btns" id="page-btns-policies"></div></div>
     </div>
   </main>
 </div>
@@ -275,7 +275,7 @@ tr:last-child td{border-bottom:none}
       <div class="form-field">
         <label class="form-label">Approval Decision</label>
         <select class="form-select" id="ap-decision">
-          <option value="PUBLISHED">Approved — Publish Immediately</option>
+          <option value="PUBLISHED">Approved - Publish Immediately</option>
           <option value="DRAFT">Returned for Revision</option>
         </select>
       </div>
@@ -326,7 +326,7 @@ function esc(s) {
 }
 
 function fmtDate(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   var d = new Date(s);
   if (isNaN(d.getTime())) return s;
   return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
@@ -404,9 +404,9 @@ function renderPolicies() {
     return '<tr>' +
       '<td><strong>'+esc(p.title)+'</strong></td>' +
       '<td>'+esc(p.type.charAt(0)+p.type.slice(1).toLowerCase())+'</td>' +
-      '<td>'+esc(p.version||'—')+'</td>' +
-      '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.framework_tags||'—')+'</td>' +
-      '<td>'+esc(p.owner_name||'—')+'</td>' +
+      '<td>'+esc(p.version||'-')+'</td>' +
+      '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.framework_tags||'-')+'</td>' +
+      '<td>'+esc(p.owner_name||'-')+'</td>' +
       '<td>'+esc(fmtDate(p.review_date))+'</td>' +
       '<td>'+statusCell+'</td>' +
       '<td style="white-space:nowrap">'+fileCell+'</td>' +

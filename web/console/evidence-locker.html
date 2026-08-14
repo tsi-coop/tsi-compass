@@ -99,7 +99,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>File Name</th><th>Audit</th><th>Uploaded By</th><th>Uploaded At</th><th>SHA-256</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="ev-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -109,7 +109,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <h2>Upload Evidence</h2>
     <div style="background:#eaf5f3;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--teal)">File is uploaded to secure server storage. SHA-256 integrity checksum is computed automatically.</div>
     <div class="form-row"><label>Evidence File</label><input type="file" id="add-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" required style="height:auto;padding:8px 10px"></div>
-    <div class="form-row"><label>Linked Audit</label><select id="add-audit"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Linked Audit</label><select id="add-audit"><option value="">- None -</option></select></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn primary" onclick="submitAdd()">Upload &amp; Lock Record</button>
@@ -144,10 +144,10 @@ function renderEvidence(list,total){
     var locked=e.is_locked?'<span class="pill good">Locked</span>':'<span class="pill neu">Unlocked</span>';
     return '<tr>'+
       '<td><strong>'+esc(e.file_name)+'</strong><div style="font-size:11px;color:var(--muted)">'+esc(e.file_path)+'</div></td>'+
-      '<td>'+esc(e.audit_title||'—')+'</td>'+
-      '<td>'+esc(e.uploaded_by_name||'—')+'</td>'+
-      '<td>'+esc(e.uploaded_at||'—')+'</td>'+
-      '<td><span class="hash" title="'+esc(e.sha256_checksum)+'">'+esc(e.sha256_checksum||'—')+'</span></td>'+
+      '<td>'+esc(e.audit_title||'-')+'</td>'+
+      '<td>'+esc(e.uploaded_by_name||'-')+'</td>'+
+      '<td>'+esc(e.uploaded_at||'-')+'</td>'+
+      '<td><span class="hash" title="'+esc(e.sha256_checksum)+'">'+esc(e.sha256_checksum||'-')+'</span></td>'+
       '<td>'+locked+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="downloadEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Download</button>'+(isSuperAdmin?' <button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteEvidence(\''+e.id+'\',\''+esc(e.file_name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';

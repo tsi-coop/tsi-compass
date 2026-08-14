@@ -101,7 +101,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <tbody id="inc-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -115,7 +115,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Description *</label><textarea id="add-desc" placeholder="What happened? Initial scope and impact…"></textarea></div>
     <div class="form-row">
       <label>Severity *</label>
-      <select id="add-severity"><option value="">— Select —</option><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select>
+      <select id="add-severity"><option value="">- Select -</option><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -146,14 +146,14 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 
 <div class="modal-overlay" id="modal-docs">
   <div class="modal" style="width:660px">
-    <h2>Documents — <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
+    <h2>Documents - <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
     <div id="docs-list"><div class="empty">Loading…</div></div>
     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)">Upload Document</div>
     <div class="form-row">
       <label>Select File</label>
       <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" style="height:auto;padding:8px 10px">
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV — max supported by server config.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV - max supported by server config.</div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-docs')">Close</button>
       <button class="btn primary" onclick="uploadDoc()">Upload File</button>
@@ -190,11 +190,11 @@ function renderIncidents(list,total){
     var hasRCA=!!(i.rca_root_cause||i.rca_preventative_actions);
     return '<tr>'+
       '<td><strong>'+esc(i.title)+'</strong>'+(i.ticket_escalation_id?' <span class="pill neu">From Helpdesk</span>':'')+(i.description?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(i.description.substring(0,80))+(i.description.length>80?'…':'')+'</div>':'')+'</td>'+
-      '<td>'+(SEVPILL[i.severity]||esc(i.severity||'—'))+'</td>'+
-      '<td>'+(SPILL[i.status]||esc(i.status||'—'))+'</td>'+
+      '<td>'+(SEVPILL[i.severity]||esc(i.severity||'-'))+'</td>'+
+      '<td>'+(SPILL[i.status]||esc(i.status||'-'))+'</td>'+
       '<td>'+(hasRCA?'<span class="pill good">Yes</span>':'<span class="pill neu">No</span>')+'</td>'+
       '<td>'+esc((i.created_at||'').substring(0,10))+'</td>'+
-      '<td>'+esc((i.resolved_at||'—').substring(0,10))+'</td>'+
+      '<td>'+esc((i.resolved_at||'-').substring(0,10))+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+i.id+'\')">Update</button><button class="btn sm" onclick="downloadRca(\''+i.id+'\',\''+esc(i.title)+'\')" style="color:var(--teal);border-color:var(--teal)">&#128196; RCA Report</button><button class="btn sm" onclick="openDocs(\''+i.id+'\',\''+esc(i.title)+'\')">&#128206; Attach</button></div></td>'+
     '</tr>';
   }).join('');
@@ -320,7 +320,7 @@ function loadDocs() {
       docs.map(function(doc) {
         return '<tr><td style="padding:6px 8px;font-size:13px">'+esc(doc.file_name)+'</td>' +
           '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc((doc.uploaded_at||'').substring(0,10))+'</td>' +
-          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'—')+'</td>' +
+          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'-')+'</td>' +
           '<td style="padding:6px 8px"><button class="btn sm" onclick="downloadDoc(\''+doc.id+'\',\''+esc(doc.file_name)+'\')">&#8595; Download</button></td></tr>';
       }).join('') + '</tbody></table>';
   });

@@ -41,6 +41,8 @@ public class Operations implements Action {
                 case "escalate_ticket":    escalateTicket(req, res, input);                       break;
                 case "list_staff":         OutputProcessor.send(res, 200, listStaff());           break;
                 case "list_ticket_categories": OutputProcessor.send(res, 200, listTicketCategories()); break;
+                case "list_ticket_subcategories": OutputProcessor.send(res, 200, listTicketSubcategories(input)); break;
+                case "list_asset_categories": OutputProcessor.send(res, 200, listAssetCategories()); break;
                 case "delete_change":      deleteChange(req, res, input);                         break;
                 case "delete_asset":       deleteAsset(req, res, input);                          break;
                 case "delete_vendor":      deleteVendor(req, res, input);                         break;
@@ -251,7 +253,7 @@ public class Operations implements Action {
     @SuppressWarnings("unchecked")
     private JSONObject listAssets(JSONObject input) throws Exception {
         String criticality = (String) input.get("criticality");
-        String category    = (String) input.get("category");
+        String categoryId  = (String) input.get("category_id");
         String patchStatus = (String) input.get("patch_status");
         String search       = (String) input.get("search");
         boolean export = Boolean.TRUE.equals(input.get("export"));
@@ -268,9 +270,9 @@ public class Operations implements Action {
 
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (!isBlank(criticality)) where.append(" AND a.criticality=?");
-        if (!isBlank(category))    where.append(" AND a.category=?");
+        if (!isBlank(categoryId))  where.append(" AND a.category_id=?::uuid");
         if (!isBlank(patchStatus)) where.append(" AND a.patch_status=?");
-        if (!isBlank(search))      where.append(" AND (a.name ILIKE ? OR a.description ILIKE ?)");
+        if (!isBlank(search))      where.append(" AND (a.name ILIKE ? OR a.description ILIKE ? OR a.asset_tag ILIKE ? OR a.location ILIKE ?)");
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         JSONArray list = new JSONArray();
@@ -283,9 +285,9 @@ public class Operations implements Action {
                 p = conn.prepareStatement(countSql);
                 int idx = 1;
                 if (!isBlank(criticality)) p.setString(idx++, criticality);
-                if (!isBlank(category))    p.setString(idx++, category);
+                if (!isBlank(categoryId))  p.setString(idx++, categoryId);
                 if (!isBlank(patchStatus)) p.setString(idx++, patchStatus);
-                if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+                if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
                 rs = p.executeQuery();
                 if (rs.next()) total = rs.getLong(1);
                 try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
@@ -293,23 +295,26 @@ public class Operations implements Action {
             }
 
             String dataSql =
-                "SELECT a.id::text, a.name, a.category, a.criticality, a.description, " +
+                "SELECT a.id::text, a.name, a.asset_tag, a.location, ac.id::text AS category_id, ac.name AS category_name, a.criticality, a.description, " +
                 "a.patch_status, a.lifecycle_status, u.username AS owner_name, a.owner_id::text " +
-                "FROM assets a LEFT JOIN users u ON u.id = a.owner_id" + where +
+                "FROM assets a LEFT JOIN users u ON u.id = a.owner_id LEFT JOIN asset_categories ac ON ac.id = a.category_id" + where +
                 " ORDER BY CASE a.criticality WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, a.name" +
                 (export ? "" : " LIMIT ? OFFSET ?");
             p = conn.prepareStatement(dataSql); int idx = 1;
             if (!isBlank(criticality)) p.setString(idx++, criticality);
-            if (!isBlank(category))    p.setString(idx++, category);
+            if (!isBlank(categoryId))  p.setString(idx++, categoryId);
             if (!isBlank(patchStatus)) p.setString(idx++, patchStatus);
-            if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); }
+            if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
             if (!export) { p.setLong(idx++, limit); p.setLong(idx++, offset); }
             rs = p.executeQuery();
             while (rs.next()) {
                 JSONObject a = new JSONObject();
                 a.put("id",               rs.getString("id"));
                 a.put("name",             rs.getString("name"));
-                a.put("category",         rs.getString("category"));
+                a.put("asset_tag",        rs.getString("asset_tag"));
+                a.put("location",         rs.getString("location"));
+                a.put("category_id",      rs.getString("category_id"));
+                a.put("category_name",    rs.getString("category_name"));
                 a.put("criticality",      rs.getString("criticality"));
                 a.put("description",      rs.getString("description"));
                 a.put("patch_status",     rs.getString("patch_status"));
@@ -329,25 +334,35 @@ public class Operations implements Action {
 
     @SuppressWarnings("unchecked")
     private void addAsset(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
-        String name  = (String) input.get("name");
-        String cat   = (String) input.get("category");
-        String crit  = (String) input.get("criticality");
-        if (isBlank(name) || isBlank(cat) || isBlank(crit)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "name, category, criticality required", req.getRequestURI()); return;
+        String name       = (String) input.get("name");
+        String assetTag   = (String) input.get("asset_tag");
+        String categoryId = (String) input.get("category_id");
+        String crit       = (String) input.get("criticality");
+        if (isBlank(name) || isBlank(assetTag) || isBlank(categoryId) || isBlank(crit)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "name, asset_tag, category_id, criticality required", req.getRequestURI()); return;
         }
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO assets (name,category,criticality,description,owner_id,patch_status,lifecycle_status) VALUES (?,?,?,?,?::uuid,?,?) RETURNING id::text");
-            p.setString(1,name); p.setString(2,cat); p.setString(3,crit);
-            p.setString(4,(String)input.get("description"));
-            String ownerId=(String)input.get("owner_id"); p.setString(5, isBlank(ownerId)?null:ownerId);
-            String ps=(String)input.get("patch_status"); p.setString(6, isBlank(ps)?"CURRENT":ps);
-            String ls=(String)input.get("lifecycle_status"); p.setString(7, isBlank(ls)?"ACTIVE":ls);
+            p = conn.prepareStatement("INSERT INTO assets (name,asset_tag,location,category_id,criticality,description,owner_id,patch_status,lifecycle_status) VALUES (?,?,?,?::uuid,?,?,?::uuid,?,?) RETURNING id::text");
+            p.setString(1,name); p.setString(2,assetTag.trim());
+            p.setString(3,(String)input.get("location"));
+            p.setString(4,categoryId); p.setString(5,crit);
+            p.setString(6,(String)input.get("description"));
+            String ownerId=(String)input.get("owner_id"); p.setString(7, isBlank(ownerId)?null:ownerId);
+            String ps=(String)input.get("patch_status"); p.setString(8, isBlank(ps)?"CURRENT":ps);
+            String ls=(String)input.get("lifecycle_status"); p.setString(9, isBlank(ls)?"ACTIVE":ls);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             if (rs.next()) result.put("id", rs.getString(1));
             OutputProcessor.send(res, 200, result);
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unique") || msg.contains("duplicate")) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "An asset with that asset tag already exists", req.getRequestURI());
+            } else {
+                throw e;
+            }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 
@@ -358,12 +373,21 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("UPDATE assets SET name=COALESCE(?,name), criticality=COALESCE(?,criticality), description=COALESCE(?,description), patch_status=COALESCE(?,patch_status), lifecycle_status=COALESCE(?,lifecycle_status), owner_id=COALESCE(?::uuid,owner_id) WHERE id=?");
-            p.setString(1,(String)input.get("name")); p.setString(2,(String)input.get("criticality"));
-            p.setString(3,(String)input.get("description")); p.setString(4,(String)input.get("patch_status"));
-            p.setString(5,(String)input.get("lifecycle_status")); p.setString(6,(String)input.get("owner_id"));
-            p.setObject(7, UUID.fromString(id)); p.executeUpdate();
+            p = conn.prepareStatement("UPDATE assets SET name=COALESCE(?,name), asset_tag=COALESCE(?,asset_tag), location=COALESCE(?,location), category_id=COALESCE(?::uuid,category_id), criticality=COALESCE(?,criticality), description=COALESCE(?,description), patch_status=COALESCE(?,patch_status), lifecycle_status=COALESCE(?,lifecycle_status), owner_id=COALESCE(?::uuid,owner_id) WHERE id=?");
+            String assetTag=(String)input.get("asset_tag"); p.setString(1,(String)input.get("name")); p.setString(2, isBlank(assetTag)?null:assetTag.trim());
+            p.setString(3,(String)input.get("location")); p.setString(4,(String)input.get("category_id"));
+            p.setString(5,(String)input.get("criticality"));
+            p.setString(6,(String)input.get("description")); p.setString(7,(String)input.get("patch_status"));
+            p.setString(8,(String)input.get("lifecycle_status")); p.setString(9,(String)input.get("owner_id"));
+            p.setObject(10, UUID.fromString(id)); p.executeUpdate();
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unique") || msg.contains("duplicate")) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", "An asset with that asset tag already exists", req.getRequestURI());
+            } else {
+                throw e;
+            }
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
     }
 
@@ -526,12 +550,15 @@ public class Operations implements Action {
                 "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, " +
                 "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text, " +
                 "tc.id::text AS category_id, tc.name AS category_name, " +
+                "tsc.id::text AS subcategory_id, tsc.name AS subcategory_name, " +
+                "ht.resolution_notes, " +
                 "inc.id::text AS incident_id " +
                 "FROM helpdesk_tickets ht " +
                 "LEFT JOIN assets a ON a.id = ht.asset_id " +
                 "LEFT JOIN users cb ON cb.id = ht.created_by " +
                 "LEFT JOIN users at ON at.id = ht.assigned_to " +
                 "LEFT JOIN ticket_categories tc ON tc.id = ht.category_id " +
+                "LEFT JOIN ticket_subcategories tsc ON tsc.id = ht.subcategory_id " +
                 "LEFT JOIN incidents inc ON inc.ticket_escalation_id = ht.id" + where +
                 " ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, ht.created_at DESC" +
                 (export ? "" : " LIMIT ? OFFSET ?");
@@ -556,6 +583,9 @@ public class Operations implements Action {
                 t.put("assigned_to",      rs.getString("assigned_to"));
                 t.put("category_id",      rs.getString("category_id"));
                 t.put("category_name",    rs.getString("category_name"));
+                t.put("subcategory_id",   rs.getString("subcategory_id"));
+                t.put("subcategory_name", rs.getString("subcategory_name"));
+                t.put("resolution_notes", rs.getString("resolution_notes"));
                 t.put("incident_id",      rs.getString("incident_id"));
                 list.add(t);
             }
@@ -580,12 +610,13 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,category_id,created_by,assigned_to,asset_id) VALUES (?,?,?::varchar,?::uuid,?::uuid,?::uuid,?::uuid) RETURNING id::text");
+            p = conn.prepareStatement("INSERT INTO helpdesk_tickets (title,description,priority,category_id,subcategory_id,created_by,assigned_to,asset_id) VALUES (?,?,?::varchar,?::uuid,?::uuid,?::uuid,?::uuid,?::uuid) RETURNING id::text");
             p.setString(1,title); p.setString(2,desc); p.setString(3, isBlank(priority)?"MEDIUM":priority);
             p.setString(4, categoryId);
-            String createdBy=(String)input.get("created_by"); p.setString(5, isBlank(createdBy)?null:createdBy);
-            String assignedTo=(String)input.get("assigned_to"); p.setString(6, isBlank(assignedTo)?null:assignedTo);
-            String assetId=(String)input.get("asset_id"); p.setString(7, isBlank(assetId)?null:assetId);
+            String subcategoryId=(String)input.get("subcategory_id"); p.setString(5, isBlank(subcategoryId)?null:subcategoryId);
+            String createdBy=(String)input.get("created_by"); p.setString(6, isBlank(createdBy)?null:createdBy);
+            String assignedTo=(String)input.get("assigned_to"); p.setString(7, isBlank(assignedTo)?null:assignedTo);
+            String assetId=(String)input.get("asset_id"); p.setString(8, isBlank(assetId)?null:assetId);
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             if (rs.next()) result.put("id", rs.getString(1));
@@ -601,17 +632,34 @@ public class Operations implements Action {
 
         JSONObject before = getTicketSnapshot(id);
 
+        String catId    = (String) input.get("category_id");
+        String subcatId = (String) input.get("subcategory_id");
+        // A subcategory belongs to exactly one category, so whenever the
+        // caller sends category_id (the only current caller, the console's
+        // full-form edit modal, always does) subcategory_id is set directly
+        // — including to NULL — rather than COALESCE'd, so re-pointing the
+        // category without re-picking a subcategory can't leave a
+        // subcategory on the ticket that belongs to the old category.
+        boolean categoryProvided = !isBlank(catId);
+
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             // Excludes PENDING rows so IT/GRC can't act on a ticket out-of-band
             // (e.g. a stale tab) before a Supervisor has approved it.
-            p = conn.prepareStatement("UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id) WHERE id=? AND approval_status != 'PENDING'");
+            p = conn.prepareStatement(
+                "UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), " +
+                "assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id), " +
+                (categoryProvided ? "subcategory_id=?::uuid, " : "subcategory_id=COALESCE(?::uuid,subcategory_id), ") +
+                "resolution_notes=COALESCE(?,resolution_notes) WHERE id=? AND approval_status != 'PENDING'"
+            );
             p.setString(1, newStatus); p.setString(2,(String)input.get("priority"));
             p.setString(3,(String)input.get("description"));
             String at=(String)input.get("assigned_to"); p.setString(4, isBlank(at)?null:at);
-            String catId=(String)input.get("category_id"); p.setString(5, isBlank(catId)?null:catId);
-            p.setObject(6, UUID.fromString(id));
+            p.setString(5, isBlank(catId)?null:catId);
+            p.setString(6, isBlank(subcatId)?null:subcatId);
+            p.setString(7, (String)input.get("resolution_notes"));
+            p.setObject(8, UUID.fromString(id));
             int updated = p.executeUpdate();
             if (updated == 0) {
                 OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found or awaiting supervisor approval", req.getRequestURI()); return;
@@ -715,6 +763,36 @@ public class Operations implements Action {
         try {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement("SELECT id::text, name FROM ticket_categories WHERE is_active = TRUE ORDER BY name");
+            rs = p.executeQuery();
+            while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); categories.add(c); }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("categories", categories); return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listTicketSubcategories(JSONObject input) throws Exception {
+        String categoryId = (String) input.get("category_id");
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray subcategories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            String sql = "SELECT id::text, name FROM ticket_subcategories WHERE is_active = TRUE" +
+                (isBlank(categoryId) ? "" : " AND category_id = ?::uuid") + " ORDER BY name";
+            p = conn.prepareStatement(sql);
+            if (!isBlank(categoryId)) p.setString(1, categoryId);
+            rs = p.executeQuery();
+            while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); subcategories.add(c); }
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+        JSONObject result = new JSONObject(); result.put("success", true); result.put("subcategories", subcategories); return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listAssetCategories() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray categories = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT id::text, name FROM asset_categories WHERE is_active = TRUE ORDER BY name");
             rs = p.executeQuery();
             while (rs.next()) { JSONObject c=new JSONObject(); c.put("id",rs.getString(1)); c.put("name",rs.getString(2)); categories.add(c); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -866,24 +944,37 @@ public class Operations implements Action {
         if (rows == null || rows.isEmpty()) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "rows array required", req.getRequestURI()); return;
         }
-        PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         int imported = 0; JSONArray errors = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+
+            java.util.Map<String,String> categoryByName = new java.util.HashMap<>();
+            p = conn.prepareStatement("SELECT id::text, name FROM asset_categories WHERE is_active = TRUE");
+            rs = p.executeQuery();
+            while (rs.next()) categoryByName.put(rs.getString("name").toUpperCase(), rs.getString("id"));
+            try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
+            rs = null; p = null;
+
             p = conn.prepareStatement(
-                "INSERT INTO assets (name, category, criticality, description, patch_status, lifecycle_status) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO assets (name, asset_tag, location, category_id, criticality, description, patch_status, lifecycle_status) VALUES (?, ?, ?, ?::uuid, ?, ?, ?, ?)"
             );
             for (Object obj : rows) {
                 JSONObject row = (JSONObject) obj;
-                String name = strVal(row, "name"); String cat = strVal(row, "category"); String crit = strVal(row, "criticality");
-                if (isBlank(name) || isBlank(cat) || isBlank(crit)) { errors.add("Row skipped: name, category and criticality required"); continue; }
+                String name = strVal(row, "name"); String assetTag = strVal(row, "asset_tag");
+                String cat = strVal(row, "category"); String crit = strVal(row, "criticality");
+                if (isBlank(name) || isBlank(assetTag) || isBlank(cat) || isBlank(crit)) { errors.add("Row skipped: name, asset tag, category and criticality required"); continue; }
+                String categoryId = categoryByName.get(cat.trim().toUpperCase());
+                if (categoryId == null) { errors.add("Row '"+name+"': unknown category '"+cat+"'"); continue; }
                 try {
-                    p.setString(1, name); p.setString(2, cat.toUpperCase()); p.setString(3, crit.toUpperCase());
-                    p.setString(4, strVal(row, "description"));
+                    p.setString(1, name); p.setString(2, assetTag.trim());
+                    p.setString(3, strVal(row, "location"));
+                    p.setString(4, categoryId); p.setString(5, crit.toUpperCase());
+                    p.setString(6, strVal(row, "description"));
                     String ps = strVal(row, "patch_status");
-                    p.setString(5, isBlank(ps) ? "CURRENT" : ps.toUpperCase());
+                    p.setString(7, isBlank(ps) ? "CURRENT" : ps.toUpperCase());
                     String ls = strVal(row, "lifecycle_status");
-                    p.setString(6, isBlank(ls) ? "ACTIVE" : ls.toUpperCase());
+                    p.setString(8, isBlank(ls) ? "ACTIVE" : ls.toUpperCase());
                     p.executeUpdate(); imported++;
                 } catch (Exception ex) { errors.add("Row '"+name+"': "+ex.getMessage()); }
             }

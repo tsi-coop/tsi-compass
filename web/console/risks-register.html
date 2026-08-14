@@ -160,7 +160,7 @@ tr:last-child td{border-bottom:none}
         </tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -373,12 +373,12 @@ function renderRisks(total) {
     var sc = scoreColor(r.inherent_risk_score);
     var statusCls = r.inherent_risk_score >= 13 ? 'risk' : (r.inherent_risk_score >= 6 ? 'watch' : 'good');
     var statusLabel = STATUS_LABEL[r.status] || r.status;
-    var treatLabel = TREAT_LABEL[r.treatment_strategy] || (r.treatment_strategy || '—');
+    var treatLabel = TREAT_LABEL[r.treatment_strategy] || (r.treatment_strategy || '-');
     html += '<tr>';
     html += '<td><strong>' + esc(r.risk_code) + '</strong></td>';
     html += '<td>' + esc(r.title) + '</td>';
     html += '<td>' + esc(r.category) + '</td>';
-    html += '<td>' + esc(r.owner_name || '—') + '</td>';
+    html += '<td>' + esc(r.owner_name || '-') + '</td>';
     html += '<td style="text-align:center;font-weight:800">' + r.inherent_impact + '</td>';
     html += '<td style="text-align:center;font-weight:800">' + r.inherent_likelihood + '</td>';
     html += '<td style="text-align:center"><span class="pill ' + sc.cls + '">' + r.inherent_risk_score + '</span></td>';
@@ -578,7 +578,7 @@ function loadHeatmapData() {
   });
 }
 
-function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'—';}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'-';}
 
 // ---- Excel Template Download ----
 var RISK_CATEGORIES = ['Third-Party','Operational','IT Operations','Compliance','Access Control','IT Infrastructure','Continuity','Human Factor','Financial','Regulatory'];
@@ -682,7 +682,7 @@ function showRiskImportPreview(rows) {
   });
 
   document.getElementById('risk-import-body').innerHTML = bodyHtml;
-  document.getElementById('risk-import-summary').textContent = dataRows.length + ' rows parsed — ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
+  document.getElementById('risk-import-summary').textContent = dataRows.length + ' rows parsed - ' + valid + ' valid, ' + errors + ' with errors (errors will be skipped).';
   var errEl = document.getElementById('risk-import-error');
   if (valid === 0) {
     errEl.textContent = 'No valid rows to import. Please fix the errors and re-upload.';

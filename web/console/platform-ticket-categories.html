@@ -65,6 +65,7 @@ tbody tr:last-child td{border-bottom:none}
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav active">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -94,7 +95,7 @@ tbody tr:last-child td{border-bottom:none}
       <div>
         <div class="eyebrow">Platform &amp; Access</div>
         <h1>Ticket Categories</h1>
-        <p class="subtitle">Define the categories staff and employees choose from when raising a helpdesk ticket. Retire a category instead of deleting it — tickets already filed against it keep their label.</p>
+        <p class="subtitle">Define the categories staff and employees choose from when raising a helpdesk ticket. Retire a category instead of deleting it - tickets already filed against it keep their label.</p>
       </div>
     </div>
 
@@ -111,12 +112,13 @@ tbody tr:last-child td{border-bottom:none}
             <tr>
               <th>Name</th>
               <th>Status</th>
+              <th>Subcategories</th>
               <th>Created</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="cat-tbody">
-            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -165,6 +167,48 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Subcategories modal -->
+<div id="modal-subcategories" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-subcategories')">
+  <div class="modal-box" style="max-width:520px;max-height:80vh;overflow-y:auto">
+    <div class="modal-head">
+      <h2>Subcategories - <span id="subcat-category-name">-</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-subcategories')">&#x2715;</button>
+    </div>
+    <input type="hidden" id="subcat-category-id">
+    <form id="form-add-subcategory" onsubmit="submitAddSubcategory(event)" style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="add-subcat-name" type="text" placeholder="e.g. Login Issue, Access Request" style="flex:1;height:36px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:0 10px;color:var(--ink);background:#fff;font-family:inherit" required>
+      <button type="submit" class="btn primary sm" id="add-subcat-submit-btn">+ Add</button>
+    </form>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Name</th><th>Status</th><th></th></tr></thead>
+        <tbody id="subcat-tbody"><tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Rename subcategory modal -->
+<div id="modal-rename-subcategory" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-rename-subcategory')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Rename Subcategory</h2>
+      <button class="modal-close" onclick="closeModal('modal-rename-subcategory')">&#x2715;</button>
+    </div>
+    <form id="form-rename-subcategory" onsubmit="submitRenameSubcategory(event)">
+      <input type="hidden" id="rename-subcat-id">
+      <div class="form-row">
+        <label>Subcategory Name <span style="color:var(--red)">*</span></label>
+        <input id="rename-subcat-name" type="text" required>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" onclick="closeModal('modal-rename-subcategory')">Cancel</button>
+        <button type="submit" class="btn primary" id="rename-subcat-submit-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="rbac.js"></script>
 <script src="notifications.js"></script>
@@ -174,7 +218,7 @@ if (!TOKEN) { window.location.replace('../index.html'); }
 
 var ROLE = localStorage.getItem('role') || '';
 var isAdmin = ROLE === 'ADMIN';
-var state = { categories: [] };
+var state = { categories: [], subcategories: [] };
 
 (function() {
   var n = localStorage.getItem('username') || '';
@@ -219,7 +263,7 @@ function api(func, body, cb) {
 }
 
 function fmtDate(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   try { return new Date(s).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}); } catch(e){ return s; }
 }
 
@@ -228,30 +272,48 @@ function loadCategories() {
     var tbody = document.getElementById('cat-tbody');
     if (!tbody) return;
     if (err || !d || !d.categories) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">Failed to load categories</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Failed to load categories</td></tr>';
       return;
     }
     state.categories = d.categories;
-    if (!state.categories.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">No categories defined yet.' + (isAdmin ? ' Click <strong>+ Add Category</strong> to create one.' : '') + '</td></tr>';
-      return;
-    }
-    tbody.innerHTML = state.categories.map(function(c) {
-      var statusPill = c.is_active ? '<span class="pill good">Active</span>' : '<span class="pill neu">Inactive</span>';
-      var actions = isAdmin
-        ? '<div class="row-actions">' +
-          '<button class="btn sm" onclick="openRename(\'' + esc(c.id) + '\')">Rename</button>' +
-          '<button class="btn sm' + (c.is_active ? ' danger' : '') + '" onclick="toggleActive(\'' + esc(c.id) + '\',\'' + esc(c.name) + '\',' + (!c.is_active) + ')">' + (c.is_active ? 'Deactivate' : 'Activate') + '</button>' +
-          '</div>'
-        : '';
-      return '<tr>' +
-        '<td><strong>' + esc(c.name) + '</strong></td>' +
-        '<td>' + statusPill + '</td>' +
-        '<td>' + fmtDate(c.created_at) + '</td>' +
-        '<td>' + actions + '</td>' +
-        '</tr>';
-    }).join('');
+    loadSubcategories(renderCategories);
   });
+}
+
+function loadSubcategories(cb) {
+  api('list_ticket_subcategories', {}, function(err, d) {
+    state.subcategories = (!err && d && d.subcategories) ? d.subcategories : [];
+    if (cb) cb();
+  });
+}
+
+function renderCategories() {
+  var tbody = document.getElementById('cat-tbody');
+  if (!tbody) return;
+  if (!state.categories.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No categories defined yet.' + (isAdmin ? ' Click <strong>+ Add Category</strong> to create one.' : '') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.categories.map(function(c) {
+    var statusPill = c.is_active ? '<span class="pill good">Active</span>' : '<span class="pill neu">Inactive</span>';
+    var subcats = state.subcategories.filter(function(s){ return s.category_id === c.id; });
+    var activeCount = subcats.filter(function(s){ return s.is_active; }).length;
+    var subcatCell = '<button class="btn sm" onclick="openManageSubcategories(\'' + esc(c.id) + '\',\'' + esc(c.name) + '\')">' +
+      (subcats.length ? activeCount + ' of ' + subcats.length + ' active' : (isAdmin ? '+ Add' : 'None defined')) + '</button>';
+    var actions = isAdmin
+      ? '<div class="row-actions">' +
+        '<button class="btn sm" onclick="openRename(\'' + esc(c.id) + '\')">Rename</button>' +
+        '<button class="btn sm' + (c.is_active ? ' danger' : '') + '" onclick="toggleActive(\'' + esc(c.id) + '\',\'' + esc(c.name) + '\',' + (!c.is_active) + ')">' + (c.is_active ? 'Deactivate' : 'Activate') + '</button>' +
+        '</div>'
+      : '';
+    return '<tr>' +
+      '<td><strong>' + esc(c.name) + '</strong></td>' +
+      '<td>' + statusPill + '</td>' +
+      '<td>' + subcatCell + '</td>' +
+      '<td>' + fmtDate(c.created_at) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
 }
 
 function openAdd() {
@@ -311,6 +373,92 @@ function toggleActive(id, name, newActive) {
     if (err) { showToast('Error: ' + err, true); return; }
     showToast(newActive ? 'Category activated' : 'Category deactivated');
     loadCategories();
+  });
+}
+
+// -------------------------------------------------------------------------
+// Subcategories
+// -------------------------------------------------------------------------
+
+function openManageSubcategories(categoryId, categoryName) {
+  document.getElementById('subcat-category-id').value = categoryId;
+  document.getElementById('subcat-category-name').textContent = categoryName;
+  document.getElementById('add-subcat-name').value = '';
+  document.getElementById('form-add-subcategory').style.display = isAdmin ? 'flex' : 'none';
+  renderSubcategoryList(categoryId);
+  document.getElementById('modal-subcategories').classList.add('open');
+}
+
+function renderSubcategoryList(categoryId) {
+  var tbody = document.getElementById('subcat-tbody');
+  var list = state.subcategories.filter(function(s){ return s.category_id === categoryId; });
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">No subcategories defined yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(s) {
+    var statusPill = s.is_active ? '<span class="pill good">Active</span>' : '<span class="pill neu">Inactive</span>';
+    var actions = isAdmin
+      ? '<div class="row-actions">' +
+        '<button class="btn sm" onclick="openRenameSubcategory(\'' + esc(s.id) + '\')">Rename</button>' +
+        '<button class="btn sm' + (s.is_active ? ' danger' : '') + '" onclick="toggleSubcategoryActive(\'' + esc(s.id) + '\',\'' + esc(s.name) + '\',' + (!s.is_active) + ')">' + (s.is_active ? 'Deactivate' : 'Activate') + '</button>' +
+        '</div>'
+      : '';
+    return '<tr><td>' + esc(s.name) + '</td><td>' + statusPill + '</td><td>' + actions + '</td></tr>';
+  }).join('');
+}
+
+function submitAddSubcategory(e) {
+  e.preventDefault();
+  var categoryId = document.getElementById('subcat-category-id').value;
+  var name = document.getElementById('add-subcat-name').value.trim();
+  if (!name) return;
+  var btn = document.getElementById('add-subcat-submit-btn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  api('add_ticket_subcategory', { category_id: categoryId, name: name }, function(err) {
+    btn.disabled = false; btn.textContent = '+ Add';
+    if (err) { showToast('Error: ' + err, true); return; }
+    document.getElementById('add-subcat-name').value = '';
+    showToast('Subcategory added');
+    loadSubcategories(function() { renderSubcategoryList(categoryId); renderCategories(); });
+  });
+}
+
+function openRenameSubcategory(id) {
+  var s = state.subcategories.find(function(x){ return x.id === id; });
+  if (!s) return;
+  document.getElementById('rename-subcat-id').value = s.id;
+  document.getElementById('rename-subcat-name').value = s.name;
+  document.getElementById('modal-rename-subcategory').classList.add('open');
+}
+
+function submitRenameSubcategory(e) {
+  e.preventDefault();
+  var id = document.getElementById('rename-subcat-id').value;
+  var name = document.getElementById('rename-subcat-name').value.trim();
+  if (!name) return;
+  var btn = document.getElementById('rename-subcat-submit-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  api('update_ticket_subcategory', { id: id, name: name }, function(err) {
+    btn.disabled = false; btn.textContent = 'Save';
+    if (err) { showToast('Error: ' + err, true); return; }
+    closeModal('modal-rename-subcategory');
+    showToast('Subcategory renamed');
+    var categoryId = document.getElementById('subcat-category-id').value;
+    loadSubcategories(function() { renderSubcategoryList(categoryId); renderCategories(); });
+  });
+}
+
+function toggleSubcategoryActive(id, name, newActive) {
+  var msg = newActive
+    ? 'Activate "' + name + '"? It will reappear in the ticket subcategory dropdowns.'
+    : 'Deactivate "' + name + '"? It will no longer be offered for new tickets, but existing tickets keep this subcategory.';
+  if (!confirm(msg)) return;
+  api('update_ticket_subcategory', { id: id, is_active: newActive }, function(err) {
+    if (err) { showToast('Error: ' + err, true); return; }
+    showToast(newActive ? 'Subcategory activated' : 'Subcategory deactivated');
+    var categoryId = document.getElementById('subcat-category-id').value;
+    loadSubcategories(function() { renderSubcategoryList(categoryId); renderCategories(); });
   });
 }
 

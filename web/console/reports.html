@@ -139,7 +139,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
       <div class="export-card" style="border-top:3px solid var(--teal)">
         <div class="export-icon">&#128196;</div>
         <h3>Monthly Activity Report</h3>
-        <p>Full activity summary across all modules — risks, controls, incidents, operations, and audit — exported as a PDF.</p>
+        <p>Full activity summary across all modules - risks, controls, incidents, operations, and audit - exported as a PDF.</p>
         <div class="export-filter" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
             <label>Month</label>
@@ -179,7 +179,7 @@ var EXPORT_MAP={
   controls:{service:'controls',func:'list_controls',key:'controls',cols:['title','framework_name','control_type','attestation_status','last_attested_at','next_due_date','owner_name'],file:'controls-register'},
   observations:{service:'audit',func:'list_observations',key:'observations',cols:['title','audit_name','priority','status','linked_risk_title','failed_control_title','created_at'],file:'audit-observations'},
   incidents:{service:'incidents',func:'list_incidents',key:'incidents',cols:['title','severity','status','rca_root_cause','rca_preventative_actions','created_at','resolved_at'],file:'incident-log'},
-  assets:{service:'ops',func:'list_assets',key:'assets',cols:['name','category','criticality','patch_status','lifecycle_status','owner_name'],file:'asset-inventory'},
+  assets:{service:'ops',func:'list_assets',key:'assets',cols:['name','asset_tag','category_name','location','criticality','patch_status','lifecycle_status','owner_name'],file:'asset-inventory'},
   vendors:{service:'ops',func:'list_vendors',key:'vendors',cols:['name','agreement_details','license_expiry','baseline_risk_score','security_questionnaire_status'],file:'vendor-register'},
   tickets:{service:'ops',func:'list_tickets',key:'tickets',cols:['title','category_name','priority','status','created_by_name','assigned_to_name','created_at'],file:'helpdesk-tickets'}
 };

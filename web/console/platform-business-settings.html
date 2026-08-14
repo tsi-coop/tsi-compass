@@ -50,6 +50,7 @@ input:disabled+.slider{cursor:not-allowed;opacity:.6}
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav active">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -86,8 +87,8 @@ input:disabled+.slider{cursor:not-allowed;opacity:.6}
     <div class="card">
       <div class="setting-row">
         <div>
-          <p class="setting-title">Require Supervisor Approval</p>
-          <p class="setting-desc">When enabled, a helpdesk ticket or change request submitted by an Employee (Self-Service) user is held for their assigned Supervisor to approve or reject before IT/GRC staff can see it. Employees with no assigned Supervisor are blocked from submitting until one is assigned. Useful for businesses with a large branch footprint and lean IT staff who want line managers to triage requests first.</p>
+          <p class="setting-title">Require Manager Approval</p>
+          <p class="setting-desc">When enabled, a helpdesk ticket or change request submitted by an Employee user is held for their assigned Manager to approve or reject before IT/GRC staff can see it. Employees with no assigned Manager are blocked from submitting until one is assigned. Useful for businesses with a large branch footprint and lean IT staff who want line managers to triage requests first.</p>
         </div>
         <label class="switch">
           <input type="checkbox" id="setting-supervisor-approval" onchange="onToggleSupervisorApproval()" disabled>
@@ -163,7 +164,7 @@ function onToggleSupervisorApproval() {
       document.getElementById('setting-supervisor-approval').checked = !checked;
       return;
     }
-    showToast(checked ? 'Supervisor approval enabled' : 'Supervisor approval disabled');
+    showToast(checked ? 'Manager approval enabled' : 'Manager approval disabled');
   });
 }
 

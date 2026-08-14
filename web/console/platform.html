@@ -65,6 +65,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -101,12 +102,12 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
     <div class="grid col2 mb">
       <div class="card stripe-green">
         <div class="metric-label">Active Users</div>
-        <div class="metric-value" id="m-users">—</div>
+        <div class="metric-value" id="m-users">-</div>
         <div class="metric-note" id="m-users-note">Loading…</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">Suspended Users</div>
-        <div class="metric-value" id="m-suspended">—</div>
+        <div class="metric-value" id="m-suspended">-</div>
         <div class="metric-note">Require access review</div>
       </div>
     </div>
@@ -121,7 +122,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
           <p>Provision, edit, and deactivate system users. Manage authentication settings and access provisioning workflows.</p>
         </div>
         <div class="card-foot">
-          <span class="card-stat" id="sc-users-stat"><strong>—</strong> active &middot; <strong>—</strong> pending</span>
+          <span class="card-stat" id="sc-users-stat"><strong>-</strong> active &middot; <strong>-</strong> pending</span>
           <span class="open-link">Manage <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
         </div>
       </a>
@@ -146,7 +147,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
           <h2>Audit Trail</h2>
-          <p>Immutable tamper-proof log of every system action — policy approvals, risk score changes, user modifications, and sign-ins.</p>
+          <p>Immutable tamper-proof log of every system action - policy approvals, risk score changes, user modifications, and sign-ins.</p>
         </div>
         <div class="card-foot">
           <span class="card-stat"><strong>7</strong> events today</span>
@@ -161,7 +162,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           </div>
           <h2>API Keys</h2>
-          <p>Generate machine credentials for external integrations. Keys are shown once at creation — only the prefix is retained.</p>
+          <p>Generate machine credentials for external integrations. Keys are shown once at creation - only the prefix is retained.</p>
         </div>
         <div class="card-foot">
           <span class="card-stat" id="sc-apikeys-stat">Admin only</span>
@@ -183,13 +184,27 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         </div>
       </a>
 
+      <a class="section-card" href="platform-asset-categories.html">
+        <div>
+          <div class="icon-wrap" style="background:#eaf5f3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h2>Asset Categories</h2>
+          <p>Define the categories IT Operations picks from when registering an IT asset.</p>
+        </div>
+        <div class="card-foot">
+          <span class="card-stat">Admin only</span>
+          <span class="open-link">Manage <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </a>
+
       <a class="section-card" href="platform-business-settings.html">
         <div>
           <div class="icon-wrap" style="background:#eaf5f3">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </div>
           <h2>Business Settings</h2>
-          <p>Deployment-wide configuration, including whether Supervisor approval is required before tickets and change requests reach IT.</p>
+          <p>Deployment-wide configuration, including whether Manager approval is required before tickets and change requests reach IT.</p>
         </div>
         <div class="card-foot">
           <span class="card-stat">Admin only</span>
@@ -226,9 +241,9 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
   })
   .then(function(d) {
     if (!d) return;
-    var active    = d.active_users    != null ? d.active_users    : '—';
-    var pending   = d.pending_users   != null ? d.pending_users   : '—';
-    var suspended = d.suspended_users != null ? d.suspended_users : '—';
+    var active    = d.active_users    != null ? d.active_users    : '-';
+    var pending   = d.pending_users   != null ? d.pending_users   : '-';
+    var suspended = d.suspended_users != null ? d.suspended_users : '-';
 
     var el = document.getElementById('m-users');    if (el) el.textContent = active;
     el = document.getElementById('m-suspended');    if (el) el.textContent = suspended;

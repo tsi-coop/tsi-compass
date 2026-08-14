@@ -100,7 +100,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
       <div class="empty">Loading…</div>
     </div>
     <div class="pagination">
-      <span id="page-info">—</span>
+      <span id="page-info">-</span>
       <div class="page-btns" id="page-btns"></div>
     </div>
   </main>
@@ -111,7 +111,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
     <h2>New Knowledge Article</h2>
     <div class="form-row"><label>Title *</label><input id="add-title" placeholder="Article title"></div>
     <div class="form-row half">
-      <div><label>Category *</label><select id="add-category"><option value="">— Select —</option><option>POLICY</option><option>PROCEDURE</option><option>GUIDELINE</option><option>RUNBOOK</option><option>LESSON_LEARNED</option><option>OTHER</option></select></div>
+      <div><label>Category *</label><select id="add-category"><option value="">- Select -</option><option>POLICY</option><option>PROCEDURE</option><option>GUIDELINE</option><option>RUNBOOK</option><option>LESSON_LEARNED</option><option>OTHER</option></select></div>
       <div><label>Audience</label><input id="add-audience" placeholder="All Staff, IT Team…"></div>
     </div>
     <div class="form-row"><label>Content *</label><textarea id="add-content" style="height:140px" placeholder="Article content, steps, or description…"></textarea></div>
@@ -142,14 +142,14 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 
 <div class="modal-overlay" id="modal-docs">
   <div class="modal" style="width:660px">
-    <h2>Documents — <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
+    <h2>Documents - <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
     <div id="docs-list"><div class="empty">Loading…</div></div>
     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)">Upload Document</div>
     <div class="form-row">
       <label>Select File</label>
       <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" style="height:auto;padding:8px 10px">
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV — max supported by server config.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV - max supported by server config.</div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-docs')">Close</button>
       <button class="btn primary" onclick="uploadDoc()">Upload File</button>
@@ -314,7 +314,7 @@ function loadDocs() {
       docs.map(function(doc) {
         return '<tr><td style="padding:6px 8px;font-size:13px">'+esc(doc.file_name)+'</td>' +
           '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc((doc.uploaded_at||'').substring(0,10))+'</td>' +
-          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'—')+'</td>' +
+          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'-')+'</td>' +
           '<td style="padding:6px 8px"><button class="btn sm" onclick="downloadDoc(\''+doc.id+'\',\''+esc(doc.file_name)+'\')">&#8595; Download</button></td></tr>';
       }).join('') + '</tbody></table>';
   });

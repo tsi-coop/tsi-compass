@@ -49,7 +49,7 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
     <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
   </nav>
   <div class="user">
-    <span class="user-name" id="user-name">—</span>
+    <span class="user-name" id="user-name">-</span>
     <a href="../index.html" class="signout" onclick="localStorage.clear();return true;" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
   </div>
 </header>
@@ -66,7 +66,10 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
       <div class="form-row"><label>Title</label><input id="t-title" required></div>
       <div class="form-row"><label>Description</label><textarea id="t-desc" required></textarea></div>
       <div class="form-row"><label>Category</label>
-        <select id="t-category" required><option value="">Loading…</option></select>
+        <select id="t-category" required onchange="loadSubcategories()"><option value="">Loading…</option></select>
+      </div>
+      <div class="form-row" id="subcategory-row" style="display:none"><label>Subcategory</label>
+        <select id="t-subcategory"></select>
       </div>
       <div class="form-row"><label>Priority</label>
         <select id="t-priority"><option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select>
@@ -104,13 +107,14 @@ function submitTicket(e) {
   var title = document.getElementById('t-title').value.trim();
   var desc  = document.getElementById('t-desc').value.trim();
   var categoryId = document.getElementById('t-category').value;
+  var subcategoryId = document.getElementById('t-subcategory').value;
   var priority = document.getElementById('t-priority').value;
   if (!title || !desc) { errBox.textContent = 'Title and description are required.'; errBox.style.display = 'block'; return; }
   if (!categoryId) { errBox.textContent = 'Category is required.'; errBox.style.display = 'block'; return; }
 
   var btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Submitting…';
-  api('create_ticket', { title: title, description: desc, category_id: categoryId, priority: priority }, function(err) {
+  api('create_ticket', { title: title, description: desc, category_id: categoryId, subcategory_id: subcategoryId || null, priority: priority }, function(err) {
     btn.disabled = false; btn.textContent = 'Submit Ticket';
     if (err) { errBox.textContent = err; errBox.style.display = 'block'; return; }
     okBox.textContent = 'Ticket submitted. Redirecting to My Requests…';
@@ -119,15 +123,31 @@ function submitTicket(e) {
   });
 }
 
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function loadCategories() {
   var sel = document.getElementById('t-category');
   api('list_ticket_categories', {}, function(err, d) {
     if (err || !d || !d.categories || !d.categories.length) {
-      sel.innerHTML = '<option value="">No categories available — contact your administrator</option>';
+      sel.innerHTML = '<option value="">No categories available - contact your administrator</option>';
       return;
     }
     sel.innerHTML = '<option value="">Select a category…</option>' +
-      d.categories.map(function(c) { return '<option value="' + c.id + '">' + c.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</option>'; }).join('');
+      d.categories.map(function(c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
+  });
+}
+
+function loadSubcategories() {
+  var categoryId = document.getElementById('t-category').value;
+  var row = document.getElementById('subcategory-row');
+  var sel = document.getElementById('t-subcategory');
+  if (!categoryId) { row.style.display = 'none'; sel.innerHTML = ''; return; }
+  api('list_ticket_subcategories', { category_id: categoryId }, function(err, d) {
+    var list = (!err && d && d.subcategories) ? d.subcategories : [];
+    if (!list.length) { row.style.display = 'none'; sel.innerHTML = ''; return; }
+    sel.innerHTML = '<option value="">Select a subcategory… (optional)</option>' +
+      list.map(function(s) { return '<option value="' + s.id + '">' + esc(s.name) + '</option>'; }).join('');
+    row.style.display = 'block';
   });
 }
 

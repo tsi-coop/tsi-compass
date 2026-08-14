@@ -16,13 +16,15 @@ TSI Compass is a beginner-friendly, self-hosted IT GRC platform built right on t
 | **Compliance & Controls** | Controls register, framework mappings (ISO 27001, SOC 2, etc.), and exception management |
 | **Audit & Evidence** | Audit scheduling, findings, and an evidence locker |
 | **IT Operations** | Asset inventory, change management, vendor register, and help desk |
+| **Self-Service Portal** | A separate portal for Employees and Managers: Employees submit tickets/change requests and complete policy attestations and training; Managers provision and manage their own team and approve or reject their team's requests before IT/GRC ever sees them |
 | **Data Register** | Self-declared data discovery and classification register, with optional links to IT assets and vendors |
 | **Incidents** | Incident register, knowledge base, and staff training records |
 | **Reports** | Exportable compliance and risk summary reports |
 
 **Authentication and access control**
 
-- Session-based JWT login with per-module RBAC (`ADMIN`, `RISK_OWNER`, `COMPLIANCE_OFFICER`, `INTERNAL_AUDITOR`, `IT_STAFF`, `USER`)
+- Session-based JWT login with per-module RBAC (`ADMIN`, `GRC_OFFICER`, `IT_STAFF`, `SUPERVISOR` i.e. Manager, `USER` i.e. Employee)
+- Optional deployment-wide **Manager approval** setting (Platform & Access > Business Settings): when enabled, an Employee's tickets and change requests are held for their assigned Manager to approve or reject before IT/GRC staff can see them
 - Machine-to-machine access via API key + secret pairs (key and secret hashed at rest; plain values shown once at creation)
 - Per-user 5-word recovery passphrase for self-service password recovery
 - Every action written to an immutable `system_audit_trail` table
@@ -45,6 +47,13 @@ Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM 
 ---
 
 ## Changelog
+
+### v0.4
+
+- **Manager approval workflow** - a new optional deployment-wide setting (Platform & Access > Business Settings) routes an Employee's helpdesk tickets and change requests to their assigned Manager for approval or rejection before IT/GRC staff can see them. Employees with no assigned Manager are blocked from submitting until one is assigned.
+- **Manager Portal: My Team** - Managers can provision, edit, suspend/reactivate, and reset the password for the Employees who report to them, directly from the self-service portal, without needing Admin access.
+- **Manager Portal: Approvals** - a dedicated queue where Managers review and approve or reject pending tickets and change requests from their team.
+- **Employee / Manager role labels** - the `USER` and `SUPERVISOR` roles now display as "Employee" and "Manager" throughout the console and self-service portal for clarity (underlying role keys are unchanged).
 
 ### v0.3
 

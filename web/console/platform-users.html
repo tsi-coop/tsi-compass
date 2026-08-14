@@ -98,6 +98,7 @@ tr:last-child td{border-bottom:none}
       <a href="platform-audit.html" class="subnav">Audit Trail</a>
       <a href="platform-apikeys.html" class="subnav">API Keys</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -135,17 +136,17 @@ tr:last-child td{border-bottom:none}
     <div class="grid col3 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Total Users</div>
-        <div class="metric-value" id="mu-total">—</div>
+        <div class="metric-value" id="mu-total">-</div>
         <div class="metric-note">All provisioned accounts</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Active</div>
-        <div class="metric-value" id="mu-active">—</div>
+        <div class="metric-value" id="mu-active">-</div>
         <div class="metric-note">Currently enabled accounts</div>
       </div>
       <div class="card stripe-red">
         <div class="metric-label">Inactive</div>
-        <div class="metric-value" id="mu-inactive">—</div>
+        <div class="metric-value" id="mu-inactive">-</div>
         <div class="metric-note">Deactivated accounts</div>
       </div>
     </div>
@@ -162,8 +163,8 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
-          <option value="SUPERVISOR">Supervisor</option>
-          <option value="USER">Employee (Self-Service)</option>
+          <option value="SUPERVISOR">Manager</option>
+          <option value="USER">Employee</option>
         </select>
         <select id="f-status">
           <option value="">All Statuses</option>
@@ -182,7 +183,7 @@ tr:last-child td{border-bottom:none}
         </tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -203,13 +204,13 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
-          <option value="SUPERVISOR">Supervisor</option>
-          <option value="USER">Employee (Self-Service)</option>
+          <option value="SUPERVISOR">Manager</option>
+          <option value="USER">Employee</option>
         </select>
       </div>
-      <div class="form-field" id="pu-supervisor-field" style="display:none"><label class="form-label">Reports To (Supervisor)</label>
+      <div class="form-field" id="pu-supervisor-field" style="display:none"><label class="form-label">Reports To (Manager)</label>
         <select class="form-select" id="pu-supervisor">
-          <option value="">Select supervisor…</option>
+          <option value="">Select manager…</option>
         </select>
       </div>
       <div class="form-field"><label class="form-label">Initial Password</label><input class="form-input" id="pu-password" type="password" placeholder="Min. 10 characters" required></div>
@@ -233,13 +234,13 @@ tr:last-child td{border-bottom:none}
           <option value="ADMIN">Administrator</option>
           <option value="GRC_OFFICER">GRC Officer</option>
           <option value="IT_STAFF">IT Staff</option>
-          <option value="SUPERVISOR">Supervisor</option>
-          <option value="USER">Employee (Self-Service)</option>
+          <option value="SUPERVISOR">Manager</option>
+          <option value="USER">Employee</option>
         </select>
       </div>
-      <div class="form-field" id="eu-supervisor-field" style="display:none"><label class="form-label">Reports To (Supervisor)</label>
+      <div class="form-field" id="eu-supervisor-field" style="display:none"><label class="form-label">Reports To (Manager)</label>
         <select class="form-select" id="eu-supervisor">
-          <option value="">Select supervisor…</option>
+          <option value="">Select manager…</option>
         </select>
       </div>
       <div class="form-field"><label class="form-label">Account Status</label>
@@ -284,7 +285,7 @@ tr:last-child td{border-bottom:none}
   <div class="modal-box">
     <div class="modal-head"><h2>Set Recovery Key</h2><button class="modal-close" onclick="closeModal('modal-set-key')">&#x2715;</button></div>
     <div id="set-key-form">
-      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Generate a 5-word recovery passphrase for <strong id="set-key-username">this user</strong>. The passphrase will be shown once — give it to the user to store securely offline.</p>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Generate a 5-word recovery passphrase for <strong id="set-key-username">this user</strong>. The passphrase will be shown once - give it to the user to store securely offline.</p>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-set-key')">Cancel</button>
         <button type="button" class="btn primary" id="gen-key-btn" onclick="generateRecoveryKey()">Generate &amp; Set Key</button>
@@ -292,7 +293,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div id="set-key-reveal" style="display:none">
       <div style="background:#fff4df;border:1px solid #f6c660;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#7c5200;line-height:1.5">
-        <strong style="display:block;margin-bottom:3px">Copy this passphrase now — it will not be shown again.</strong>
+        <strong style="display:block;margin-bottom:3px">Copy this passphrase now - it will not be shown again.</strong>
         Give it to the user to store securely. They will enter it on the password recovery page.
       </div>
       <div style="margin-bottom:14px">
@@ -318,7 +319,7 @@ tr:last-child td{border-bottom:none}
       <div class="form-field"><label class="form-label">Reason for Deactivation</label>
         <select class="form-select">
           <option>Resigned / Left organisation</option>
-          <option>Role change — pending reprovisioning</option>
+          <option>Role change - pending reprovisioning</option>
           <option>Security review</option>
           <option>Extended leave</option>
           <option>Other</option>
@@ -347,8 +348,8 @@ var ROLES = {
   ADMIN:       'Administrator',
   GRC_OFFICER: 'GRC Officer',
   IT_STAFF:    'IT Staff',
-  SUPERVISOR:  'Supervisor',
-  USER:        'Employee (Self-Service)'
+  SUPERVISOR:  'Manager',
+  USER:        'Employee'
 };
 
 var supervisors = [];
@@ -360,7 +361,7 @@ function loadSupervisors() {
     [document.getElementById('pu-supervisor'), document.getElementById('eu-supervisor')].forEach(function(sel) {
       if (!sel) return;
       var current = sel.value;
-      sel.innerHTML = '<option value="">Select supervisor…</option>' +
+      sel.innerHTML = '<option value="">Select manager…</option>' +
         supervisors.map(function(s) { return '<option value="' + esc(s.id) + '">' + esc(s.username) + '</option>'; }).join('');
       sel.value = current;
     });
@@ -538,10 +539,10 @@ function renderUsers(users) {
       var name = esc(u.username || u.email);
       var ini = initials(u.username || u.email);
       var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
-      var roleLabel = esc(ROLES[u.role] || u.role || '—');
+      var roleLabel = esc(ROLES[u.role] || u.role || '-');
       var keyCell = isAdmin
         ? '<button class="tbl-action" onclick="openSetKeyModal(\'' + esc(u.id) + '\',\'' + esc(u.username || u.email) + '\')">Set Key</button>'
-        : '<span style="color:var(--muted);font-size:11px">—</span>';
+        : '<span style="color:var(--muted);font-size:11px">-</span>';
       var isSoleAdmin = (u.role === 'ADMIN' && u.status === 'ACTIVE' && activeAdminCount <= 1);
       var actions = '';
       if (u.status === 'SUSPENDED') {

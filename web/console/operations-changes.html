@@ -96,7 +96,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Title</th><th>Requester</th><th>Stage</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody id="cr-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -107,8 +107,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title</label><input id="add-title" required></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc" required></textarea></div>
     <div class="form-row half">
-      <div><label>Requester</label><select id="add-req"><option value="">— Select —</option></select></div>
-      <div><label>Compliance Approver</label><select id="add-approver"><option value="">— Select —</option></select></div>
+      <div><label>Requester</label><select id="add-req"><option value="">- Select -</option></select></div>
+      <div><label>Compliance Approver</label><select id="add-approver"><option value="">- Select -</option></select></div>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -174,10 +174,10 @@ function renderChanges(list,total){
   body.innerHTML=list.map(function(c){
     return '<tr>'+
       '<td><strong>'+esc(c.title)+'</strong></td>'+
-      '<td>'+esc(c.requester_name||'—')+'</td>'+
-      '<td><span class="tag">'+esc(c.stage||'—')+'</span></td>'+
+      '<td>'+esc(c.requester_name||'-')+'</td>'+
+      '<td><span class="tag">'+esc(c.stage||'-')+'</span></td>'+
       '<td>'+(STATUS_PILL[c.status]||esc(c.status))+'</td>'+
-      '<td>'+esc(c.created_at||'—')+'</td>'+
+      '<td>'+esc(c.created_at||'-')+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+c.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteChange(\''+c.id+'\',\''+esc(c.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');

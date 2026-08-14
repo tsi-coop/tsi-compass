@@ -86,7 +86,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   <main class="main">
     <div class="breadcrumb"><a href="supplychain.html">Supply Chain</a> / CBOM</div>
     <div class="page-header">
-      <div><div class="eyebrow">Supply Chain</div><h1>CBOM — Cryptography Bill of Materials</h1><p class="subtitle">Register of cryptographic assets — algorithms, certificates, keys, protocols — with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p></div>
+      <div><div class="eyebrow">Supply Chain</div><h1>CBOM - Cryptography Bill of Materials</h1><p class="subtitle">Register of cryptographic assets - algorithms, certificates, keys, protocols - with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p></div>
     </div>
     <div class="section-card">
       <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="cb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>
@@ -98,7 +98,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Name</th><th>Type</th><th>Algorithm</th><th>Key Size</th><th>Protocol</th><th>Cert Expiry</th><th>Linked Asset</th><th>Actions</th></tr></thead>
         <tbody id="cb-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -119,7 +119,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Certificate Expiry</label><input id="add-expiry" type="date"></div>
       <div><label>Standard</label><input id="add-standard" placeholder="e.g. FIPS 140-2"></div>
     </div>
-    <div class="form-row"><label>Linked Asset</label><select id="add-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Linked Asset</label><select id="add-asset"><option value="">- None -</option></select></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -145,7 +145,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Certificate Expiry</label><input id="edit-expiry" type="date"></div>
       <div><label>Standard</label><input id="edit-standard"></div>
     </div>
-    <div class="form-row"><label>Linked Asset</label><select id="edit-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Linked Asset</label><select id="edit-asset"><option value="">- None -</option></select></div>
     <div class="form-row"><label>Description</label><textarea id="edit-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
@@ -187,7 +187,7 @@ function api(func,body,cb){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function expiryPill(dateStr){
-  if(!dateStr)return '<span class="pill neu">—</span>';
+  if(!dateStr)return '<span class="pill neu">-</span>';
   var d=new Date(dateStr+'T00:00:00');
   var today=new Date();today.setHours(0,0,0,0);
   var diffDays=Math.round((d-today)/86400000);
@@ -206,11 +206,11 @@ function renderComponents(list,total){
     return '<tr>'+
       '<td><strong>'+esc(c.name)+'</strong></td>'+
       '<td><span class="tag">'+esc(c.crypto_type)+'</span></td>'+
-      '<td>'+esc(c.algorithm||'—')+'</td>'+
-      '<td>'+(c.key_size!=null?esc(String(c.key_size)):'—')+'</td>'+
-      '<td>'+esc(c.protocol||'—')+'</td>'+
+      '<td>'+esc(c.algorithm||'-')+'</td>'+
+      '<td>'+(c.key_size!=null?esc(String(c.key_size)):'-')+'</td>'+
+      '<td>'+esc(c.protocol||'-')+'</td>'+
       '<td>'+expiryPill(c.certificate_expiry)+'</td>'+
-      '<td>'+esc(c.asset_name||'—')+'</td>'+
+      '<td>'+esc(c.asset_name||'-')+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteComponent(\''+c.id+'\',\''+esc(c.name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');

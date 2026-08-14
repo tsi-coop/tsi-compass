@@ -97,11 +97,11 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <input id="f-search" type="search" placeholder="Search by title, description, or reported by…" oninput="onSearchInput()">
       </div>
       <table>
-        <thead><tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Reported By</th><th>Assigned To</th><th>Asset</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody id="t-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Category</th><th>Subcategory</th><th>Priority</th><th>Status</th><th>Reported By</th><th>Assigned To</th><th>Asset</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="t-body"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -114,10 +114,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title *</label><input id="add-title" placeholder="Brief description of the issue"></div>
     <div class="form-row"><label>Description *</label><textarea id="add-desc" placeholder="Detailed description…"></textarea></div>
     <div class="form-row half">
-      <div><label>Category *</label><select id="add-category"></select></div>
-      <div><label>Priority</label><select id="add-priority"><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></div>
+      <div><label>Category *</label><select id="add-category" onchange="loadSubcategoriesFor('add-category','add-subcategory')"></select></div>
+      <div><label>Subcategory</label><select id="add-subcategory"><option value="">- None -</option></select></div>
     </div>
-    <div class="form-row"><label>Assigned To</label><select id="add-assignee"><option value="">— Unassigned —</option></select></div>
+    <div class="form-row half">
+      <div><label>Priority</label><select id="add-priority"><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></div>
+      <div><label>Assigned To</label><select id="add-assignee"><option value="">- Unassigned -</option></select></div>
+    </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn primary" onclick="submitAdd()">Create Ticket</button>
@@ -132,13 +135,15 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row"><label>Title</label><input id="edit-title"></div>
     <div class="form-row"><label>Description</label><textarea id="edit-desc" placeholder="Detailed description…"></textarea></div>
     <div class="form-row half">
-      <div><label>Category *</label><select id="edit-category"></select></div>
-      <div><label>Status</label><select id="edit-status"><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select></div>
+      <div><label>Category *</label><select id="edit-category" onchange="loadSubcategoriesFor('edit-category','edit-subcategory')"></select></div>
+      <div><label>Subcategory</label><select id="edit-subcategory"><option value="">- None -</option></select></div>
     </div>
     <div class="form-row half">
+      <div><label>Status</label><select id="edit-status"><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select></div>
       <div><label>Priority</label><select id="edit-priority"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
-      <div><label>Assigned To</label><select id="edit-assignee"><option value="">— Unassigned —</option></select></div>
     </div>
+    <div class="form-row"><label>Assigned To</label><select id="edit-assignee"><option value="">- Unassigned -</option></select></div>
+    <div class="form-row"><label>Resolution Notes</label><textarea id="edit-resolution-notes" placeholder="How was this resolved? Visible to the requester and their manager."></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -185,16 +190,17 @@ function renderTickets(list,total){
   var body=document.getElementById('t-body');
   var n=(total!=null?total:list.length);
   var cnt=document.getElementById('t-count');if(cnt)cnt.textContent=n+' ticket'+(n!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="9" class="empty">No tickets found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="10" class="empty">No tickets found.</td></tr>';return;}
   body.innerHTML=list.map(function(t){
     return '<tr>'+
       '<td><strong>'+esc(t.title)+'</strong></td>'+
-      '<td>'+esc(t.category_name||'—')+'</td>'+
-      '<td>'+(PPILL[t.priority]||esc(t.priority||'—'))+'</td>'+
-      '<td>'+(SPILL[t.status]||esc(t.status||'—'))+'</td>'+
-      '<td>'+esc(t.created_by_name||'—')+'</td>'+
+      '<td>'+esc(t.category_name||'-')+'</td>'+
+      '<td>'+esc(t.subcategory_name||'-')+'</td>'+
+      '<td>'+(PPILL[t.priority]||esc(t.priority||'-'))+'</td>'+
+      '<td>'+(SPILL[t.status]||esc(t.status||'-'))+'</td>'+
+      '<td>'+esc(t.created_by_name||'-')+'</td>'+
       '<td>'+esc(t.assigned_to_name||'Unassigned')+'</td>'+
-      '<td>'+esc(t.asset_name||'—')+'</td>'+
+      '<td>'+esc(t.asset_name||'-')+'</td>'+
       '<td>'+esc((t.created_at||'').substring(0,10))+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+t.id+'\')">Detail</button>'+
         (t.incident_id?'<a class="btn sm" style="color:var(--red);border-color:#fde8e8" href="incidents-register.html?q='+encodeURIComponent(t.title)+'">View Incident</a>':'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="escalateTicket(\''+t.id+'\',\''+esc(t.title)+'\')">Escalate</button>')+
@@ -284,7 +290,23 @@ function loadAll(){
   });
 }
 
-function openAdd(){['add-title','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
+function loadSubcategoriesFor(categorySelId,subcategorySelId,selectedId){
+  var categoryId=document.getElementById(categorySelId).value;
+  var sel=document.getElementById(subcategorySelId);
+  sel.innerHTML='<option value="">- None -</option>';
+  if(!categoryId)return;
+  api('list_ticket_subcategories',{category_id:categoryId},function(err,d){
+    if(err||!d||!d.subcategories)return;
+    d.subcategories.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+    if(selectedId)setSelect(subcategorySelId,selectedId);
+  });
+}
+
+function openAdd(){
+  ['add-title','add-desc'].forEach(function(id){document.getElementById(id).value='';});
+  loadSubcategoriesFor('add-category','add-subcategory');
+  document.getElementById('modal-add').classList.add('open');
+}
 function openEdit(id){
   var t=state.tickets.find(function(x){return x.id===id;});if(!t)return;
   document.getElementById('edit-id').value=t.id;
@@ -293,6 +315,8 @@ function openEdit(id){
   setSelect('edit-status',t.status);setSelect('edit-priority',t.priority);
   setSelect('edit-assignee',t.assigned_to||'');
   setSelect('edit-category',t.category_id||'');
+  loadSubcategoriesFor('edit-category','edit-subcategory',t.subcategory_id||'');
+  document.getElementById('edit-resolution-notes').value=t.resolution_notes||'';
   document.getElementById('modal-edit').classList.add('open');
 }
 function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}}
@@ -307,6 +331,7 @@ function submitAdd(){
   if(!categoryId){alert('Category is required.');return;}
   api('add_ticket',{title:title,description:desc,priority:document.getElementById('add-priority').value,
     category_id:categoryId,
+    subcategory_id:document.getElementById('add-subcategory').value||null,
     created_by:localStorage.getItem('user_id')||null,
     assigned_to:document.getElementById('add-assignee').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Ticket created');loadAll();
@@ -320,6 +345,8 @@ function submitEdit(){
     priority:document.getElementById('edit-priority').value,
     description:document.getElementById('edit-desc').value.trim(),
     category_id:categoryId,
+    subcategory_id:document.getElementById('edit-subcategory').value||null,
+    resolution_notes:document.getElementById('edit-resolution-notes').value.trim(),
     assigned_to:document.getElementById('edit-assignee').value||null},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Updated');loadAll();
   });
@@ -333,7 +360,7 @@ function downloadTemplate(){
   ]);
   ws['!cols']=[{wch:32},{wch:50},{wch:18},{wch:12}];
   XLSX.utils.book_append_sheet(wb,ws,'Tickets');
-  var categoryNames=(state.categories||[]).map(function(c){return c.name;}).join(', ')||'(none defined — add categories under Platform & Access first)';
+  var categoryNames=(state.categories||[]).map(function(c){return c.name;}).join(', ')||'(none defined - add categories under Platform & Access first)';
   var ref=XLSX.utils.aoa_to_sheet([
     ['Column','Valid Values'],
     ['Category',categoryNames+' (must match an active category name exactly)'],

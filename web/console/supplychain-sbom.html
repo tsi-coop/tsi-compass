@@ -86,7 +86,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   <main class="main">
     <div class="breadcrumb"><a href="supplychain.html">Supply Chain</a> / SBOM</div>
     <div class="page-header">
-      <div><div class="eyebrow">Supply Chain</div><h1>SBOM — Software Bill of Materials</h1><p class="subtitle">Register of software components — libraries, frameworks, operating systems, container images — with supplier and license, optionally linked to an IT asset.</p></div>
+      <div><div class="eyebrow">Supply Chain</div><h1>SBOM - Software Bill of Materials</h1><p class="subtitle">Register of software components - libraries, frameworks, operating systems, container images - with supplier and license, optionally linked to an IT asset.</p></div>
     </div>
     <div class="section-card">
       <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="sb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>
@@ -98,7 +98,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Component</th><th>Version</th><th>Type</th><th>Supplier</th><th>License</th><th>Linked Asset</th><th>Actions</th></tr></thead>
         <tbody id="sb-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -115,7 +115,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Supplier</label><input id="add-supplier"></div>
       <div><label>License</label><input id="add-license"></div>
     </div>
-    <div class="form-row"><label>Linked Asset</label><select id="add-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Linked Asset</label><select id="add-asset"><option value="">- None -</option></select></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -137,7 +137,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Supplier</label><input id="edit-supplier"></div>
       <div><label>License</label><input id="edit-license"></div>
     </div>
-    <div class="form-row"><label>Linked Asset</label><select id="edit-asset"><option value="">— None —</option></select></div>
+    <div class="form-row"><label>Linked Asset</label><select id="edit-asset"><option value="">- None -</option></select></div>
     <div class="form-row"><label>Description</label><textarea id="edit-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
@@ -186,11 +186,11 @@ function renderComponents(list,total){
   body.innerHTML=list.map(function(c){
     return '<tr>'+
       '<td><strong>'+esc(c.component_name)+'</strong></td>'+
-      '<td>'+esc(c.version||'—')+'</td>'+
+      '<td>'+esc(c.version||'-')+'</td>'+
       '<td><span class="tag">'+esc(c.component_type)+'</span></td>'+
-      '<td>'+esc(c.supplier||'—')+'</td>'+
-      '<td>'+esc(c.license||'—')+'</td>'+
-      '<td>'+esc(c.asset_name||'—')+'</td>'+
+      '<td>'+esc(c.supplier||'-')+'</td>'+
+      '<td>'+esc(c.license||'-')+'</td>'+
+      '<td>'+esc(c.asset_name||'-')+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+c.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteComponent(\''+c.id+'\',\''+esc(c.component_name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');

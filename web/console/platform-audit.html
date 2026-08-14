@@ -91,6 +91,7 @@ tr:last-child td{border-bottom:none}
       <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
       <a href="platform-audit.html" class="subnav active">Audit Trail</a>
       <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
       <a href="platform-business-settings.html" class="subnav">Business Settings</a>
       <a href="governance.html">Governance &amp; Policy</a>
       <a href="risks.html">Risk &amp; Vulnerability</a>
@@ -128,22 +129,22 @@ tr:last-child td{border-bottom:none}
     <div class="grid col4 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Events Today</div>
-        <div class="metric-value" id="m-today">—</div>
+        <div class="metric-value" id="m-today">-</div>
         <div class="metric-note">Since 00:00 local time</div>
       </div>
       <div class="card stripe-blue">
         <div class="metric-label">Events This Week</div>
-        <div class="metric-value" id="m-week">—</div>
+        <div class="metric-value" id="m-week">-</div>
         <div class="metric-note">Across all modules</div>
       </div>
       <div class="card stripe-amber">
         <div class="metric-label">Critical Events</div>
-        <div class="metric-value" id="m-critical">—</div>
+        <div class="metric-value" id="m-critical">-</div>
         <div class="metric-note">High-sensitivity actions</div>
       </div>
       <div class="card stripe-green">
         <div class="metric-label">Active Users Today</div>
-        <div class="metric-value" id="m-active-users">—</div>
+        <div class="metric-value" id="m-active-users">-</div>
         <div class="metric-note">Unique users with activity</div>
       </div>
     </div>
@@ -172,7 +173,7 @@ tr:last-child td{border-bottom:none}
         </tbody>
       </table>
       <div class="pagination">
-        <span id="page-info">—</span>
+        <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
       </div>
     </div>
@@ -285,10 +286,10 @@ function pillClass(action) {
 function loadMetrics() {
   api('get_audit_metrics', {}, function(err, data) {
     if (err) { showToast('Failed to load metrics: ' + err, true); return; }
-    document.getElementById('m-today').textContent = data.events_today != null ? data.events_today : '—';
-    document.getElementById('m-week').textContent = data.events_week != null ? data.events_week : '—';
-    document.getElementById('m-critical').textContent = data.critical_events != null ? data.critical_events : '—';
-    document.getElementById('m-active-users').textContent = data.active_users_today != null ? data.active_users_today : '—';
+    document.getElementById('m-today').textContent = data.events_today != null ? data.events_today : '-';
+    document.getElementById('m-week').textContent = data.events_week != null ? data.events_week : '-';
+    document.getElementById('m-critical').textContent = data.critical_events != null ? data.critical_events : '-';
+    document.getElementById('m-active-users').textContent = data.active_users_today != null ? data.active_users_today : '-';
   });
 }
 
@@ -331,12 +332,12 @@ function renderTable(data) {
     return;
   }
   var rows = events.map(function(ev) {
-    var ts = ev.timestamp ? ev.timestamp.replace('T', ' ').slice(0, 19) : '—';
+    var ts = ev.timestamp ? ev.timestamp.replace('T', ' ').slice(0, 19) : '-';
     var user = ev.username || ev.email || 'System';
-    var action = ev.audit_action || '—';
+    var action = ev.audit_action || '-';
     var cls = pillClass(action);
-    var details = ev.details ? (ev.details.length > 80 ? ev.details.slice(0, 80) + '…' : ev.details) : '—';
-    var hash = ev.log_hash ? ev.log_hash.slice(0, 8) : '—';
+    var details = ev.details ? (ev.details.length > 80 ? ev.details.slice(0, 80) + '…' : ev.details) : '-';
+    var hash = ev.log_hash ? ev.log_hash.slice(0, 8) : '-';
     return '<tr>' +
       '<td style="font-family:monospace;font-size:12px;white-space:nowrap">' + escHtml(ts) + '</td>' +
       '<td><strong>' + escHtml(user) + '</strong></td>' +

@@ -88,16 +88,16 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="section-card">
       <div class="section-head"><h2>Assets</h2><div style="display:flex;align-items:center;gap:12px"><span id="ast-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Asset</button></div></div>
       <div class="filter-bar">
-        <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option><option>APPLICATION</option><option>CORE_SERVER</option><option>FIREWALL</option><option>LAPTOP</option><option>DESKTOP</option><option>PRINTER</option><option>OTHER</option></select>
+        <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option></select>
         <select id="f-crit" onchange="applyFilters()"><option value="">All Criticality</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
         <select id="f-patch" onchange="applyFilters()"><option value="">All Patch Statuses</option><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select>
-        <input id="f-search" type="search" placeholder="Search assets…" oninput="onSearchInput()">
+        <input id="f-search" type="search" placeholder="Search by name, asset tag, location, description…" oninput="onSearchInput()">
       </div>
       <table>
-        <thead><tr><th>Name</th><th>Category</th><th>Criticality</th><th>Owner</th><th>Patch Status</th><th>Lifecycle</th><th>Actions</th></tr></thead>
-        <tbody id="ast-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Asset Tag</th><th>Name</th><th>Category</th><th>Location</th><th>Criticality</th><th>Owner</th><th>Patch Status</th><th>Lifecycle</th><th>Actions</th></tr></thead>
+        <tbody id="ast-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -105,15 +105,19 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <h2>Add Asset</h2>
-    <div class="form-row"><label>Asset Name</label><input id="add-name" required></div>
     <div class="form-row half">
-      <div><label>Category</label><select id="add-cat"><option>APPLICATION</option><option>CORE_SERVER</option><option>FIREWALL</option><option>LAPTOP</option><option>DESKTOP</option><option>PRINTER</option><option>OTHER</option></select></div>
+      <div><label>Asset Name</label><input id="add-name" required></div>
+      <div><label>Asset Tag</label><input id="add-tag" placeholder="e.g. HQ-LAPTOP-001" required></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Category</label><select id="add-cat"></select></div>
       <div><label>Criticality</label><select id="add-crit"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
     </div>
     <div class="form-row half">
-      <div><label>Owner</label><select id="add-owner"><option value="">— Select —</option></select></div>
+      <div><label>Owner</label><select id="add-owner"><option value="">- Select -</option></select></div>
       <div><label>Patch Status</label><select id="add-patch"><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select></div>
     </div>
+    <div class="form-row"><label>Location</label><input id="add-location" placeholder="e.g. HQ - 4th Floor"></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -126,12 +130,19 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   <div class="modal">
     <h2>Edit Asset</h2>
     <input type="hidden" id="edit-id">
-    <div class="form-row"><label>Asset Name</label><input id="edit-name"></div>
     <div class="form-row half">
-      <div><label>Criticality</label><select id="edit-crit"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
-      <div><label>Patch Status</label><select id="edit-patch"><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select></div>
+      <div><label>Asset Name</label><input id="edit-name"></div>
+      <div><label>Asset Tag</label><input id="edit-tag" placeholder="e.g. HQ-LAPTOP-001"></div>
     </div>
-    <div class="form-row"><label>Lifecycle Status</label><select id="edit-life"><option>ACTIVE</option><option>EOL</option><option>DECOMMISSIONING</option><option>DECOMMISSIONED</option></select></div>
+    <div class="form-row half">
+      <div><label>Category</label><select id="edit-cat"></select></div>
+      <div><label>Criticality</label><select id="edit-crit"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Patch Status</label><select id="edit-patch"><option>CURRENT</option><option>PENDING</option><option>OVERDUE</option><option>UNKNOWN</option></select></div>
+      <div><label>Lifecycle Status</label><select id="edit-life"><option>ACTIVE</option><option>EOL</option><option>DECOMMISSIONING</option><option>DECOMMISSIONED</option></select></div>
+    </div>
+    <div class="form-row"><label>Location</label><input id="edit-location" placeholder="e.g. HQ - 4th Floor"></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -159,7 +170,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={assets:[],staff:[],page:1,pageSize:20};
+var state={assets:[],staff:[],categories:[],page:1,pageSize:20};
 var _searchDebounce=null;
 
 function api(func,body,cb){
@@ -177,13 +188,15 @@ function renderAssets(list,total){
   var body=document.getElementById('ast-body');
   var n=(total!=null?total:list.length);
   var cnt=document.getElementById('ast-count');if(cnt)cnt.textContent=n+' asset'+(n!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No assets found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="9" class="empty">No assets found.</td></tr>';return;}
   body.innerHTML=list.map(function(a){
     return '<tr>'+
+      '<td><span class="tag">'+esc(a.asset_tag||'-')+'</span></td>'+
       '<td><strong>'+esc(a.name)+'</strong></td>'+
-      '<td><span class="tag">'+esc(a.category)+'</span></td>'+
+      '<td><span class="tag">'+esc(a.category_name||'-')+'</span></td>'+
+      '<td>'+esc(a.location||'-')+'</td>'+
       '<td>'+(CRIT_PILL[a.criticality]||esc(a.criticality))+'</td>'+
-      '<td>'+esc(a.owner_name||'—')+'</td>'+
+      '<td>'+esc(a.owner_name||'-')+'</td>'+
       '<td>'+(PATCH_PILL[a.patch_status]||esc(a.patch_status||'Unknown'))+'</td>'+
       '<td>'+esc(a.lifecycle_status||'ACTIVE')+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+a.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteAsset(\''+a.id+'\',\''+esc(a.name)+'\')">Delete</button>':'')+'</div></td>'+
@@ -235,7 +248,7 @@ function loadAssets(page){
   var critVal=document.getElementById('f-crit').value;
   var patchVal=document.getElementById('f-patch').value;
   var srVal=document.getElementById('f-search').value.trim();
-  if(catVal)body.category=catVal;
+  if(catVal)body.category_id=catVal;
   if(critVal)body.criticality=critVal;
   if(patchVal)body.patch_status=patchVal;
   if(srVal)body.search=srVal;
@@ -259,13 +272,25 @@ function loadAll(){
     var sel=document.getElementById('add-owner');
     state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
   });
+  api('list_asset_categories',{},function(err,d){
+    if(err)return;state.categories=d.categories||[];
+    var filterSel=document.getElementById('f-cat');
+    state.categories.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;filterSel.appendChild(o);});
+    ['add-cat','edit-cat'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.categories.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+    });
+  });
 }
 
-function openAdd(){['add-name','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
+function openAdd(){['add-name','add-tag','add-location','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
 function openEdit(id){
   var a=state.assets.find(function(x){return x.id===id;});if(!a)return;
   document.getElementById('edit-id').value=a.id;
   document.getElementById('edit-name').value=a.name||'';
+  document.getElementById('edit-tag').value=a.asset_tag||'';
+  document.getElementById('edit-location').value=a.location||'';
+  setSelect('edit-cat',a.category_id||'');
   setSelect('edit-crit',a.criticality);setSelect('edit-patch',a.patch_status||'CURRENT');setSelect('edit-life',a.lifecycle_status||'ACTIVE');
   document.getElementById('modal-edit').classList.add('open');
 }
@@ -275,8 +300,12 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 
 function submitAdd(){
   var name=document.getElementById('add-name').value.trim();
+  var assetTag=document.getElementById('add-tag').value.trim();
+  var categoryId=document.getElementById('add-cat').value;
   if(!name){alert('Asset name is required.');return;}
-  api('add_asset',{name:name,category:document.getElementById('add-cat').value,criticality:document.getElementById('add-crit').value,
+  if(!assetTag){alert('Asset tag is required.');return;}
+  if(!categoryId){alert('Category is required.');return;}
+  api('add_asset',{name:name,asset_tag:assetTag,location:document.getElementById('add-location').value.trim(),category_id:categoryId,criticality:document.getElementById('add-crit').value,
     owner_id:document.getElementById('add-owner').value||null,patch_status:document.getElementById('add-patch').value,
     description:document.getElementById('add-desc').value},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Asset added');loadAll();
@@ -284,7 +313,11 @@ function submitAdd(){
 }
 function submitEdit(){
   var id=document.getElementById('edit-id').value;
-  api('update_asset',{id:id,name:document.getElementById('edit-name').value,criticality:document.getElementById('edit-crit').value,
+  var assetTag=document.getElementById('edit-tag').value.trim();
+  var categoryId=document.getElementById('edit-cat').value;
+  if(!assetTag){alert('Asset tag is required.');return;}
+  if(!categoryId){alert('Category is required.');return;}
+  api('update_asset',{id:id,name:document.getElementById('edit-name').value,asset_tag:assetTag,location:document.getElementById('edit-location').value.trim(),category_id:categoryId,criticality:document.getElementById('edit-crit').value,
     patch_status:document.getElementById('edit-patch').value,lifecycle_status:document.getElementById('edit-life').value},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Asset updated');loadAll();
   });
@@ -293,14 +326,16 @@ function submitEdit(){
 function downloadTemplate(){
   var wb=XLSX.utils.book_new();
   var ws=XLSX.utils.aoa_to_sheet([
-    ['Name','Category','Criticality','Patch Status','Lifecycle Status','Description'],
-    ['Core Banking App','APPLICATION','CRITICAL','CURRENT','ACTIVE','Primary transaction processing system']
+    ['Name','Asset Tag','Category','Location','Criticality','Patch Status','Lifecycle Status','Description'],
+    ['Core Banking App','HQ-APP-001','APPLICATION','HQ - Data Center','CRITICAL','CURRENT','ACTIVE','Primary transaction processing system']
   ]);
-  ws['!cols']=[{wch:28},{wch:18},{wch:14},{wch:14},{wch:18},{wch:40}];
+  ws['!cols']=[{wch:28},{wch:16},{wch:18},{wch:20},{wch:14},{wch:14},{wch:18},{wch:40}];
   XLSX.utils.book_append_sheet(wb,ws,'Assets');
+  var categoryNames=(state.categories||[]).map(function(c){return c.name;}).join(', ')||'(none defined - add categories under Platform & Access first)';
   var ref=XLSX.utils.aoa_to_sheet([
     ['Column','Valid Values'],
-    ['Category','APPLICATION, CORE_SERVER, FIREWALL, LAPTOP, DESKTOP, PRINTER, OTHER'],
+    ['Asset Tag','Admin-defined identifier, e.g. HQ-LAPTOP-001 - must be unique across all assets'],
+    ['Category',categoryNames+' (must match an active category name exactly)'],
     ['Criticality','CRITICAL, HIGH, MEDIUM, LOW'],
     ['Patch Status','CURRENT, PENDING, OVERDUE, UNKNOWN'],
     ['Lifecycle Status','ACTIVE, EOL, DECOMMISSIONING, DECOMMISSIONED']
@@ -325,8 +360,8 @@ function submitImport(){
       var ws=wb.Sheets[wb.SheetNames[0]];
       var data=XLSX.utils.sheet_to_json(ws);
       if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{name:String(r['Name']||'').trim(),category:String(r['Category']||'').trim(),criticality:String(r['Criticality']||'').trim(),patch_status:String(r['Patch Status']||'').trim(),lifecycle_status:String(r['Lifecycle Status']||'').trim(),description:String(r['Description']||'').trim()};}).filter(function(r){return r.name&&r.category&&r.criticality;});
-      if(!rows.length){alert('No valid rows found. Name, Category and Criticality columns must be filled.');return;}
+      var rows=data.map(function(r){return{name:String(r['Name']||'').trim(),asset_tag:String(r['Asset Tag']||'').trim(),category:String(r['Category']||'').trim(),location:String(r['Location']||'').trim(),criticality:String(r['Criticality']||'').trim(),patch_status:String(r['Patch Status']||'').trim(),lifecycle_status:String(r['Lifecycle Status']||'').trim(),description:String(r['Description']||'').trim()};}).filter(function(r){return r.name&&r.asset_tag&&r.category&&r.criticality;});
+      if(!rows.length){alert('No valid rows found. Name, Asset Tag, Category and Criticality columns must be filled.');return;}
       var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
       api('import_assets',{rows:rows},function(err,d){
         if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}

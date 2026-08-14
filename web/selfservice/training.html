@@ -57,7 +57,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
   </nav>
   <div class="user">
-    <span class="user-name" id="user-name">—</span>
+    <span class="user-name" id="user-name">-</span>
     <a href="../index.html" class="signout" onclick="localStorage.clear();return true;" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
   </div>
 </header>
@@ -75,7 +75,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <thead><tr><th>Campaign</th><th>Material</th><th>Status</th><th></th></tr></thead>
       <tbody id="training-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
-    <div class="pagination"><span id="page-info-training">—</span><div class="page-btns" id="page-btns-training"></div></div>
+    <div class="pagination"><span id="page-info-training">-</span><div class="page-btns" id="page-btns-training"></div></div>
   </div>
 </main>
 
@@ -150,11 +150,11 @@ function loadTrainings(page) {
     var body = document.getElementById('training-body');
     if (err) { body.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.trainings || [];
-    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No training currently assigned.</td></tr>'; document.getElementById('page-info-training').textContent = '—'; document.getElementById('page-btns-training').innerHTML = ''; return; }
+    if (!list.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No training currently assigned.</td></tr>'; document.getElementById('page-info-training').textContent = '-'; document.getElementById('page-btns-training').innerHTML = ''; return; }
     body.innerHTML = list.map(function(t) {
       var materialCell = t.material_title
         ? (t.content_url ? '<a href="' + esc(t.content_url) + '" target="_blank" rel="noopener">' + esc(t.material_title) + '</a>' : esc(t.material_title))
-        : '—';
+        : '-';
       var canComplete = t.status !== 'COMPLETED';
       return '<tr><td><strong>' + esc(t.campaign_name) + '</strong></td>' +
         '<td>' + materialCell + '</td>' +

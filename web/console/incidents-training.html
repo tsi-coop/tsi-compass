@@ -122,14 +122,14 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 
 <div class="modal-overlay" id="modal-docs">
   <div class="modal" style="width:660px">
-    <h2>Evidence — <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
+    <h2>Evidence - <span id="docs-entity-name" style="font-weight:700;color:var(--teal)"></span></h2>
     <div id="docs-list"><div class="empty">Loading…</div></div>
     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)">Upload Evidence</div>
     <div class="form-row">
       <label>Select File</label>
       <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip,.txt,.csv" style="height:auto;padding:8px 10px">
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV — max supported by server config.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">PDF, Office docs, images, ZIP, CSV - max supported by server config.</div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-docs')">Close</button>
       <button class="btn primary" onclick="uploadDoc()">Upload File</button>
@@ -161,7 +161,7 @@ function renderCards(list){
   grid.innerHTML=list.map(function(c){
     var pct=c.completion_pct||0;
     var barColor=pct>=80?'var(--teal)':pct>=50?'var(--amber)':'var(--red)';
-    var dates=esc((c.scheduled_start||'').substring(0,10))+' — '+esc((c.scheduled_end||'—').substring(0,10));
+    var dates=esc((c.scheduled_start||'').substring(0,10))+' - '+esc((c.scheduled_end||'-').substring(0,10));
     return '<div class="camp-card">'+
       '<div class="camp-header"><div class="camp-name">'+esc(c.name)+'</div>'+(SPILL[c.status]||esc(c.status||''))+'</div>'+
       (c.description?'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+esc(c.description.substring(0,100))+(c.description.length>100?'…':'')+'</div>':'')+
@@ -228,7 +228,7 @@ function loadDocs() {
       docs.map(function(doc) {
         return '<tr><td style="padding:6px 8px;font-size:13px">'+esc(doc.file_name)+'</td>' +
           '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc((doc.uploaded_at||'').substring(0,10))+'</td>' +
-          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'—')+'</td>' +
+          '<td style="padding:6px 8px;font-size:12px;color:var(--muted)">'+esc(doc.uploaded_by_name||'-')+'</td>' +
           '<td style="padding:6px 8px"><button class="btn sm" onclick="downloadDoc(\''+doc.id+'\',\''+esc(doc.file_name)+'\')">&#8595; Download</button></td></tr>';
       }).join('') + '</tbody></table>';
   });

@@ -147,7 +147,7 @@ function api(func, body, cb) {
       var color = pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
       return '<div class="fw-card">'+
         '<div class="fw-name">'+esc(f.name)+'</div>'+
-        '<div class="fw-ver">Version: '+esc(f.version||'—')+'</div>'+
+        '<div class="fw-ver">Version: '+esc(f.version||'-')+'</div>'+
         '<div class="fw-bar-wrap"><div class="fw-bar" style="width:'+pct+'%;background:'+color+'"></div></div>'+
         '<div class="fw-pct" style="color:'+color+'">'+pct+'%</div>'+
         '<div class="fw-stats">'+

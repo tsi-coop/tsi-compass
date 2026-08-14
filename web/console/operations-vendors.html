@@ -95,7 +95,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <thead><tr><th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th></tr></thead>
         <tbody id="vnd-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
-      <div class="pagination"><span id="page-info">—</span><div class="page-btns" id="page-btns"></div></div>
+      <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
     </div>
   </main>
 </div>
@@ -110,7 +110,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Baseline Risk Score (1–25)</label><input id="add-risk" type="number" min="1" max="25"></div>
     </div>
     <div class="form-row"><label>Security Questionnaire Status</label>
-      <select id="add-qs"><option value="">— Not applicable —</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
+      <select id="add-qs"><option value="">- Not applicable -</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -129,7 +129,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Risk Score (1–25)</label><input id="edit-risk" type="number" min="1" max="25"></div>
     </div>
     <div class="form-row"><label>Security Questionnaire Status</label>
-      <select id="edit-qs"><option value="">— Not applicable —</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
+      <select id="edit-qs"><option value="">- Not applicable -</option><option>SENT</option><option>RECEIVED</option><option>EVALUATED</option><option>NOT_APPLICABLE</option></select>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
@@ -187,9 +187,9 @@ function renderVendors(list,total){
     var duePill=v.review_due?'<span class="pill watch">Due</span>':'<span class="pill neu">OK</span>';
     return '<tr>'+
       '<td><strong>'+esc(v.name)+'</strong></td>'+
-      '<td>'+esc(v.license_expiry||'—')+'</td>'+
-      '<td style="font-size:16px;font-weight:900;color:'+riskColor(v.baseline_risk_score)+'">'+esc(v.baseline_risk_score||'—')+'</td>'+
-      '<td>'+(QS_PILL[v.security_questionnaire_status]||'<span class="pill neu">—</span>')+'</td>'+
+      '<td>'+esc(v.license_expiry||'-')+'</td>'+
+      '<td style="font-size:16px;font-weight:900;color:'+riskColor(v.baseline_risk_score)+'">'+esc(v.baseline_risk_score||'-')+'</td>'+
+      '<td>'+(QS_PILL[v.security_questionnaire_status]||'<span class="pill neu">-</span>')+'</td>'+
       '<td>'+duePill+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVendor(\''+v.id+'\',\''+esc(v.name)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';

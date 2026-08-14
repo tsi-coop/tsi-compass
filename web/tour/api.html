@@ -118,7 +118,7 @@ Content-Type: application/json</pre>
 }</pre>
         </div>
     </div>
-    <p style="font-size:11px;color:var(--muted);margin:14px 0 0">Generate API keys from the console: <strong>Platform &amp; Access › API Keys › + Generate API Key</strong>. The secret is shown once at creation — store it securely.</p>
+    <p style="font-size:11px;color:var(--muted);margin:14px 0 0">Generate API keys from the console: <strong>Platform &amp; Access › API Keys › + Generate API Key</strong>. The secret is shown once at creation - store it securely.</p>
 </div>
 
 <!-- Platform -->
@@ -153,7 +153,7 @@ Content-Type: application/json</pre>
     <div class="code-grid">
         <div><div class="clbl">get_platform_metrics</div>
         <pre class="cb blue">{ "_func": "get_platform_metrics" }</pre></div>
-        <div><div class="clbl">list_users — with filters</div>
+        <div><div class="clbl">list_users - with filters</div>
         <pre class="cb blue">{
   "_func": "list_users",
   "role": "RISK_OWNER",
@@ -463,7 +463,7 @@ Content-Type: application/json</pre>
     <div class="code-grid">
         <div><div class="clbl">get_risk_metrics</div>
         <pre class="cb blue">{ "_func": "get_risk_metrics" }</pre></div>
-        <div><div class="clbl">list_risks — with filters</div>
+        <div><div class="clbl">list_risks - with filters</div>
         <pre class="cb blue">{
   "_func": "list_risks",
   "status": "OPEN",
@@ -481,7 +481,7 @@ Content-Type: application/json</pre>
   "description": "Legacy servers running EOL OS",
   "owner_id": "user-uuid"
 }</pre></div>
-        <div><div class="clbl">add_risk — response</div>
+        <div><div class="clbl">add_risk - response</div>
         <pre class="cb green">{
   "success": true,
   "id": "risk-uuid",
@@ -534,7 +534,7 @@ Content-Type: application/json</pre>
   "end_date": "2025-08-15",
   "scope": "External perimeter, web applications"
 }</pre></div>
-        <div><div class="clbl">list_vulnerabilities — filtered</div>
+        <div><div class="clbl">list_vulnerabilities - filtered</div>
         <pre class="cb blue">{
   "_func": "list_vulnerabilities",
   "severity": "CRITICAL",
@@ -556,7 +556,7 @@ Content-Type: application/json</pre>
   "_func": "update_vulnerability",
   "id": "vuln-uuid",
   "status": "REMEDIATED",
-  "notes": "Patched in v2.3.1 — deployed 2025-08-10"
+  "notes": "Patched in v2.3.1 - deployed 2025-08-10"
 }</pre></div>
     </div>
     <div class="code-grid">
@@ -624,7 +624,7 @@ Content-Type: application/json</pre>
   "_func": "list_framework_requirements",
   "framework_id": "fw-uuid"
 }</pre></div>
-        <div><div class="clbl">list_controls — filtered</div>
+        <div><div class="clbl">list_controls - filtered</div>
         <pre class="cb blue">{
   "_func": "list_controls",
   "status": "ACTIVE",
@@ -774,7 +774,7 @@ Content-Type: application/json</pre>
 }</pre></div>
     </div>
     <div class="code-grid">
-        <div><div class="clbl">list_observations — filtered</div>
+        <div><div class="clbl">list_observations - filtered</div>
         <pre class="cb blue">{
   "_func": "list_observations",
   "audit_id": "audit-uuid",
@@ -868,8 +868,8 @@ Content-Type: application/json</pre>
             <tr><td class="fn">update_change</td><td class="fd">Update change by <code>id</code> (including gate approvals and <code>status</code>)</td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">delete_change</td><td class="fd">Delete change request by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
             <tr><td class="fn">import_changes</td><td class="fd">Bulk import change requests. Body: <code>changes</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
-            <tr><td class="fn">list_assets</td><td class="fd">IT asset inventory. Filters: <code>criticality</code>, <code>category</code>, <code>lifecycle_status</code></td><td><span class="pill pr">READ+</span></td></tr>
-            <tr><td class="fn">add_asset</td><td class="fd">Register asset. Fields: <code>name</code>, <code>category</code>, <code>criticality</code>, <code>owner_id</code>, <code>lifecycle_status</code></td><td><span class="pill pw">WRITE+</span></td></tr>
+            <tr><td class="fn">list_assets</td><td class="fd">IT asset inventory. Filters: <code>criticality</code>, <code>category_id</code>, <code>lifecycle_status</code></td><td><span class="pill pr">READ+</span></td></tr>
+            <tr><td class="fn">add_asset</td><td class="fd">Register asset. Fields: <code>name</code>, <code>asset_tag</code> (unique), <code>category_id</code>, <code>criticality</code>, <code>location</code>, <code>owner_id</code>, <code>lifecycle_status</code></td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">update_asset</td><td class="fd">Update asset by <code>id</code></td><td><span class="pill pw">WRITE+</span></td></tr>
             <tr><td class="fn">delete_asset</td><td class="fd">Delete asset by <code>id</code></td><td><span class="pill pa">ADMIN</span></td></tr>
             <tr><td class="fn">import_assets</td><td class="fd">Bulk import assets. Body: <code>assets</code> array</td><td><span class="pill pw">WRITE+</span></td></tr>
@@ -890,7 +890,7 @@ Content-Type: application/json</pre>
     <div class="code-grid">
         <div><div class="clbl">get_ops_metrics</div>
         <pre class="cb blue">{ "_func": "get_ops_metrics" }</pre></div>
-        <div><div class="clbl">list_changes — filtered</div>
+        <div><div class="clbl">list_changes - filtered</div>
         <pre class="cb blue">{
   "_func": "list_changes",
   "status": "PENDING",
@@ -901,7 +901,7 @@ Content-Type: application/json</pre>
         <div><div class="clbl">add_change</div>
         <pre class="cb blue">{
   "_func": "add_change",
-  "title": "OS patch rollout — prod servers",
+  "title": "OS patch rollout - prod servers",
   "change_type": "Standard",
   "priority": "HIGH",
   "description": "Apply critical OS patches to all prod servers",
@@ -941,18 +941,20 @@ Content-Type: application/json</pre>
 }</pre></div>
     </div>
     <div class="code-grid">
-        <div><div class="clbl">list_assets — filtered</div>
+        <div><div class="clbl">list_assets - filtered</div>
         <pre class="cb blue">{
   "_func": "list_assets",
   "criticality": "CRITICAL",
-  "category": "Server"
+  "category_id": "category-uuid"
 }</pre></div>
         <div><div class="clbl">add_asset</div>
         <pre class="cb blue">{
   "_func": "add_asset",
   "name": "Prod DB Server 01",
-  "category": "Server",
+  "asset_tag": "HQ-SRV-014",
+  "category_id": "category-uuid",
   "criticality": "CRITICAL",
+  "location": "HQ - Data Center",
   "lifecycle_status": "PRODUCTION",
   "owner_id": "user-uuid"
 }</pre></div>
@@ -1034,7 +1036,7 @@ Content-Type: application/json</pre>
 }</pre></div>
     </div>
     <div class="code-grid">
-        <div><div class="clbl">list_tickets — filtered</div>
+        <div><div class="clbl">list_tickets - filtered</div>
         <pre class="cb blue">{
   "_func": "list_tickets",
   "status": "OPEN",
@@ -1058,7 +1060,7 @@ Content-Type: application/json</pre>
   "_func": "update_ticket",
   "id": "ticket-uuid",
   "status": "CLOSED",
-  "resolution": "Updated VPN client to v5.2.1 — resolved"
+  "resolution": "Updated VPN client to v5.2.1 - resolved"
 }</pre></div>
         <div><div class="clbl">delete_ticket</div>
         <pre class="cb blue">{
@@ -1078,7 +1080,7 @@ Content-Type: application/json</pre>
       "category": "Access"
     },
     {
-      "subject": "Slow file server — Finance",
+      "subject": "Slow file server - Finance",
       "description": "Finance dept reporting high latency",
       "priority": "MEDIUM",
       "category": "Performance"
@@ -1124,7 +1126,7 @@ Content-Type: application/json</pre>
     <div class="code-grid">
         <div><div class="clbl">get_incident_metrics</div>
         <pre class="cb blue">{ "_func": "get_incident_metrics" }</pre></div>
-        <div><div class="clbl">list_incidents — filtered</div>
+        <div><div class="clbl">list_incidents - filtered</div>
         <pre class="cb blue">{
   "_func": "list_incidents",
   "severity": "HIGH",
@@ -1135,12 +1137,12 @@ Content-Type: application/json</pre>
         <div><div class="clbl">add_incident</div>
         <pre class="cb blue">{
   "_func": "add_incident",
-  "title": "Phishing campaign — Finance dept",
+  "title": "Phishing campaign - Finance dept",
   "severity": "HIGH",
   "description": "3 users clicked malicious link in spoofed email",
   "affected_systems": "Email, Office 365"
 }</pre></div>
-        <div><div class="clbl">update_incident — close with RCA</div>
+        <div><div class="clbl">update_incident - close with RCA</div>
         <pre class="cb blue">{
   "_func": "update_incident",
   "id": "incident-uuid",
@@ -1209,7 +1211,7 @@ Content-Type: application/json</pre>
   "_func": "get_campaign_document",
   "id": "doc-uuid"
 }</pre></div>
-        <div><div class="clbl">list_knowledge — filtered</div>
+        <div><div class="clbl">list_knowledge - filtered</div>
         <pre class="cb blue">{
   "_func": "list_knowledge",
   "category": "Phishing"
@@ -1275,7 +1277,7 @@ Content-Type: application/json</pre>
     <div class="code-grid">
         <div><div class="clbl">get_executive_summary</div>
         <pre class="cb blue">{ "_func": "get_executive_summary" }</pre></div>
-        <div><div class="clbl">get_executive_summary — response</div>
+        <div><div class="clbl">get_executive_summary - response</div>
         <pre class="cb green">{
   "success": true,
   "total_risks": 42,
@@ -1322,9 +1324,9 @@ Content-Type: application/json</pre>
     <table class="fn-table">
         <thead><tr><th>_func</th><th>Description</th><th>Role</th></tr></thead>
         <tbody>
-            <tr><td class="fn">generate_api_key</td><td class="fd">Create a new key pair. Fields: <code>name</code> (required), <code>description</code>. Returns plain key + secret <strong>once only</strong> — only SHA-256 hashes are stored.</td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">generate_api_key</td><td class="fd">Create a new key pair. Fields: <code>name</code> (required), <code>description</code>. Returns plain key + secret <strong>once only</strong> - only SHA-256 hashes are stored.</td><td><span class="pill pa">ADMIN</span></td></tr>
             <tr><td class="fn">list_api_keys</td><td class="fd">List all keys showing prefix, name, status, created_by, last_used. Never returns plain key or secret.</td><td><span class="pill pa">ADMIN</span></td></tr>
-            <tr><td class="fn">revoke_api_key</td><td class="fd">Revoke a key immediately. Field: <code>id</code>. Status set to REVOKED — cannot be undone.</td><td><span class="pill pa">ADMIN</span></td></tr>
+            <tr><td class="fn">revoke_api_key</td><td class="fd">Revoke a key immediately. Field: <code>id</code>. Status set to REVOKED - cannot be undone.</td><td><span class="pill pa">ADMIN</span></td></tr>
         </tbody>
     </table>
     <div class="ex-label">Examples</div>
@@ -1342,7 +1344,7 @@ Content-Type: application/json</pre>
   "api_secret": "xq29mzb8n3k7...",
   "key_prefix": "a7f3k9d2h1j4"
 }
-// Secret shown ONCE — store securely</pre></div>
+// Secret shown ONCE - store securely</pre></div>
         <div><div class="clbl">list_api_keys</div>
         <pre class="cb blue">{ "_func": "list_api_keys" }</pre>
         <pre class="cb green" style="margin-top:8px">{
@@ -1366,7 +1368,7 @@ Content-Type: application/json</pre>
   "_func": "revoke_api_key",
   "id": "key-uuid"
 }
-// Immediate effect — key stops working at once</pre></div>
+// Immediate effect - key stops working at once</pre></div>
         <div><div class="clbl">Use a key to call any module</div>
         <pre class="cb blue">POST /api/v1/admin/risk
 X-API-Key: a7f3k9d2h1j4...
