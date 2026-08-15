@@ -48,6 +48,11 @@ Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM 
 
 ## Changelog
 
+### v0.4.1
+
+- **Manager-issued password reset keys** - Managers can now reset a team member's password from the My Team page by generating a one-time 5-word recovery passphrase, the same mechanism Admins use, instead of setting a plaintext password directly.
+- **Consistent "Password Reset Key" labeling** - the Admin and Manager screens now use the same "Password Reset Key" wording for this action.
+
 ### v0.4
 
 - **Manager approval workflow** - a new optional deployment-wide setting (Platform & Access > Business Settings) routes an Employee's helpdesk tickets and change requests to their assigned Manager for approval or rejection before IT/GRC staff can see them. Employees with no assigned Manager are blocked from submitting until one is assigned.
