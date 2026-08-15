@@ -8,6 +8,10 @@ TSI Compass is a beginner-friendly, self-hosted IT GRC platform built right on t
 
 ## Features
 
+### For IT & Information Security Teams
+
+The console, used by `ADMIN`, `GRC_OFFICER`, and `IT_STAFF`.
+
 | Module | What it covers |
 |--------|---------------|
 | **Platform & Access** | Organisation structure, departments, user provisioning, role-based access control, API key management, and a full platform audit trail |
@@ -16,10 +20,19 @@ TSI Compass is a beginner-friendly, self-hosted IT GRC platform built right on t
 | **Compliance & Controls** | Controls register, framework mappings (ISO 27001, SOC 2, etc.), and exception management |
 | **Audit & Evidence** | Audit scheduling, findings, and an evidence locker |
 | **IT Operations** | Asset inventory, change management, vendor register, and help desk |
-| **Self-Service Portal** | A separate portal for Employees and Managers: Employees submit tickets/change requests and complete policy attestations and training; Managers provision and manage their own team and approve or reject their team's requests before IT/GRC ever sees them |
+| **Supply Chain** | SBOM (Software Bill of Materials) and CBOM (Cryptography Bill of Materials) inventory of the components and cryptographic assets that make up your software estate, optionally linked to IT assets, with bulk import |
 | **Data Register** | Self-declared data discovery and classification register, with optional links to IT assets and vendors |
 | **Incidents** | Incident register, knowledge base, and staff training records |
 | **Reports** | Exportable compliance and risk summary reports |
+
+### For End Users
+
+A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Manager) - no console access.
+
+| Role | What they can do |
+|------|-------------------|
+| **Employee** | Submit helpdesk tickets and change requests, track their status, and complete policy attestations and training |
+| **Manager** | Everything an Employee can do, plus provision and manage their own team and approve or reject their team's tickets and change requests - optionally required, deployment-wide, before IT/GRC ever sees them |
 
 **Authentication and access control**
 
@@ -59,6 +72,7 @@ Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM 
 - **Manager Portal: My Team** - Managers can provision, edit, suspend/reactivate, and reset the password for the Employees who report to them, directly from the self-service portal, without needing Admin access.
 - **Manager Portal: Approvals** - a dedicated queue where Managers review and approve or reject pending tickets and change requests from their team.
 - **Employee / Manager role labels** - the `USER` and `SUPERVISOR` roles now display as "Employee" and "Manager" throughout the console and self-service portal for clarity (underlying role keys are unchanged).
+- **Supply Chain module (SBOM/CBOM)** - new Supply Chain console page for tracking a Software Bill of Materials and Cryptography Bill of Materials, each entry optionally linked to an IT asset, with add/edit/delete and bulk import.
 
 ### v0.3
 
