@@ -258,37 +258,15 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- Modal: Reset Password -->
-<div id="modal-reset-password" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-reset-password')">
-  <div class="modal-box">
-    <div class="modal-head"><h2>Reset User Password</h2><button class="modal-close" onclick="closeModal('modal-reset-password')">&#x2715;</button></div>
-    <form id="form-reset-pwd">
-      <div class="form-field"><label class="form-label">Select User</label>
-        <select class="form-select" id="rp-user" required>
-          <option value="">Select user…</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="rp-password" type="password" placeholder="Min. 10 characters" required></div>
-      <div class="form-field" style="background:#fff4df;border:1px solid #f6d860;border-radius:7px;padding:10px 12px">
-        <p style="margin:0;font-size:12px;color:var(--amber);font-weight:700">The user will be required to change their password on next login.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="cancel-btn" onclick="closeModal('modal-reset-password')">Cancel</button>
-        <button type="submit" class="btn primary">Reset Password</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Set Recovery Key (generate + reveal) -->
+<!-- Modal: Password Reset Key (generate + reveal) -->
 <div id="modal-set-key" class="modal-overlay">
   <div class="modal-box">
-    <div class="modal-head"><h2>Set Recovery Key</h2><button class="modal-close" onclick="closeModal('modal-set-key')">&#x2715;</button></div>
+    <div class="modal-head"><h2>Password Reset Key</h2><button class="modal-close" onclick="closeModal('modal-set-key')">&#x2715;</button></div>
     <div id="set-key-form">
       <p style="margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6">Generate a 5-word recovery passphrase for <strong id="set-key-username">this user</strong>. The passphrase will be shown once - give it to the user to store securely offline.</p>
       <div class="modal-footer">
         <button type="button" class="cancel-btn" onclick="closeModal('modal-set-key')">Cancel</button>
-        <button type="button" class="btn primary" id="gen-key-btn" onclick="generateRecoveryKey()">Generate &amp; Set Key</button>
+        <button type="button" class="btn primary" id="gen-key-btn" onclick="generateRecoveryKey()">Generate Password Reset Key</button>
       </div>
     </div>
     <div id="set-key-reveal" style="display:none">
@@ -466,7 +444,6 @@ function loadUsers(page) {
     state.users = data.users || [];
     renderUsers(state.users);
     renderPagination(data);
-    populateResetUserSelect();
   });
 }
 
@@ -541,7 +518,7 @@ function renderUsers(users) {
       var avatarBg = u.status === 'SUSPENDED' ? 'var(--muted)' : 'var(--teal)';
       var roleLabel = esc(ROLES[u.role] || u.role || '-');
       var keyCell = isAdmin
-        ? '<button class="tbl-action" onclick="openSetKeyModal(\'' + esc(u.id) + '\',\'' + esc(u.username || u.email) + '\')">Set Key</button>'
+        ? '<button class="tbl-action" onclick="openSetKeyModal(\'' + esc(u.id) + '\',\'' + esc(u.username || u.email) + '\')">Password Reset Key</button>'
         : '<span style="color:var(--muted);font-size:11px">-</span>';
       var isSoleAdmin = (u.role === 'ADMIN' && u.status === 'ACTIVE' && activeAdminCount <= 1);
       var actions = '';
@@ -565,20 +542,6 @@ function renderUsers(users) {
     }).join('');
   }
 
-}
-
-function populateResetUserSelect() {
-  var sel = document.getElementById('rp-user');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Select user…</option>';
-  state.users
-    .filter(function(u) { return u.status === 'ACTIVE'; })
-    .forEach(function(u) {
-      var opt = document.createElement('option');
-      opt.value = u.id;
-      opt.textContent = (u.username || u.email) + ' (' + esc(u.email) + ')';
-      sel.appendChild(opt);
-    });
 }
 
 window.openEditModal = function(id) {
@@ -694,25 +657,6 @@ document.getElementById('form-deactivate').addEventListener('submit', function(e
   });
 });
 
-// Form: Reset Password
-document.getElementById('form-reset-pwd').addEventListener('submit', function(e) {
-  e.preventDefault();
-  var btn = e.submitter;
-  var orig = btn ? btn.textContent : '';
-  if (btn) { btn.textContent = 'Resetting…'; btn.disabled = true; }
-
-  api('reset_user_password', {
-    id: document.getElementById('rp-user').value,
-    new_password: document.getElementById('rp-password').value
-  }, function(err) {
-    if (btn) { btn.textContent = orig; btn.disabled = false; }
-    if (err) { showToast('Failed to reset password: ' + err, true); return; }
-    closeModal('modal-reset-password');
-    document.getElementById('form-reset-pwd').reset();
-    showToast('Password reset successfully.');
-  });
-});
-
 // Recovery key
 var setKeyUserId = null;
 
@@ -732,7 +676,7 @@ window.generateRecoveryKey = function() {
 
   api('set_recovery_key', { id: setKeyUserId }, function(err, data) {
     btn.disabled = false;
-    btn.textContent = 'Generate & Set Key';
+    btn.textContent = 'Generate Password Reset Key';
     if (err) { showToast('Failed to set recovery key: ' + err, true); return; }
     document.getElementById('reveal-passphrase').value = data.passphrase;
     document.getElementById('set-key-form').style.display = 'none';

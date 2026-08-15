@@ -55,7 +55,7 @@ public class Supervisor implements Action {
                 case "provision_team_user":  provisionTeamUser(req, res, input, selfId);                       break;
                 case "update_team_user":     updateTeamUser(req, res, input, selfId);                          break;
                 case "set_team_user_status": setTeamUserStatus(req, res, input, selfId);                       break;
-                case "reset_team_user_password": resetTeamUserPassword(req, res, input, selfId);               break;
+                case "set_team_recovery_key": setTeamRecoveryKey(req, res, input, selfId);                      break;
                 case "list_pending_tickets": OutputProcessor.send(res, 200, listPendingTickets(selfId, input)); break;
                 case "list_pending_changes": OutputProcessor.send(res, 200, listPendingChanges(selfId, input)); break;
                 case "approve_ticket":       approveTicket(req, res, input, selfId);                            break;
@@ -231,32 +231,60 @@ public class Supervisor implements Action {
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
     }
 
+    // Same 5-word list and hashing scheme as Platform.setRecoveryKey (the ADMIN
+    // equivalent), so recovery passphrases set by a Manager are indistinguishable
+    // from ones set by an ADMIN at /password-reset.html.
+    private static final String[] WORD_LIST = {
+        "amber","apple","arrow","atlas","azure","badge","basin","batch","birch","blade",
+        "blaze","bloom","board","brake","brave","bravo","brick","bridge","brook","brush",
+        "cabin","cable","cedar","chalk","chase","chess","chief","chisel","chord","civic",
+        "clamp","cloak","cloud","coast","comet","coral","crest","crisp","crown","curve",
+        "delta","depot","depot","drift","dune","eagle","ember","epoch","fable","falcon",
+        "fence","field","fjord","flame","flare","fleet","flint","flora","flume","focal",
+        "forge","forte","frost","funnel","gable","glade","gleam","globe","gloom","grain",
+        "grand","grant","graph","gravel","grove","guide","guild","guile","haven","hawk",
+        "heath","hedge","herald","hinge","holly","honor","hyena","index","inlet","ivory",
+        "jade","jaguar","jewel","joint","joust","karma","kayak","kestrel","knoll","larch"
+    };
+
     @SuppressWarnings("unchecked")
-    private void resetTeamUserPassword(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
-        String id          = (String) input.get("id");
-        String newPassword = (String) input.get("new_password");
-        if (isBlank(id) || isBlank(newPassword)) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "id and new_password are required", req.getRequestURI()); return;
-        }
-        if (newPassword.length() < 10) {
-            OutputProcessor.errorResponse(res, 400, "Bad Request", "Password must be at least 10 characters", req.getRequestURI()); return;
+    private void setTeamRecoveryKey(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return;
         }
 
-        String passwordHash = new PasswordHasher().hashPassword(newPassword);
+        java.util.Random rng = new java.util.Random();
+        String[] words = new String[5];
+        for (int i = 0; i < 5; i++) words[i] = WORD_LIST[rng.nextInt(WORD_LIST.length)];
+        String passphrase = String.join("-", words);
+        String keyHash = sha256hex(passphrase);
 
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("UPDATE users SET password_hash = ? WHERE id = ? AND supervisor_id = ? AND role = 'USER'");
-            p.setString(1, passwordHash);
+            p = conn.prepareStatement("UPDATE users SET recovery_key_hash = ? WHERE id = ? AND supervisor_id = ? AND role = 'USER'");
+            p.setString(1, keyHash);
             p.setObject(2, UUID.fromString(id));
             p.setObject(3, selfId);
             int updated = p.executeUpdate();
             if (updated == 0) {
                 OutputProcessor.errorResponse(res, 404, "Not Found", "No team member found with that id", req.getRequestURI()); return;
             }
-            JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
+
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("passphrase", passphrase);
+        OutputProcessor.send(res, 200, result);
+    }
+
+    private static String sha256hex(String input) throws Exception {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) sb.append('0'); sb.append(h); }
+        return sb.toString();
     }
 
     // -------------------------------------------------------------------------

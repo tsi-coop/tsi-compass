@@ -109,24 +109,35 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
-<div id="modal-reset-password" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-reset-password')">
+<div id="modal-reset-password" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
-      <h2>Reset Password</h2>
+      <h2>Password Reset Key</h2>
       <button class="modal-close" onclick="closeModal('modal-reset-password')">&#x2715;</button>
     </div>
-    <form id="form-reset-password" onsubmit="submitResetPassword(event)">
-      <input type="hidden" id="rp-id">
-      <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">Set a new password for <strong id="rp-username">this team member</strong>. Share it with them securely.</p>
-      <div class="form-row">
-        <label>New Password <span style="color:var(--red)">*</span></label>
-        <input id="rp-password" type="password" minlength="10" required>
-      </div>
+    <div id="rp-form">
+      <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted);line-height:1.6">Generate a 5-word recovery passphrase for <strong id="rp-username">this team member</strong>. The passphrase will be shown once - give it to them to store securely offline.</p>
       <div class="form-actions">
         <button type="button" class="btn" onclick="closeModal('modal-reset-password')">Cancel</button>
-        <button type="submit" class="btn primary" id="rp-submit-btn">Reset Password</button>
+        <button type="button" class="btn primary" id="rp-submit-btn" onclick="submitResetPassword()">Generate Password Reset Key</button>
       </div>
-    </form>
+    </div>
+    <div id="rp-reveal" style="display:none">
+      <div style="background:#fff4df;border:1px solid #f6c660;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#7c5200;line-height:1.5">
+        <strong style="display:block;margin-bottom:3px">Copy this passphrase now - it will not be shown again.</strong>
+        Give it to your team member to store securely. They will enter it on the password recovery page.
+      </div>
+      <div class="form-row">
+        <label>Recovery Passphrase</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="rp-reveal-passphrase" readonly style="flex:1;height:36px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:0 10px;font-family:ui-monospace,monospace;background:var(--wash);color:var(--ink)">
+          <button type="button" onclick="copyPassphrase()" class="btn">Copy</button>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn primary" onclick="closeResetPassword()">I have copied the passphrase</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -178,7 +189,7 @@ function loadTeam() {
         '<td>' + statusPill + '</td>' +
         '<td>' + fmtDate(u.created_at) + '</td>' +
         '<td><div class="row-actions">' +
-          '<button class="btn sm" onclick="openResetPassword(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\')">Reset Password</button>' +
+          '<button class="btn sm" onclick="openResetPassword(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\')">Password Reset Key</button>' +
           '<button class="btn sm' + (u.status === 'ACTIVE' ? ' danger' : '') + '" onclick="toggleStatus(\'' + esc(u.id) + '\',\'' + toggleTo + '\')">' + (u.status === 'ACTIVE' ? 'Suspend' : 'Activate') + '</button>' +
         '</div></td>' +
         '</tr>';
@@ -194,26 +205,40 @@ function toggleStatus(id, newStatus) {
   });
 }
 
+var rpUserId = null;
+
 function openResetPassword(id, username) {
-  document.getElementById('form-reset-password').reset();
-  document.getElementById('rp-id').value = id;
+  rpUserId = id;
   document.getElementById('rp-username').textContent = username;
+  document.getElementById('rp-form').style.display = '';
+  document.getElementById('rp-reveal').style.display = 'none';
+  document.getElementById('rp-reveal-passphrase').value = '';
   document.getElementById('modal-reset-password').classList.add('open');
 }
 
-function submitResetPassword(e) {
-  e.preventDefault();
-  var id = document.getElementById('rp-id').value;
-  var password = document.getElementById('rp-password').value;
-  if (!id || !password) return;
+function submitResetPassword() {
   var btn = document.getElementById('rp-submit-btn');
-  btn.disabled = true; btn.textContent = 'Resetting…';
-  api('reset_team_user_password', { id: id, new_password: password }, function(err) {
-    btn.disabled = false; btn.textContent = 'Reset Password';
+  btn.disabled = true; btn.textContent = 'Generating…';
+  api('set_team_recovery_key', { id: rpUserId }, function(err, data) {
+    btn.disabled = false; btn.textContent = 'Generate Password Reset Key';
     if (err) { showToast('Error: ' + err, true); return; }
-    closeModal('modal-reset-password');
-    showToast('Password reset successfully');
+    document.getElementById('rp-reveal-passphrase').value = data.passphrase;
+    document.getElementById('rp-form').style.display = 'none';
+    document.getElementById('rp-reveal').style.display = '';
   });
+}
+
+function closeResetPassword() {
+  document.getElementById('rp-reveal-passphrase').value = '';
+  closeModal('modal-reset-password');
+}
+
+function copyPassphrase() {
+  var el = document.getElementById('rp-reveal-passphrase');
+  try { el.select(); document.execCommand('copy'); } catch(e) {
+    if (navigator.clipboard) navigator.clipboard.writeText(el.value);
+  }
+  showToast('Passphrase copied to clipboard.');
 }
 
 function openAdd() {
