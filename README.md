@@ -120,6 +120,12 @@ All secrets have safe local defaults. Override them for any non-local deployment
 
 ---
 
+## Backups
+
+Configurable scripts for daily database backups (to a NAS mount or any other destination directory) and restore/verification are provided in [`scripts/`](scripts/README.md) — see that README for setup, scheduling, and restore instructions.
+
+---
+
 ## Project structure
 
 ```
@@ -130,6 +136,9 @@ tsi-compass/
 │   ├── 03_selfservice.sql        # Self-service portal schema additions
 │   ├── 04_notifications.sql      # In-app notifications schema
 │   └── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
+├── scripts/
+│   ├── backup.sh                 # Daily DB backup to a shared/NAS directory (see scripts/README.md)
+│   └── restore.sh                # Restore + verify a backup (see scripts/README.md)
 ├── src/
 │   └── org/tsicoop/compass/
 │       ├── framework/            # Servlet filter, routing, JWT, DB pool, helpers

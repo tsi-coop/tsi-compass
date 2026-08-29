@@ -7,5 +7,6 @@
 /.antigravitycli/
 /.claude/
 /server/.env
+/scripts/backup.env
 *.swp
 
