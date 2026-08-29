@@ -122,7 +122,7 @@ All secrets have safe local defaults. Override them for any non-local deployment
 
 ## Backups
 
-Configurable scripts for daily database backups (to a NAS mount or any other destination directory) and restore/verification are provided in [`scripts/`](scripts/README.md) — see that README for setup, scheduling, and restore instructions.
+Configurable scripts for daily database backups (to a NAS mount or any other destination directory) and restore/verification are provided in [`scripts/`](scripts/README.md) - see that README for setup, scheduling, and restore instructions.
 
 ---
 
