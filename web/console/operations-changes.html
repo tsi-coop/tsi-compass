@@ -36,11 +36,20 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal.wide{width:640px}
 .modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
 .form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
 .form-row textarea{height:80px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.detail-field label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.detail-field div{font-size:13px;color:var(--ink)}
+.detail-desc label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.detail-desc div{font-size:13px;color:var(--ink);line-height:1.6;white-space:pre-wrap;background:var(--wash);border:1px solid var(--line);border-radius:8px;padding:12px}
+.comment{background:var(--wash);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.comment-meta{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.comment-body{font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-wrap}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
@@ -86,7 +95,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><div class="eyebrow">IT Operations</div><h1>Change Management</h1><p class="subtitle">Track IT change requests through compliance gate stages with document requirements at each stage.</p></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Change Requests</h2><div style="display:flex;align-items:center;gap:12px"><span id="cr-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ New Change Request</button></div></div>
+      <div class="section-head"><h2>Change Requests</h2><div style="display:flex;align-items:center;gap:12px"><span id="cr-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ New Change Request</button></div></div>
       <div class="filter-bar">
         <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>DRAFT</option><option>SUBMITTED</option><option>APPROVED</option><option>REJECTED</option><option>COMPLETED</option></select>
         <select id="f-stage" onchange="applyFilters()"><option value="">All Stages</option><option>BRD</option><option>SOLUTION_DESIGN</option><option>APPROVAL</option><option>QA_TESTING</option><option>UAT</option><option>PROD_DEPLOYMENT</option></select>
@@ -110,6 +119,9 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Requester</label><select id="add-req"><option value="">- Select -</option></select></div>
       <div><label>Compliance Approver</label><select id="add-approver"><option value="">- Select -</option></select></div>
     </div>
+    <div class="form-row"><label>Attachments (optional)</label>
+      <input type="file" id="add-attachments" multiple>
+    </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn primary" onclick="submitAdd()">Create Request</button>
@@ -118,15 +130,30 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 </div>
 
 <div class="modal-overlay" id="modal-edit">
-  <div class="modal">
+  <div class="modal wide">
     <h2>Update Change Request</h2>
     <input type="hidden" id="edit-id">
-    <div class="form-row"><label>Title</label><input id="edit-title"></div>
+    <div class="detail-grid">
+      <div class="detail-field"><label>Requested By</label><div id="edit-requester">-</div></div>
+      <div class="detail-field"><label>Submitted</label><div id="edit-submitted">-</div></div>
+    </div>
+    <div class="detail-desc"><label>Description</label><div id="edit-description">-</div></div>
+    <div class="form-row" style="margin-top:16px"><label>Title</label><input id="edit-title"></div>
     <div class="form-row half">
       <div><label>Stage</label><select id="edit-stage"><option>BRD</option><option>SOLUTION_DESIGN</option><option>APPROVAL</option><option>QA_TESTING</option><option>UAT</option><option>PROD_DEPLOYMENT</option></select></div>
       <div><label>Status</label><select id="edit-status"><option>DRAFT</option><option>SUBMITTED</option><option>APPROVED</option><option>REJECTED</option><option>COMPLETED</option></select></div>
     </div>
-    <div class="form-row"><label>Attachments</label><div id="edit-attachments-list">-</div></div>
+    <div class="form-row"><label>Attachments</label>
+      <div id="edit-attachments-list" style="margin-bottom:8px">-</div>
+      <input type="file" id="edit-attachment-file">
+      <button type="button" class="btn sm" onclick="uploadEditAttachment()" style="margin-top:6px">+ Add Attachment</button>
+    </div>
+    <div class="form-row">
+      <label>Comments</label>
+      <div id="edit-comments-list" style="margin-bottom:8px">-</div>
+      <textarea id="edit-new-comment" placeholder="Add a comment…" style="height:60px"></textarea>
+      <button type="button" class="btn sm" onclick="submitComment()" style="margin-top:6px">Add Comment</button>
+    </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -134,21 +161,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-import">
-  <div class="modal">
-    <h2>Import Change Requests</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import records. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
-    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
-    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal('modal-import')">Close</button>
-      <button class="btn primary" onclick="submitImport()">Import</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast">Saved</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script src="notifications.js"></script>
 <script>
@@ -264,13 +277,18 @@ function loadAll(){
   });
 }
 
-function openAdd(){['add-title','add-desc'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
+function openAdd(){['add-title','add-desc','add-attachments'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('modal-add').classList.add('open');}
 function openEdit(id){
   var c=state.changes.find(function(x){return x.id===id;});if(!c)return;
   document.getElementById('edit-id').value=c.id;
+  document.getElementById('edit-requester').textContent=c.requester_name||'-';
+  document.getElementById('edit-submitted').textContent=fmtDateTime(c.created_at);
+  document.getElementById('edit-description').textContent=c.description||'-';
   document.getElementById('edit-title').value=c.title||'';
   setSelect('edit-stage',c.stage);setSelect('edit-status',c.status);
+  document.getElementById('edit-new-comment').value='';
   loadEditAttachments(c.id);
+  loadEditComments(c.id);
   document.getElementById('modal-edit').classList.add('open');
 }
 
@@ -284,6 +302,31 @@ function loadEditAttachments(changeRequestId){
     el.innerHTML=atts.map(function(a){
       return '<div style="margin-bottom:4px"><button type="button" class="btn sm" onclick="downloadAttachment(\''+a.id+'\',\''+esc(a.file_name)+'\')">&#8595; '+esc(a.file_name)+'</button></div>';
     }).join('');
+  });
+}
+
+function loadEditComments(changeRequestId){
+  var el=document.getElementById('edit-comments-list');
+  el.innerHTML='Loading…';
+  api('list_change_comments',{change_request_id:changeRequestId},function(err,d){
+    var comments=(d&&d.comments)||[];
+    if(err){el.innerHTML='<span style="color:var(--muted)">Error loading comments.</span>';return;}
+    if(!comments.length){el.innerHTML='<span style="color:var(--muted)">No comments yet.</span>';return;}
+    el.innerHTML=comments.map(function(c){
+      return '<div class="comment"><div class="comment-meta">'+esc(c.author_name||'Unknown')+' &middot; '+fmtDateTime(c.created_at)+'</div>'+
+        '<div class="comment-body">'+esc(c.comment)+'</div></div>';
+    }).join('');
+  });
+}
+
+function submitComment(){
+  var changeRequestId=document.getElementById('edit-id').value;
+  var text=document.getElementById('edit-new-comment').value.trim();
+  if(!text)return;
+  api('add_change_comment',{change_request_id:changeRequestId,comment:text},function(err){
+    if(err){alert('Error adding comment: '+err);return;}
+    document.getElementById('edit-new-comment').value='';
+    loadEditComments(changeRequestId);
   });
 }
 
@@ -308,11 +351,60 @@ function submitAdd(){
   var title=document.getElementById('add-title').value.trim();
   var desc=document.getElementById('add-desc').value.trim();
   if(!title||!desc){alert('Title and description are required.');return;}
+  var files=Array.prototype.slice.call(document.getElementById('add-attachments').files);
   api('add_change',{title:title,description:desc,
     requester_id:document.getElementById('add-req').value||null,
-    compliance_approver_id:document.getElementById('add-approver').value||null},function(err){
-    if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Change request created');loadAll();
+    compliance_approver_id:document.getElementById('add-approver').value||null},function(err,d){
+    if(err){alert('Error: '+err);return;}
+    uploadAttachments(d.id,files,function(){
+      closeModal('modal-add');showToast('Change request created');loadAll();
+    });
   });
+}
+
+// UX-only shortcut so an oversized file doesn't get read/base64-encoded just
+// to be rejected - the server enforces the real limit regardless.
+var MAX_ATTACHMENT_BYTES=10*1024*1024; // 10 MB
+
+// Uploads each selected file to the just-created change request, one at a
+// time. Upload failures are surfaced but never block the create flow - the
+// change request itself was already created successfully.
+function uploadAttachments(changeRequestId,files,done){
+  if(!files.length){done();return;}
+  var file=files.shift();
+  if(file.size>MAX_ATTACHMENT_BYTES){
+    alert(file.name+' exceeds the 10MB attachment size limit and was not uploaded.');
+    uploadAttachments(changeRequestId,files,done);
+    return;
+  }
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    api('upload_change_attachment',{change_request_id:changeRequestId,file_name:file.name,file_data:ev.target.result},function(err){
+      if(err)console.error('Attachment upload failed for '+file.name+': '+err);
+      uploadAttachments(changeRequestId,files,done);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadEditAttachment(){
+  var fi=document.getElementById('edit-attachment-file');
+  var changeRequestId=document.getElementById('edit-id').value;
+  if(!changeRequestId||!fi.files.length)return;
+  var file=fi.files[0];
+  if(file.size>MAX_ATTACHMENT_BYTES){
+    alert(file.name+' exceeds the 10MB attachment size limit.');
+    return;
+  }
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    api('upload_change_attachment',{change_request_id:changeRequestId,file_name:file.name,file_data:ev.target.result},function(err){
+      if(err){alert('Upload error: '+err);return;}
+      fi.value='';
+      loadEditAttachments(changeRequestId);
+    });
+  };
+  reader.readAsDataURL(file);
 }
 function submitEdit(){
   var id=document.getElementById('edit-id').value;
@@ -320,53 +412,6 @@ function submitEdit(){
     stage:document.getElementById('edit-stage').value,status:document.getElementById('edit-status').value},function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Updated');loadAll();
   });
-}
-
-function downloadTemplate(){
-  var wb=XLSX.utils.book_new();
-  var ws=XLSX.utils.aoa_to_sheet([
-    ['Title','Description','Stage','Status'],
-    ['Upgrade firewall firmware','Upgrade to latest stable version','BRD','DRAFT']
-  ]);
-  ws['!cols']=[{wch:32},{wch:44},{wch:20},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws,'Changes');
-  var ref=XLSX.utils.aoa_to_sheet([
-    ['Column','Valid Values'],
-    ['Stage','BRD, SOLUTION_DESIGN, APPROVAL, QA_TESTING, UAT, PROD_DEPLOYMENT'],
-    ['Status','DRAFT, SUBMITTED, APPROVED, REJECTED, COMPLETED']
-  ]);
-  ref['!cols']=[{wch:14},{wch:64}];
-  XLSX.utils.book_append_sheet(wb,ref,'Reference');
-  XLSX.writeFile(wb,'change_requests_template.xlsx');
-}
-function openImport(){
-  document.getElementById('import-file').value='';
-  document.getElementById('import-result').textContent='';
-  document.getElementById('import-result').style.color='var(--muted)';
-  document.getElementById('modal-import').classList.add('open');
-}
-function submitImport(){
-  var fi=document.getElementById('import-file');
-  if(!fi.files.length){alert('Please select a file.');return;}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
-      var ws=wb.Sheets[wb.SheetNames[0]];
-      var data=XLSX.utils.sheet_to_json(ws);
-      if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{title:String(r['Title']||'').trim(),description:String(r['Description']||'').trim(),stage:String(r['Stage']||'').trim(),status:String(r['Status']||'').trim()};}).filter(function(r){return r.title&&r.description;});
-      if(!rows.length){alert('No valid rows found. Title and Description columns must be filled.');return;}
-      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
-      api('import_changes',{rows:rows},function(err,d){
-        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
-        el.style.color='var(--teal)';
-        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
-        loadAll();
-      });
-    }catch(ex){alert('Failed to parse file: '+ex.message);}
-  };
-  reader.readAsBinaryString(fi.files[0]);
 }
 
 function deleteChange(id,title){

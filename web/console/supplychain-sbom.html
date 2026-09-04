@@ -89,7 +89,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><div class="eyebrow">Supply Chain</div><h1>SBOM - Software Bill of Materials</h1><p class="subtitle">Register of software components - libraries, frameworks, operating systems, container images - with supplier and license, optionally linked to an IT asset.</p></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="sb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>
+      <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="sb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>
       <div class="filter-bar">
         <select id="f-type" onchange="applyFilters()"><option value="">All Types</option><option>LIBRARY</option><option>FRAMEWORK</option><option>OPERATING_SYSTEM</option><option>CONTAINER_IMAGE</option><option>APPLICATION</option><option>FIRMWARE</option><option>OTHER</option></select>
         <input id="f-search" type="search" placeholder="Search components…" oninput="onSearchInput()">
@@ -146,21 +146,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-import">
-  <div class="modal">
-    <h2>Import SBOM Components</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import components. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
-    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
-    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal('modal-import')">Close</button>
-      <button class="btn primary" onclick="submitImport()">Import</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast">Saved</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script src="notifications.js"></script>
 <script>
@@ -301,51 +287,6 @@ function submitEdit(){
   });
 }
 
-function downloadTemplate(){
-  var wb=XLSX.utils.book_new();
-  var ws=XLSX.utils.aoa_to_sheet([
-    ['Component Name','Version','Component Type','Supplier','License','Description'],
-    ['log4j-core','2.22.1','LIBRARY','Apache Software Foundation','Apache-2.0','Core logging library']
-  ]);
-  ws['!cols']=[{wch:24},{wch:14},{wch:18},{wch:26},{wch:16},{wch:40}];
-  XLSX.utils.book_append_sheet(wb,ws,'SBOM');
-  var ref=XLSX.utils.aoa_to_sheet([
-    ['Column','Valid Values'],
-    ['Component Type','LIBRARY, FRAMEWORK, OPERATING_SYSTEM, CONTAINER_IMAGE, APPLICATION, FIRMWARE, OTHER']
-  ]);
-  ref['!cols']=[{wch:18},{wch:64}];
-  XLSX.utils.book_append_sheet(wb,ref,'Reference');
-  XLSX.writeFile(wb,'sbom_template.xlsx');
-}
-function openImport(){
-  document.getElementById('import-file').value='';
-  document.getElementById('import-result').textContent='';
-  document.getElementById('import-result').style.color='var(--muted)';
-  document.getElementById('modal-import').classList.add('open');
-}
-function submitImport(){
-  var fi=document.getElementById('import-file');
-  if(!fi.files.length){alert('Please select a file.');return;}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
-      var ws=wb.Sheets[wb.SheetNames[0]];
-      var data=XLSX.utils.sheet_to_json(ws);
-      if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{component_name:String(r['Component Name']||'').trim(),version:String(r['Version']||'').trim(),component_type:String(r['Component Type']||'').trim(),supplier:String(r['Supplier']||'').trim(),license:String(r['License']||'').trim(),description:String(r['Description']||'').trim()};}).filter(function(r){return r.component_name&&r.component_type;});
-      if(!rows.length){alert('No valid rows found. Component Name and Component Type columns must be filled.');return;}
-      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
-      api('import_sbom_components',{rows:rows},function(err,d){
-        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
-        el.style.color='var(--teal)';
-        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
-        loadAll();
-      });
-    }catch(ex){alert('Failed to parse file: '+ex.message);}
-  };
-  reader.readAsBinaryString(fi.files[0]);
-}
 
 function deleteComponent(id,name){
   if(!confirm('Delete component "'+name+'"? This cannot be undone.'))return;

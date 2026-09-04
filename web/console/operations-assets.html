@@ -86,7 +86,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><div class="eyebrow">IT Operations</div><h1>Asset Inventory</h1><p class="subtitle">Full inventory of IT assets with criticality, patch status, and lifecycle state tracking.</p></div>
     </div>
     <div class="section-card">
-      <div class="section-head"><h2>Assets</h2><div style="display:flex;align-items:center;gap:12px"><span id="ast-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Asset</button></div></div>
+      <div class="section-head"><h2>Assets</h2><div style="display:flex;align-items:center;gap:12px"><span id="ast-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ Add Asset</button></div></div>
       <div class="filter-bar">
         <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option></select>
         <select id="f-crit" onchange="applyFilters()"><option value="">All Criticality</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
@@ -150,21 +150,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-import">
-  <div class="modal">
-    <h2>Import Asset Inventory</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import assets. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
-    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
-    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal('modal-import')">Close</button>
-      <button class="btn primary" onclick="submitImport()">Import</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast">Saved</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script src="notifications.js"></script>
 <script>
@@ -323,56 +309,6 @@ function submitEdit(){
   });
 }
 
-function downloadTemplate(){
-  var wb=XLSX.utils.book_new();
-  var ws=XLSX.utils.aoa_to_sheet([
-    ['Name','Asset Tag','Category','Location','Criticality','Patch Status','Lifecycle Status','Description'],
-    ['Core Banking App','HQ-APP-001','APPLICATION','HQ - Data Center','CRITICAL','CURRENT','ACTIVE','Primary transaction processing system']
-  ]);
-  ws['!cols']=[{wch:28},{wch:16},{wch:18},{wch:20},{wch:14},{wch:14},{wch:18},{wch:40}];
-  XLSX.utils.book_append_sheet(wb,ws,'Assets');
-  var categoryNames=(state.categories||[]).map(function(c){return c.name;}).join(', ')||'(none defined - add categories under Platform & Access first)';
-  var ref=XLSX.utils.aoa_to_sheet([
-    ['Column','Valid Values'],
-    ['Asset Tag','Admin-defined identifier, e.g. HQ-LAPTOP-001 - must be unique across all assets'],
-    ['Category',categoryNames+' (must match an active category name exactly)'],
-    ['Criticality','CRITICAL, HIGH, MEDIUM, LOW'],
-    ['Patch Status','CURRENT, PENDING, OVERDUE, UNKNOWN'],
-    ['Lifecycle Status','ACTIVE, EOL, DECOMMISSIONING, DECOMMISSIONED']
-  ]);
-  ref['!cols']=[{wch:18},{wch:64}];
-  XLSX.utils.book_append_sheet(wb,ref,'Reference');
-  XLSX.writeFile(wb,'asset_inventory_template.xlsx');
-}
-function openImport(){
-  document.getElementById('import-file').value='';
-  document.getElementById('import-result').textContent='';
-  document.getElementById('import-result').style.color='var(--muted)';
-  document.getElementById('modal-import').classList.add('open');
-}
-function submitImport(){
-  var fi=document.getElementById('import-file');
-  if(!fi.files.length){alert('Please select a file.');return;}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
-      var ws=wb.Sheets[wb.SheetNames[0]];
-      var data=XLSX.utils.sheet_to_json(ws);
-      if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{name:String(r['Name']||'').trim(),asset_tag:String(r['Asset Tag']||'').trim(),category:String(r['Category']||'').trim(),location:String(r['Location']||'').trim(),criticality:String(r['Criticality']||'').trim(),patch_status:String(r['Patch Status']||'').trim(),lifecycle_status:String(r['Lifecycle Status']||'').trim(),description:String(r['Description']||'').trim()};}).filter(function(r){return r.name&&r.asset_tag&&r.category&&r.criticality;});
-      if(!rows.length){alert('No valid rows found. Name, Asset Tag, Category and Criticality columns must be filled.');return;}
-      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
-      api('import_assets',{rows:rows},function(err,d){
-        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
-        el.style.color='var(--teal)';
-        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
-        loadAll();
-      });
-    }catch(ex){alert('Failed to parse file: '+ex.message);}
-  };
-  reader.readAsBinaryString(fi.files[0]);
-}
 
 function deleteAsset(id,name){
   if(!confirm('Delete asset "'+name+'"? This cannot be undone.'))return;

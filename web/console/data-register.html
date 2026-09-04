@@ -115,7 +115,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     </div>
 
     <div class="section-card">
-      <div class="section-head"><h2>Data Assets</h2><div style="display:flex;align-items:center;gap:12px"><span id="da-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn sm" onclick="downloadTemplate()">&#8595; Template</button><button class="btn" onclick="openImport()">Import Excel</button><button class="btn primary" onclick="openAdd()">+ Add Data Asset</button></div></div>
+      <div class="section-head"><h2>Data Assets</h2><div style="display:flex;align-items:center;gap:12px"><span id="da-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ Add Data Asset</button></div></div>
       <div class="filter-bar">
         <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option><option>PII</option><option>FINANCIAL</option><option>HEALTH</option><option>EMPLOYEE</option><option>INTELLECTUAL_PROPERTY</option><option>PUBLIC</option><option>OTHER</option></select>
         <select id="f-sens" onchange="applyFilters()"><option value="">All Sensitivities</option><option>PUBLIC</option><option>INTERNAL</option><option>CONFIDENTIAL</option><option>RESTRICTED</option></select>
@@ -198,21 +198,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-import">
-  <div class="modal">
-    <h2>Import Data Register</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Upload a completed Excel template to bulk-import data assets. Click <strong>&#8595; Template</strong> first to download the correct format.</p>
-    <div class="form-row"><label>Excel File (.xlsx)</label><input type="file" id="import-file" accept=".xlsx,.xls" style="height:auto;padding:8px 10px"></div>
-    <div id="import-result" style="font-size:13px;min-height:20px;margin-top:4px"></div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal('modal-import')">Close</button>
-      <button class="btn primary" onclick="submitImport()">Import</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast">Saved</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="rbac.js"></script>
 <script src="notifications.js"></script>
 <script>
@@ -423,53 +409,6 @@ function submitClassify(){
   });
 }
 
-function downloadTemplate(){
-  var wb=XLSX.utils.book_new();
-  var ws=XLSX.utils.aoa_to_sheet([
-    ['Name','System Type','Category','Sensitivity','Location','Volume Estimate','Description'],
-    ['Customer HR Database','DATABASE','EMPLOYEE','CONFIDENTIAL','AWS RDS ap-south-1','~2,500 records','Employee master data including salary and bank details']
-  ]);
-  ws['!cols']=[{wch:28},{wch:14},{wch:20},{wch:14},{wch:24},{wch:18},{wch:40}];
-  XLSX.utils.book_append_sheet(wb,ws,'Data Assets');
-  var ref=XLSX.utils.aoa_to_sheet([
-    ['Column','Valid Values'],
-    ['System Type','APPLICATION, DATABASE, FILE_SHARE, SAAS, EMAIL, PHYSICAL, OTHER'],
-    ['Category','PII, FINANCIAL, HEALTH, EMPLOYEE, INTELLECTUAL_PROPERTY, PUBLIC, OTHER'],
-    ['Sensitivity','PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED (optional - defaults to INTERNAL)']
-  ]);
-  ref['!cols']=[{wch:18},{wch:64}];
-  XLSX.utils.book_append_sheet(wb,ref,'Reference');
-  XLSX.writeFile(wb,'data_register_template.xlsx');
-}
-function openImport(){
-  document.getElementById('import-file').value='';
-  document.getElementById('import-result').textContent='';
-  document.getElementById('import-result').style.color='var(--muted)';
-  document.getElementById('modal-import').classList.add('open');
-}
-function submitImport(){
-  var fi=document.getElementById('import-file');
-  if(!fi.files.length){alert('Please select a file.');return;}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
-      var ws=wb.Sheets[wb.SheetNames[0]];
-      var data=XLSX.utils.sheet_to_json(ws);
-      if(!data.length){alert('No data rows found in the file.');return;}
-      var rows=data.map(function(r){return{name:String(r['Name']||'').trim(),system_type:String(r['System Type']||'').trim(),category:String(r['Category']||'').trim(),sensitivity:String(r['Sensitivity']||'').trim(),location:String(r['Location']||'').trim(),volume_estimate:String(r['Volume Estimate']||'').trim(),description:String(r['Description']||'').trim()};}).filter(function(r){return r.name&&r.system_type&&r.category;});
-      if(!rows.length){alert('No valid rows found. Name, System Type and Category columns must be filled.');return;}
-      var el=document.getElementById('import-result');el.textContent='Importing '+rows.length+' row'+(rows.length!==1?'s':'')+'…';el.style.color='var(--muted)';
-      api('import_data_assets',{rows:rows},function(err,d){
-        if(err){el.textContent='Error: '+err;el.style.color='var(--red)';return;}
-        el.style.color='var(--teal)';
-        el.textContent='Imported '+d.imported+' record'+(d.imported!==1?'s':'')+'.'+(d.errors&&d.errors.length?' '+d.errors.length+' row'+(d.errors.length!==1?'s':'')+' skipped.':'');
-        loadAll();
-      });
-    }catch(ex){alert('Failed to parse file: '+ex.message);}
-  };
-  reader.readAsBinaryString(fi.files[0]);
-}
 
 function deleteDataAsset(id,name){
   if(!confirm('Delete data asset "'+name+'"? This cannot be undone.'))return;

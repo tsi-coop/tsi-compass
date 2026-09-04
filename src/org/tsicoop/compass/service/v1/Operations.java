@@ -11,8 +11,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.security.MessageDigest;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class Operations implements Action {
@@ -55,8 +60,11 @@ public class Operations implements Action {
                 case "import_tickets":     importTickets(req, res, input);                        break;
                 case "list_ticket_attachments": listTicketAttachments(req, res, input);            break;
                 case "get_ticket_attachment":   getTicketAttachment(req, res, input);              break;
+                case "upload_change_attachment": uploadChangeAttachment(req, res, input);           break;
                 case "list_change_attachments": listChangeAttachments(req, res, input);            break;
                 case "get_change_attachment":   getChangeAttachment(req, res, input);              break;
+                case "list_change_comments":    listChangeComments(req, res, input);               break;
+                case "add_change_comment":      addChangeComment(req, res, input);                 break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -980,6 +988,69 @@ public class Operations implements Action {
     // Change Management staff already has full visibility over every change
     // request via list_changes above, so these carry no extra ownership check.
 
+    private static final Set<String> ATTACHMENT_EXTENSIONS = new HashSet<>(Arrays.asList(
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".png", ".jpg", ".jpeg", ".zip", ".txt", ".csv"
+    ));
+    private static final int MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MB
+
+    @SuppressWarnings("unchecked")
+    private void uploadChangeAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        String fileName = (String) input.get("file_name");
+        String fileData = (String) input.get("file_data");
+        if (isBlank(changeRequestId) || isBlank(fileName) || isBlank(fileData)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id, file_name and file_data are required", req.getRequestURI()); return;
+        }
+        String safeName = new File(fileName).getName();
+        int dot = safeName.lastIndexOf('.');
+        String ext = dot >= 0 ? safeName.substring(dot).toLowerCase() : "";
+        if (!ATTACHMENT_EXTENSIONS.contains(ext)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "File type not allowed: " + ext, req.getRequestURI()); return;
+        }
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes;
+        try { bytes = Base64.getDecoder().decode(raw.trim()); }
+        catch (Exception e) { OutputProcessor.errorResponse(res, 400, "Bad Request", "Invalid base64 content", req.getRequestURI()); return; }
+        if (bytes.length > MAX_ATTACHMENT_BYTES) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request",
+                "File exceeds the " + (MAX_ATTACHMENT_BYTES / (1024 * 1024)) + "MB attachment size limit", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) sb.append('0'); sb.append(h); }
+            String checksum = sb.toString();
+
+            String uploadDir = System.getenv("TSI_EXPORT_PATH");
+            if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+            File dir = new File(uploadDir + "/change_request_attachments");
+            if (!dir.exists() && !dir.mkdirs()) {
+                OutputProcessor.errorResponse(res, 500, "Internal Error", "Cannot create upload directory", req.getRequestURI()); return;
+            }
+            File dest = new File(dir, UUID.randomUUID().toString() + ext);
+            try (FileOutputStream fos = new FileOutputStream(dest)) { fos.write(bytes); }
+
+            UUID uploadedBy = InputProcessor.getAuthenticatedUserId(req);
+            p = conn.prepareStatement(
+                "INSERT INTO change_request_attachments (change_request_id, file_name, file_path, sha256_checksum, uploaded_by) " +
+                "VALUES (?::uuid, ?, ?, ?, ?) RETURNING id::text"
+            );
+            p.setString(1, changeRequestId); p.setString(2, safeName);
+            p.setString(3, dest.getAbsolutePath()); p.setString(4, checksum); p.setObject(5, uploadedBy);
+            rs = p.executeQuery();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            if (rs.next()) result.put("id", rs.getString(1));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
     @SuppressWarnings("unchecked")
     private void listChangeAttachments(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
         String changeRequestId = (String) input.get("change_request_id");
@@ -1034,6 +1105,65 @@ public class Operations implements Action {
             JSONObject result = new JSONObject(); result.put("success", true);
             result.put("file_name", fileName);
             result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    // Comment thread on a change request - append-only, any Change Management
+    // staff can read or add to it (no extra ownership check, same as the
+    // attachment funcs above).
+
+    @SuppressWarnings("unchecked")
+    private void listChangeComments(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        if (isBlank(changeRequestId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT cc.id::text, cc.comment, " +
+                "TO_CHAR(cc.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, " +
+                "u.username AS author_name " +
+                "FROM change_request_comments cc LEFT JOIN users u ON u.id = cc.author_id " +
+                "WHERE cc.change_request_id = ?::uuid ORDER BY cc.created_at ASC"
+            );
+            p.setString(1, changeRequestId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject c = new JSONObject();
+                c.put("id",          rs.getString("id"));
+                c.put("comment",     rs.getString("comment"));
+                c.put("created_at",  rs.getString("created_at"));
+                c.put("author_name", rs.getString("author_name"));
+                list.add(c);
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("comments", list);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addChangeComment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        String comment = (String) input.get("comment");
+        if (isBlank(changeRequestId) || isBlank(comment)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id and comment are required", req.getRequestURI()); return;
+        }
+        UUID authorId = InputProcessor.getAuthenticatedUserId(req);
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "INSERT INTO change_request_comments (change_request_id, author_id, comment) " +
+                "VALUES (?::uuid, ?, ?) RETURNING id::text"
+            );
+            p.setString(1, changeRequestId); p.setObject(2, authorId); p.setString(3, comment);
+            rs = p.executeQuery();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            if (rs.next()) result.put("id", rs.getString(1));
             OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
