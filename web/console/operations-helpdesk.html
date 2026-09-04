@@ -28,6 +28,14 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 .filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
 .filter-bar input{flex:1;min-width:160px}
+.date-filter{position:relative}
+.date-filter .btn.active-filter{border-color:var(--teal);color:var(--teal)}
+.date-filter-panel{display:none;position:absolute;top:36px;left:0;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(23,32,51,.14);padding:12px;z-index:50;width:200px}
+.date-filter-panel.open{display:block}
+.date-filter-panel label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 4px}
+.date-filter-panel label:first-child{margin-top:0}
+.date-filter-panel input{width:100%;height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 8px;color:var(--ink);background:#fff}
+.date-filter-actions{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
 table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
 td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
@@ -94,6 +102,28 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <select id="f-status" onchange="applyFilters()"><option value="">All Statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>CLOSED</option></select>
         <select id="f-priority" onchange="applyFilters()"><option value="">All Priorities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
         <select id="f-category" onchange="applyFilters()"><option value="">All Categories</option></select>
+        <div class="date-filter">
+          <button type="button" class="btn sm" id="btn-created-filter" onclick="toggleDateFilter('created')">Created &#9662;</button>
+          <div class="date-filter-panel" id="panel-created">
+            <label>From</label><input type="date" id="f-created-from">
+            <label>To</label><input type="date" id="f-created-to">
+            <div class="date-filter-actions">
+              <button type="button" class="btn sm" onclick="clearDateFilter('created')">Clear</button>
+              <button type="button" class="btn sm primary" onclick="applyDateFilter('created')">Apply</button>
+            </div>
+          </div>
+        </div>
+        <div class="date-filter">
+          <button type="button" class="btn sm" id="btn-closed-filter" onclick="toggleDateFilter('closed')">Closed &#9662;</button>
+          <div class="date-filter-panel" id="panel-closed">
+            <label>From</label><input type="date" id="f-closed-from">
+            <label>To</label><input type="date" id="f-closed-to">
+            <div class="date-filter-actions">
+              <button type="button" class="btn sm" onclick="clearDateFilter('closed')">Clear</button>
+              <button type="button" class="btn sm primary" onclick="applyDateFilter('closed')">Apply</button>
+            </div>
+          </div>
+        </div>
         <input id="f-search" type="search" placeholder="Search by title, description, or reported by…" oninput="onSearchInput()">
       </div>
       <table>
@@ -249,10 +279,18 @@ function loadTickets(page){
   var prVal=document.getElementById('f-priority').value;
   var caVal=document.getElementById('f-category').value;
   var srVal=document.getElementById('f-search').value.trim();
+  var cfVal=document.getElementById('f-created-from').value;
+  var ctVal=document.getElementById('f-created-to').value;
+  var zfVal=document.getElementById('f-closed-from').value;
+  var ztVal=document.getElementById('f-closed-to').value;
   if(stVal)body.status=stVal;
   if(prVal)body.priority=prVal;
   if(caVal)body.category_id=caVal;
   if(srVal)body.search=srVal;
+  if(cfVal)body.created_from=cfVal;
+  if(ctVal)body.created_to=ctVal;
+  if(zfVal)body.closed_from=zfVal;
+  if(ztVal)body.closed_to=ztVal;
   api('list_tickets',body,function(err,d){
     if(err)return;
     state.tickets=d.tickets||[];
@@ -265,6 +303,43 @@ function onSearchInput(){
   clearTimeout(_searchDebounce);
   _searchDebounce=setTimeout(function(){loadTickets(1);},300);
 }
+
+function toggleDateFilter(kind){
+  var panel=document.getElementById('panel-'+kind);
+  var isOpen=panel.classList.contains('open');
+  document.querySelectorAll('.date-filter-panel').forEach(function(p){p.classList.remove('open');});
+  if(!isOpen)panel.classList.add('open');
+}
+function updateDateFilterLabel(kind){
+  var from=document.getElementById('f-'+kind+'-from').value;
+  var to=document.getElementById('f-'+kind+'-to').value;
+  var btn=document.getElementById('btn-'+kind+'-filter');
+  var label=kind.charAt(0).toUpperCase()+kind.slice(1);
+  if(from||to){
+    btn.textContent=label+': '+(from||'…')+' → '+(to||'…')+' ▾';
+    btn.classList.add('active-filter');
+  }else{
+    btn.textContent=label+' ▾';
+    btn.classList.remove('active-filter');
+  }
+}
+function applyDateFilter(kind){
+  document.getElementById('panel-'+kind).classList.remove('open');
+  updateDateFilterLabel(kind);
+  applyFilters();
+}
+function clearDateFilter(kind){
+  document.getElementById('f-'+kind+'-from').value='';
+  document.getElementById('f-'+kind+'-to').value='';
+  document.getElementById('panel-'+kind).classList.remove('open');
+  updateDateFilterLabel(kind);
+  applyFilters();
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.date-filter')){
+    document.querySelectorAll('.date-filter-panel').forEach(function(p){p.classList.remove('open');});
+  }
+});
 
 function loadAll(){
   loadTickets(1);

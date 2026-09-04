@@ -181,7 +181,7 @@ var EXPORT_MAP={
   incidents:{service:'incidents',func:'list_incidents',key:'incidents',cols:['title','severity','status','rca_root_cause','rca_preventative_actions','created_at','resolved_at'],file:'incident-log'},
   assets:{service:'ops',func:'list_assets',key:'assets',cols:['name','asset_tag','category_name','location','criticality','patch_status','lifecycle_status','owner_name'],file:'asset-inventory'},
   vendors:{service:'ops',func:'list_vendors',key:'vendors',cols:['name','agreement_details','license_expiry','baseline_risk_score','security_questionnaire_status'],file:'vendor-register'},
-  tickets:{service:'ops',func:'list_tickets',key:'tickets',cols:['title','category_name','priority','status','created_by_name','assigned_to_name','created_at'],file:'helpdesk-tickets'}
+  tickets:{service:'ops',func:'list_tickets',key:'tickets',cols:['title','category_name','subcategory_name','priority','status','created_by_name','assigned_to_name','created_at','closed_at','resolution_notes'],file:'helpdesk-tickets'}
 };
 
 function getFilters(type){

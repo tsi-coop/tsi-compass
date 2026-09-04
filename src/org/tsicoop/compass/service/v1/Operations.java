@@ -516,10 +516,14 @@ public class Operations implements Action {
 
     @SuppressWarnings("unchecked")
     private JSONObject listTickets(JSONObject input, String role) throws Exception {
-        String status     = (String) input.get("status");
-        String priority   = (String) input.get("priority");
-        String categoryId = (String) input.get("category_id");
-        String search     = (String) input.get("search");
+        String status      = (String) input.get("status");
+        String priority    = (String) input.get("priority");
+        String categoryId  = (String) input.get("category_id");
+        String search      = (String) input.get("search");
+        String createdFrom = (String) input.get("created_from");
+        String createdTo   = (String) input.get("created_to");
+        String closedFrom  = (String) input.get("closed_from");
+        String closedTo    = (String) input.get("closed_to");
         boolean export = Boolean.TRUE.equals(input.get("export"));
 
         long page  = 1L;
@@ -532,11 +536,18 @@ public class Operations implements Action {
         if (page < 1) page = 1;
         long offset = (page - 1) * limit;
 
+        // "To" bounds are exclusive of the next day rather than <= date, since
+        // created_at/closed_at carry a time component - <= '2026-09-04' would
+        // wrongly exclude same-day tickets created later than midnight.
         StringBuilder where = new StringBuilder(" WHERE 1=1");
-        if (!isBlank(status))     where.append(" AND ht.status=?");
-        if (!isBlank(priority))   where.append(" AND ht.priority=?");
-        if (!isBlank(categoryId)) where.append(" AND ht.category_id=?::uuid");
-        if (!isBlank(search))     where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ? OR cb.username ILIKE ?)");
+        if (!isBlank(status))      where.append(" AND ht.status=?");
+        if (!isBlank(priority))    where.append(" AND ht.priority=?");
+        if (!isBlank(categoryId))  where.append(" AND ht.category_id=?::uuid");
+        if (!isBlank(search))      where.append(" AND (ht.title ILIKE ? OR ht.description ILIKE ? OR cb.username ILIKE ?)");
+        if (!isBlank(createdFrom)) where.append(" AND ht.created_at >= ?::date");
+        if (!isBlank(createdTo))   where.append(" AND ht.created_at < (?::date + interval '1 day')");
+        if (!isBlank(closedFrom))  where.append(" AND ht.closed_at >= ?::date");
+        if (!isBlank(closedTo))    where.append(" AND ht.closed_at < (?::date + interval '1 day')");
         // Tickets awaiting Supervisor approval are invisible to IT/GRC queues
         // entirely (not present-but-locked) until a Supervisor approves them.
         if ("IT_STAFF".equals(role) || "GRC_OFFICER".equals(role)) where.append(" AND ht.approval_status != 'PENDING'");
@@ -551,10 +562,14 @@ public class Operations implements Action {
                 String countSql = "SELECT COUNT(*) FROM helpdesk_tickets ht LEFT JOIN users cb ON cb.id = ht.created_by" + where;
                 p = conn.prepareStatement(countSql);
                 int idx = 1;
-                if (!isBlank(status))     p.setString(idx++, status);
-                if (!isBlank(priority))   p.setString(idx++, priority);
-                if (!isBlank(categoryId)) p.setString(idx++, categoryId);
-                if (!isBlank(search))     { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+                if (!isBlank(status))      p.setString(idx++, status);
+                if (!isBlank(priority))    p.setString(idx++, priority);
+                if (!isBlank(categoryId))  p.setString(idx++, categoryId);
+                if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+                if (!isBlank(createdFrom)) p.setString(idx++, createdFrom);
+                if (!isBlank(createdTo))   p.setString(idx++, createdTo);
+                if (!isBlank(closedFrom))  p.setString(idx++, closedFrom);
+                if (!isBlank(closedTo))    p.setString(idx++, closedTo);
                 rs = p.executeQuery();
                 if (rs.next()) total = rs.getLong(1);
                 try { pool.cleanup(rs, p, null); } catch (Exception ignored) {}
@@ -564,6 +579,7 @@ public class Operations implements Action {
             String dataSql =
                 "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, " +
                 "TO_CHAR(ht.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, " +
+                "TO_CHAR(ht.closed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS closed_at, " +
                 "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text, " +
                 "tc.id::text AS category_id, tc.name AS category_name, " +
                 "tsc.id::text AS subcategory_id, tsc.name AS subcategory_name, " +
@@ -579,10 +595,14 @@ public class Operations implements Action {
                 " ORDER BY CASE ht.priority WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, ht.created_at DESC" +
                 (export ? "" : " LIMIT ? OFFSET ?");
             p = conn.prepareStatement(dataSql); int idx = 1;
-            if (!isBlank(status))     p.setString(idx++, status);
-            if (!isBlank(priority))   p.setString(idx++, priority);
-            if (!isBlank(categoryId)) p.setString(idx++, categoryId);
-            if (!isBlank(search))     { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            if (!isBlank(status))      p.setString(idx++, status);
+            if (!isBlank(priority))    p.setString(idx++, priority);
+            if (!isBlank(categoryId))  p.setString(idx++, categoryId);
+            if (!isBlank(search))      { String like = "%" + search + "%"; p.setString(idx++, like); p.setString(idx++, like); p.setString(idx++, like); }
+            if (!isBlank(createdFrom)) p.setString(idx++, createdFrom);
+            if (!isBlank(createdTo))   p.setString(idx++, createdTo);
+            if (!isBlank(closedFrom))  p.setString(idx++, closedFrom);
+            if (!isBlank(closedTo))    p.setString(idx++, closedTo);
             if (!export) { p.setLong(idx++, limit); p.setLong(idx++, offset); }
             rs = p.executeQuery();
             while (rs.next()) {
@@ -593,6 +613,7 @@ public class Operations implements Action {
                 t.put("status",           rs.getString("status"));
                 t.put("priority",         rs.getString("priority"));
                 t.put("created_at",       rs.getString("created_at"));
+                t.put("closed_at",        rs.getString("closed_at"));
                 t.put("asset_name",       rs.getString("asset_name"));
                 t.put("created_by_name",  rs.getString("created_by_name"));
                 t.put("assigned_to_name", rs.getString("assigned_to_name"));
@@ -663,11 +684,16 @@ public class Operations implements Action {
             pool = new PoolDB(); conn = pool.getConnection();
             // Excludes PENDING rows so IT/GRC can't act on a ticket out-of-band
             // (e.g. a stale tab) before a Supervisor has approved it.
+            // closed_at tracks the CLOSED transition itself: set (once) when
+            // status becomes CLOSED, cleared if a closed ticket is reopened
+            // into any other status, left untouched otherwise (newStatus null).
             p = conn.prepareStatement(
                 "UPDATE helpdesk_tickets SET status=COALESCE(?,status), priority=COALESCE(?,priority), description=COALESCE(?,description), " +
                 "assigned_to=COALESCE(?::uuid,assigned_to), category_id=COALESCE(?::uuid,category_id), " +
                 (categoryProvided ? "subcategory_id=?::uuid, " : "subcategory_id=COALESCE(?::uuid,subcategory_id), ") +
-                "resolution_notes=COALESCE(?,resolution_notes) WHERE id=? AND approval_status != 'PENDING'"
+                "resolution_notes=COALESCE(?,resolution_notes), " +
+                "closed_at=CASE WHEN ?='CLOSED' THEN COALESCE(closed_at,now()) WHEN ? IS NOT NULL THEN NULL ELSE closed_at END " +
+                "WHERE id=? AND approval_status != 'PENDING'"
             );
             p.setString(1, newStatus); p.setString(2,(String)input.get("priority"));
             p.setString(3,(String)input.get("description"));
@@ -675,7 +701,8 @@ public class Operations implements Action {
             p.setString(5, isBlank(catId)?null:catId);
             p.setString(6, isBlank(subcatId)?null:subcatId);
             p.setString(7, (String)input.get("resolution_notes"));
-            p.setObject(8, UUID.fromString(id));
+            p.setString(8, newStatus); p.setString(9, newStatus);
+            p.setObject(10, UUID.fromString(id));
             int updated = p.executeUpdate();
             if (updated == 0) {
                 OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found or awaiting supervisor approval", req.getRequestURI()); return;
