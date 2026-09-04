@@ -92,6 +92,15 @@ public class Platform implements Action {
                 case "list_supervisors":
                     OutputProcessor.send(res, 200, listSupervisors());
                     break;
+                case "list_managers":
+                    OutputProcessor.send(res, 200, listManagers());
+                    break;
+                case "set_manager_level":
+                    setManagerLevel(req, res, input);
+                    break;
+                case "set_manager_upline":
+                    setManagerUpline(req, res, input);
+                    break;
                 case "get_business_settings":
                     OutputProcessor.send(res, 200, getBusinessSettings());
                     break;
@@ -1131,6 +1140,181 @@ public class Platform implements Action {
         result.put("success", true);
         result.put("supervisors", supervisors);
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Manager hierarchy (Manager-1..Manager-5)
+    //
+    // manager_level is only meaningful for role='SUPERVISOR'. users.supervisor_id
+    // (see isSupervisor/provisionUser above) is reused unchanged as the "reports
+    // to" edge at every level: a manager's supervisor_id is the next manager up
+    // the chain. Cycle prevention is structural, not a runtime graph walk: a
+    // manager's supervisor_id is only ever allowed to point at another SUPERVISOR
+    // whose manager_level is exactly one higher, and manager_level is capped at
+    // 5, so a cycle can never form.
+    // -------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private JSONObject listManagers() throws Exception {
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        JSONArray managers = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            pstmt = conn.prepareStatement(
+                "SELECT m.id::text, m.username, m.email, m.status, m.manager_level, " +
+                "up.id::text AS upline_id, up.username AS upline_username " +
+                "FROM users m LEFT JOIN users up ON up.id = m.supervisor_id " +
+                "WHERE m.role = 'SUPERVISOR' ORDER BY m.manager_level, m.username"
+            );
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                JSONObject m = new JSONObject();
+                m.put("id", rs.getString("id"));
+                m.put("username", rs.getString("username"));
+                m.put("email", rs.getString("email"));
+                m.put("status", rs.getString("status"));
+                Object level = rs.getObject("manager_level");
+                m.put("manager_level", level == null ? null : ((Number) level).longValue());
+                m.put("upline_id", rs.getString("upline_id"));
+                m.put("upline_username", rs.getString("upline_username"));
+                managers.add(m);
+            }
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("managers", managers);
+        return result;
+    }
+
+    private boolean managerExists(Connection conn, UUID id) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT 1 FROM users WHERE id = ? AND role = 'SUPERVISOR'");
+            p.setObject(1, id);
+            rs = p.executeQuery();
+            return rs.next();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    // Returns the manager_level for a role='SUPERVISOR' user. Null means the
+    // manager exists but has no level assigned yet — distinct from "no such
+    // manager", which callers must check separately via managerExists.
+    private Long getManagerLevel(Connection conn, UUID id) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT manager_level FROM users WHERE id = ? AND role = 'SUPERVISOR'");
+            p.setObject(1, id);
+            rs = p.executeQuery();
+            if (!rs.next()) return null;
+            Object level = rs.getObject(1);
+            return level == null ? null : ((Number) level).longValue();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setManagerLevel(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        Object levelObj = input.get("manager_level");
+        if (isBlank(id) || !(levelObj instanceof Long)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id and manager_level (1-5) are required", req.getRequestURI());
+            return;
+        }
+        long level = (Long) levelObj;
+        if (level < 1 || level > 5) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "manager_level must be between 1 and 5", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            UUID managerId = UUID.fromString(id);
+
+            // Changing level can invalidate the existing upline (it must always be
+            // exactly one level higher), so clear it whenever it's no longer valid
+            // for the new level rather than leave a stale edge; the admin
+            // re-assigns the upline afterward via set_manager_upline if needed.
+            pstmt = conn.prepareStatement(
+                "UPDATE users SET manager_level = ?, supervisor_id = CASE " +
+                "WHEN EXISTS (SELECT 1 FROM users up WHERE up.id = users.supervisor_id AND up.manager_level = ? + 1) " +
+                "THEN supervisor_id ELSE NULL END " +
+                "WHERE id = ? AND role = 'SUPERVISOR'"
+            );
+            pstmt.setLong(1, level);
+            pstmt.setLong(2, level);
+            pstmt.setObject(3, managerId);
+            int updated = pstmt.executeUpdate();
+            if (updated == 0) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "No SUPERVISOR found with that id", req.getRequestURI());
+                return;
+            }
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            result.put("message", "Manager level updated. Re-assign this manager's upline if needed.");
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) { try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {} }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setManagerUpline(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        String uplineId = (String) input.get("supervisor_id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement pstmt = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            UUID managerId = UUID.fromString(id);
+            if (!managerExists(conn, managerId)) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "No SUPERVISOR found with that id", req.getRequestURI());
+                return;
+            }
+            Long level = getManagerLevel(conn, managerId);
+
+            UUID uplineUuid = null;
+            if (!isBlank(uplineId)) {
+                if (level == null) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request",
+                        "Set this manager's own level before assigning who they report to", req.getRequestURI());
+                    return;
+                }
+                uplineUuid = UUID.fromString(uplineId);
+                if (uplineUuid.equals(managerId)) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request", "A manager cannot report to themselves", req.getRequestURI());
+                    return;
+                }
+                Long uplineLevel = getManagerLevel(conn, uplineUuid);
+                if (uplineLevel == null || uplineLevel != level + 1) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request",
+                        "Manager-" + level + " must report to a Manager-" + (level + 1), req.getRequestURI());
+                    return;
+                }
+            }
+
+            pstmt = conn.prepareStatement("UPDATE users SET supervisor_id = ? WHERE id = ? AND role = 'SUPERVISOR'");
+            pstmt.setObject(1, uplineUuid);
+            pstmt.setObject(2, managerId);
+            pstmt.executeUpdate();
+
+            JSONObject result = new JSONObject();
+            result.put("success", true);
+            OutputProcessor.send(res, 200, result);
+        } finally {
+            if (pool != null) { try { pool.cleanup(null, pstmt, conn); } catch (Exception ignored) {} }
+        }
     }
 
     @SuppressWarnings("unchecked")

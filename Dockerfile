@@ -17,6 +17,8 @@ RUN mkdir -p /var/lib/tsi-compass/exports/evidence \
              /var/lib/tsi-compass/exports/incident_docs \
              /var/lib/tsi-compass/exports/kb_docs \
              /var/lib/tsi-compass/exports/campaign_docs \
+             /var/lib/tsi-compass/exports/ticket_attachments \
+             /var/lib/tsi-compass/exports/change_request_attachments \
     && chmod -R 777 /var/lib/tsi-compass
 
 # Switch to the 'jetty' user

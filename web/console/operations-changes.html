@@ -126,6 +126,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Stage</label><select id="edit-stage"><option>BRD</option><option>SOLUTION_DESIGN</option><option>APPROVAL</option><option>QA_TESTING</option><option>UAT</option><option>PROD_DEPLOYMENT</option></select></div>
       <div><label>Status</label><select id="edit-status"><option>DRAFT</option><option>SUBMITTED</option><option>APPROVED</option><option>REJECTED</option><option>COMPLETED</option></select></div>
     </div>
+    <div class="form-row"><label>Attachments</label><div id="edit-attachments-list">-</div></div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -164,6 +165,16 @@ function api(func,body,cb){
   .catch(function(e){cb(e.message,null);});
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Backend sends a clean ISO-8601 UTC string; render it in the viewer's own
+// local time, date + time only (no seconds) so it reads as a single clean
+// value instead of a raw timestamp.
+function fmtDateTime(s){
+  if(!s)return '-';
+  try{return new Date(s).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+  catch(e){return s;}
+}
+
 var STATUS_PILL={DRAFT:'<span class="pill neu">Draft</span>',SUBMITTED:'<span class="pill watch">Submitted</span>',APPROVED:'<span class="pill good">Approved</span>',REJECTED:'<span class="pill risk">Rejected</span>',COMPLETED:'<span class="pill info">Completed</span>'};
 
 function renderChanges(list,total){
@@ -177,7 +188,7 @@ function renderChanges(list,total){
       '<td>'+esc(c.requester_name||'-')+'</td>'+
       '<td><span class="tag">'+esc(c.stage||'-')+'</span></td>'+
       '<td>'+(STATUS_PILL[c.status]||esc(c.status))+'</td>'+
-      '<td>'+esc(c.created_at||'-')+'</td>'+
+      '<td>'+fmtDateTime(c.created_at)+'</td>'+
       '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+c.id+'\')">Update</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteChange(\''+c.id+'\',\''+esc(c.title)+'\')">Delete</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
@@ -259,8 +270,36 @@ function openEdit(id){
   document.getElementById('edit-id').value=c.id;
   document.getElementById('edit-title').value=c.title||'';
   setSelect('edit-stage',c.stage);setSelect('edit-status',c.status);
+  loadEditAttachments(c.id);
   document.getElementById('modal-edit').classList.add('open');
 }
+
+function loadEditAttachments(changeRequestId){
+  var el=document.getElementById('edit-attachments-list');
+  el.innerHTML='Loading…';
+  api('list_change_attachments',{change_request_id:changeRequestId},function(err,d){
+    var atts=(d&&d.attachments)||[];
+    if(err){el.innerHTML='<span style="color:var(--muted)">Error loading attachments.</span>';return;}
+    if(!atts.length){el.innerHTML='<span style="color:var(--muted)">No attachments.</span>';return;}
+    el.innerHTML=atts.map(function(a){
+      return '<div style="margin-bottom:4px"><button type="button" class="btn sm" onclick="downloadAttachment(\''+a.id+'\',\''+esc(a.file_name)+'\')">&#8595; '+esc(a.file_name)+'</button></div>';
+    }).join('');
+  });
+}
+
+function downloadAttachment(id,fname){
+  api('get_change_attachment',{id:id},function(err,d){
+    if(err){alert('Download error: '+err);return;}
+    var binary=atob(d.file_data);
+    var bytes=new Uint8Array(binary.length);
+    for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    var blob=new Blob([bytes]);
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download=d.file_name||fname;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  });
+}
+
 function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;break;}}}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}

@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.File;
 import java.sql.*;
+import java.util.Base64;
 import java.util.UUID;
 
 public class Operations implements Action {
@@ -51,6 +53,10 @@ public class Operations implements Action {
                 case "import_assets":      importAssets(req, res, input);                         break;
                 case "import_vendors":     importVendors(req, res, input);                        break;
                 case "import_tickets":     importTickets(req, res, input);                        break;
+                case "list_ticket_attachments": listTicketAttachments(req, res, input);            break;
+                case "get_ticket_attachment":   getTicketAttachment(req, res, input);              break;
+                case "list_change_attachments": listChangeAttachments(req, res, input);            break;
+                case "get_change_attachment":   getChangeAttachment(req, res, input);              break;
                 default: OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown: "+func, req.getRequestURI());
             }
         } catch (Exception e) {
@@ -140,7 +146,8 @@ public class Operations implements Action {
             rs = null; p = null;
 
             String dataSql =
-                "SELECT cr.id::text, cr.title, cr.description, cr.stage, cr.status, cr.created_at::text, " +
+                "SELECT cr.id::text, cr.title, cr.description, cr.stage, cr.status, " +
+                "TO_CHAR(cr.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, " +
                 "req.username AS requester_name, apr.username AS approver_name " +
                 "FROM change_requests cr " +
                 "LEFT JOIN users req ON req.id = cr.requester_id " +
@@ -547,7 +554,8 @@ public class Operations implements Action {
             }
 
             String dataSql =
-                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, " +
+                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, " +
+                "TO_CHAR(ht.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, " +
                 "a.name AS asset_name, cb.username AS created_by_name, at.username AS assigned_to_name, ht.assigned_to::text, " +
                 "tc.id::text AS category_id, tc.name AS category_name, " +
                 "tsc.id::text AS subcategory_id, tsc.name AS subcategory_name, " +
@@ -905,6 +913,128 @@ public class Operations implements Action {
             JSONObject ctx = new JSONObject(); ctx.put("ticket_id", id); ctx.put("ticket_title", title);
             EventLog.log(InputProcessor.getEmail(req), "TICKET_DELETED", ctx.toJSONString());
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    // IT staff already has full visibility over every ticket via list_tickets
+    // above, so these carry no extra ownership check beyond that module gate.
+
+    @SuppressWarnings("unchecked")
+    private void listTicketAttachments(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String ticketId = (String) input.get("ticket_id");
+        if (isBlank(ticketId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "ticket_id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT id::text, file_name, sha256_checksum, uploaded_at::text FROM ticket_attachments " +
+                "WHERE ticket_id = ?::uuid ORDER BY uploaded_at DESC"
+            );
+            p.setString(1, ticketId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject a = new JSONObject();
+                a.put("id",              rs.getString("id"));
+                a.put("file_name",       rs.getString("file_name"));
+                a.put("sha256_checksum", rs.getString("sha256_checksum"));
+                a.put("uploaded_at",     rs.getString("uploaded_at"));
+                list.add(a);
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("attachments", list);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getTicketAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT file_name, file_path FROM ticket_attachments WHERE id = ?::uuid");
+            p.setString(1, id);
+            rs = p.executeQuery();
+            if (!rs.next()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Attachment not found", req.getRequestURI()); return;
+            }
+            String fileName = rs.getString("file_name");
+            String filePath = rs.getString("file_path");
+            File file = new File(filePath);
+            if (!file.exists() || !file.isFile()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "File not found on server", req.getRequestURI()); return;
+            }
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("file_name", fileName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    // Change Management staff already has full visibility over every change
+    // request via list_changes above, so these carry no extra ownership check.
+
+    @SuppressWarnings("unchecked")
+    private void listChangeAttachments(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        if (isBlank(changeRequestId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT id::text, file_name, sha256_checksum, uploaded_at::text FROM change_request_attachments " +
+                "WHERE change_request_id = ?::uuid ORDER BY uploaded_at DESC"
+            );
+            p.setString(1, changeRequestId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject a = new JSONObject();
+                a.put("id",              rs.getString("id"));
+                a.put("file_name",       rs.getString("file_name"));
+                a.put("sha256_checksum", rs.getString("sha256_checksum"));
+                a.put("uploaded_at",     rs.getString("uploaded_at"));
+                list.add(a);
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("attachments", list);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getChangeAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT file_name, file_path FROM change_request_attachments WHERE id = ?::uuid");
+            p.setString(1, id);
+            rs = p.executeQuery();
+            if (!rs.next()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Attachment not found", req.getRequestURI()); return;
+            }
+            String fileName = rs.getString("file_name");
+            String filePath = rs.getString("file_path");
+            File file = new File(filePath);
+            if (!file.exists() || !file.isFile()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "File not found on server", req.getRequestURI()); return;
+            }
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("file_name", fileName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }
 

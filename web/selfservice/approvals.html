@@ -60,12 +60,11 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
   <nav class="nav">
     <a href="index.html">My Requests</a>
-    <a href="new-ticket.html">New Ticket</a>
-    <a href="new-change.html">New Change</a>
+    <a href="team-tickets.html" id="nav-team-tickets">Team Requests</a>
+    <a href="approvals.html" id="nav-approvals" class="active">Approvals</a>
+    <a href="team.html" id="nav-team">My Team</a>
     <a href="policies.html">Policies</a>
     <a href="training.html">Training</a>
-    <a href="team.html" id="nav-team">My Team</a>
-    <a href="approvals.html" id="nav-approvals" class="active">Approvals</a>
   </nav>
   <div class="user">
     <span class="user-name" id="user-name">-</span>
@@ -123,6 +122,10 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
     </div>
     <div class="detail-grid" id="detail-fields"></div>
     <div class="detail-desc"><label>Description</label><div id="detail-description">-</div></div>
+    <div class="detail-desc" id="detail-attachments-wrap" style="display:none;margin-top:14px">
+      <label>Attachments</label>
+      <div id="detail-attachments-list" style="margin:6px 0"></div>
+    </div>
     <div class="form-actions" id="detail-actions"></div>
   </div>
 </div>
@@ -136,6 +139,15 @@ if (localStorage.getItem('role') !== 'SUPERVISOR') window.location.replace('inde
 var pendingReject = null; // { kind: 'ticket'|'change', id: '...' }
 
 function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Backend sends a clean ISO-8601 UTC string; render it in the viewer's own
+// local time, date + time only (no seconds) so it reads as a single clean
+// value instead of a raw timestamp with a timezone offset.
+function fmtDateTime(s) {
+  if (!s) return '-';
+  try { return new Date(s).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  catch (e) { return s; }
+}
 
 function showToast(msg, err) {
   var t = document.getElementById('toast');
@@ -173,8 +185,9 @@ function loadPendingTickets() {
         '<td><strong>' + esc(t.title) + '</strong></td>' +
         '<td>' + esc(t.requester_name || '-') + '</td>' +
         '<td><span class="tag">' + esc(t.priority) + '</span></td>' +
-        '<td>' + esc(t.created_at || '-') + '</td>' +
+        '<td>' + fmtDateTime(t.created_at) + '</td>' +
         '<td><div class="row-actions" onclick="event.stopPropagation()">' +
+          '<button class="btn" onclick="openTicketDetail(\'' + esc(t.id) + '\')">View</button>' +
           '<button class="btn primary" onclick="approveTicket(\'' + esc(t.id) + '\')">Approve</button>' +
           '<button class="btn danger" onclick="openReject(\'ticket\',\'' + esc(t.id) + '\')">Reject</button>' +
         '</div></td>' +
@@ -195,8 +208,9 @@ function loadPendingChanges() {
       return '<tr class="clickable" onclick="openChangeDetail(\'' + esc(c.id) + '\')">' +
         '<td><strong>' + esc(c.title) + '</strong></td>' +
         '<td>' + esc(c.requester_name || '-') + '</td>' +
-        '<td>' + esc(c.created_at || '-') + '</td>' +
+        '<td>' + fmtDateTime(c.created_at) + '</td>' +
         '<td><div class="row-actions" onclick="event.stopPropagation()">' +
+          '<button class="btn" onclick="openChangeDetail(\'' + esc(c.id) + '\')">View</button>' +
           '<button class="btn primary" onclick="approveChange(\'' + esc(c.id) + '\')">Approve</button>' +
           '<button class="btn danger" onclick="openReject(\'change\',\'' + esc(c.id) + '\')">Reject</button>' +
         '</div></td>' +
@@ -218,12 +232,14 @@ function openTicketDetail(id) {
     detailField('Category', esc(t.category_name || '-')) +
     detailField('Subcategory', esc(t.subcategory_name || '-')) +
     detailField('Priority', '<span class="tag">' + esc(t.priority) + '</span>') +
-    detailField('Submitted', esc(t.created_at || '-'));
+    detailField('Submitted', fmtDateTime(t.created_at));
   document.getElementById('detail-description').textContent = t.description || '-';
   document.getElementById('detail-actions').innerHTML =
     '<button type="button" class="btn" onclick="closeDetail()">Close</button>' +
     '<button type="button" class="btn danger" onclick="closeDetail();openReject(\'ticket\',\'' + esc(t.id) + '\')">Reject</button>' +
     '<button type="button" class="btn primary" onclick="closeDetail();approveTicket(\'' + esc(t.id) + '\')">Approve</button>';
+  document.getElementById('detail-attachments-wrap').style.display = 'block';
+  loadDetailAttachments(t.id);
   document.getElementById('modal-detail').classList.add('open');
 }
 
@@ -233,13 +249,53 @@ function openChangeDetail(id) {
   document.getElementById('detail-title').textContent = c.title;
   document.getElementById('detail-fields').innerHTML =
     detailField('Requested By', esc(c.requester_name || '-')) +
-    detailField('Submitted', esc(c.created_at || '-'));
+    detailField('Submitted', fmtDateTime(c.created_at));
   document.getElementById('detail-description').textContent = c.description || '-';
   document.getElementById('detail-actions').innerHTML =
     '<button type="button" class="btn" onclick="closeDetail()">Close</button>' +
     '<button type="button" class="btn danger" onclick="closeDetail();openReject(\'change\',\'' + esc(c.id) + '\')">Reject</button>' +
     '<button type="button" class="btn primary" onclick="closeDetail();approveChange(\'' + esc(c.id) + '\')">Approve</button>';
+  document.getElementById('detail-attachments-wrap').style.display = 'block';
+  loadDetailAttachments(c.id, 'change');
   document.getElementById('modal-detail').classList.add('open');
+}
+
+// Attachments work identically for tickets and change requests, just against
+// different _func names and id params.
+var ATTACHMENT_FUNCS = {
+  ticket: { list: 'list_ticket_attachments', get: 'get_ticket_attachment', idParam: 'ticket_id' },
+  change: { list: 'list_change_attachments', get: 'get_change_attachment', idParam: 'change_request_id' }
+};
+var _detailAttachmentKind = 'ticket';
+
+function loadDetailAttachments(entityId, kind) {
+  _detailAttachmentKind = kind || 'ticket';
+  var funcs = ATTACHMENT_FUNCS[_detailAttachmentKind];
+  var list = document.getElementById('detail-attachments-list');
+  list.innerHTML = 'Loading…';
+  var body = {}; body[funcs.idParam] = entityId;
+  api(funcs.list, body, function(err, d) {
+    var atts = (d && d.attachments) || [];
+    if (err) { list.innerHTML = '<span style="color:var(--muted)">Error loading attachments.</span>'; return; }
+    if (!atts.length) { list.innerHTML = '<span style="color:var(--muted)">No attachments.</span>'; return; }
+    list.innerHTML = atts.map(function(a) {
+      return '<div style="margin-bottom:4px"><button type="button" class="btn sm" onclick="downloadAttachment(\'' + esc(a.id) + '\',\'' + esc(a.file_name) + '\')">&#8595; ' + esc(a.file_name) + '</button></div>';
+    }).join('');
+  });
+}
+
+function downloadAttachment(id, fname) {
+  var funcs = ATTACHMENT_FUNCS[_detailAttachmentKind];
+  api(funcs.get, { id: id }, function(err, d) {
+    if (err) { showToast('Download error: ' + err, true); return; }
+    var binary = atob(d.file_data);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes]);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = d.file_name || fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
 }
 
 function closeDetail() { document.getElementById('modal-detail').classList.remove('open'); }

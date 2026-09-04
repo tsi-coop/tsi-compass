@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – My Requests</title>
+<title>TSI Compass – Team Requests</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
@@ -21,21 +21,18 @@
 .page-header{margin-bottom:24px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
-.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
-.section-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
-.section-head h2{margin:0;font-size:14px;font-weight:800}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px}
 table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
 td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .pill.good{background:#e6f4ed;color:var(--green)}.pill.watch{background:#fef3cd;color:var(--amber)}.pill.risk{background:#fde8e8;color:var(--red)}.pill.info{background:#e8eeff;color:var(--blue)}.pill.neu{background:#f0f4f8;color:var(--muted)}
 .tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted)}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
-.acts{display:flex;gap:8px}
 .btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.mobilebar{display:none}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
 .filter-bar{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--line)}
 .filter-bar input{flex:1;height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar select{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 8px;color:var(--ink);background:#fff}
 .pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
 .pagination span{font-size:12px;color:var(--muted)}
 .page-btns{display:flex;gap:6px}
@@ -61,7 +58,7 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
 .detail-field div{font-size:13px;color:var(--ink)}
 .detail-desc label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 .detail-desc div{font-size:13px;color:var(--ink);line-height:1.6;white-space:pre-wrap;background:var(--wash);border:1px solid var(--line);border-radius:8px;padding:12px}
-.detail-reject{margin-top:14px;padding:12px;border-radius:8px;background:#fef2f2;border:1px solid #fde8e8;font-size:12.5px;color:var(--red)}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
 @media(max-width:820px){.nav{display:none}.main{padding:20px}}
 </style>
 </head>
@@ -69,10 +66,10 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
 <header class="topbar">
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
   <nav class="nav">
-    <a href="index.html" class="active">My Requests</a>
-    <a href="team-tickets.html" id="nav-team-tickets" style="display:none">Team Requests</a>
-    <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
-    <a href="team.html" id="nav-team" style="display:none">My Team</a>
+    <a href="index.html">My Requests</a>
+    <a href="team-tickets.html" id="nav-team-tickets" class="active">Team Requests</a>
+    <a href="approvals.html" id="nav-approvals">Approvals</a>
+    <a href="team.html" id="nav-team">My Team</a>
     <a href="policies.html">Policies</a>
     <a href="training.html">Training</a>
   </nav>
@@ -83,9 +80,9 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
 </header>
 <main class="main">
   <div class="page-header">
-    <div class="eyebrow">Self-Service Portal</div>
-    <h1>My Requests</h1>
-    <p class="subtitle">Track the status of the helpdesk tickets and change requests you've submitted.</p>
+    <div class="eyebrow">Manager Portal</div>
+    <h1>Team Requests</h1>
+    <p class="subtitle">Every helpdesk ticket and change request raised by anyone in your reporting chain, at any status - not just ones awaiting your approval.</p>
   </div>
 
   <div class="tabs">
@@ -94,24 +91,41 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
   </div>
 
   <div class="tab-panel active" id="tab-panel-tickets">
-    <div class="section-card">
-      <div class="section-head"><h2>Helpdesk Tickets</h2><div class="acts"><a class="btn primary" href="new-ticket.html">+ New Ticket</a></div></div>
-      <div class="filter-bar"><input id="search-tickets" type="search" placeholder="Search tickets…" oninput="onTicketSearch()"></div>
+    <div class="card">
+      <div class="filter-bar">
+        <input id="search-tickets" type="search" placeholder="Search tickets…" oninput="onSearch('tickets')">
+        <select id="f-status-tickets" onchange="loadTickets(1)">
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
       <table>
-        <thead><tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Submitted</th></tr></thead>
-        <tbody id="tickets-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Requested By</th><th>Category</th><th>Priority</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <tbody id="tickets-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination"><span id="page-info-tickets">-</span><div class="page-btns" id="page-btns-tickets"></div></div>
     </div>
   </div>
 
   <div class="tab-panel" id="tab-panel-changes">
-    <div class="section-card">
-      <div class="section-head"><h2>Change Requests</h2><div class="acts"><a class="btn primary" href="new-change.html">+ New Change</a></div></div>
-      <div class="filter-bar"><input id="search-changes" type="search" placeholder="Search change requests…" oninput="onChangeSearch()"></div>
+    <div class="card">
+      <div class="filter-bar">
+        <input id="search-changes" type="search" placeholder="Search change requests…" oninput="onSearch('changes')">
+        <select id="f-status-changes" onchange="loadChanges(1)">
+          <option value="">All Statuses</option>
+          <option value="DRAFT">Draft</option>
+          <option value="SUBMITTED">Submitted</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+      </div>
       <table>
-        <thead><tr><th>Title</th><th>Stage</th><th>Status</th><th>Submitted</th></tr></thead>
-        <tbody id="changes-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Title</th><th>Requested By</th><th>Stage</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <tbody id="changes-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination"><span id="page-info-changes">-</span><div class="page-btns" id="page-btns-changes"></div></div>
     </div>
@@ -127,34 +141,20 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:#f7fafb}
     <div class="detail-grid" id="detail-fields"></div>
     <div class="detail-desc"><label>Description</label><div id="detail-description">-</div></div>
     <div class="detail-desc" id="detail-resolution-wrap" style="display:none;margin-top:14px"><label>Resolution Notes</label><div id="detail-resolution-notes">-</div></div>
-    <div class="detail-desc" id="detail-attachments-wrap" style="display:none;margin-top:14px">
+    <div class="detail-desc" id="detail-attachments-wrap" style="margin-top:14px">
       <label>Attachments</label>
       <div id="detail-attachments-list" style="margin:6px 0"></div>
-      <input type="file" id="detail-attachment-file" style="margin-top:4px">
-      <button type="button" class="btn sm" onclick="uploadDetailAttachment()" style="margin-top:6px">+ Add Attachment</button>
     </div>
-    <div class="detail-reject" id="detail-reject" style="display:none"></div>
+    <div class="form-actions"><button type="button" class="btn" onclick="closeDetail()">Close</button></div>
   </div>
 </div>
 
 <script>
 var TOKEN = localStorage.getItem('token');
-if (!TOKEN) window.location.href = '../index.html';
+if (!TOKEN) window.location.replace('../index.html');
+if (localStorage.getItem('role') !== 'SUPERVISOR') window.location.replace('index.html');
 
-function api(func, body, cb) {
-  fetch('/api/v1/admin/selfservice', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-    body: JSON.stringify(Object.assign({ _func: func }, body || {}))
-  })
-  .then(function(r) {
-    if (r.status === 401) { localStorage.removeItem('token'); window.location.href = '../index.html'; return; }
-    return r.json();
-  })
-  .then(function(d) { if (!d) return; if (!d.success) cb(d.message || 'Error', null); else cb(null, d); })
-  .catch(function(e) { cb(e.message || 'Network error', null); });
-}
-function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // Backend sends a clean ISO-8601 UTC string; render it in the viewer's own
 // local time, date + time only (no seconds) so it reads as a single clean
@@ -165,16 +165,32 @@ function fmtDateTime(s) {
   catch (e) { return s; }
 }
 
+function api(func, body, cb) {
+  fetch('/api/v1/admin/supervisor', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(Object.assign({ _func: func }, body || {}))
+  })
+  .then(function(r) {
+    if (r.status === 401) { localStorage.clear(); window.location.replace('../index.html'); return null; }
+    return r.json();
+  })
+  .then(function(d) { if (!d) return; if (!d.success) cb(d.message || 'Error', null); else cb(null, d); })
+  .catch(function(e) { cb(e.message || 'Network error', null); });
+}
+
+function switchTab(tab) {
+  ['tickets', 'changes'].forEach(function(t) {
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-panel-' + t).classList.toggle('active', t === tab);
+  });
+}
+
 var TICKET_PILL = { OPEN:'<span class="pill watch">Open</span>', IN_PROGRESS:'<span class="pill info">In Progress</span>', RESOLVED:'<span class="pill good">Resolved</span>', CLOSED:'<span class="pill neu">Closed</span>' };
 var CHANGE_PILL = { DRAFT:'<span class="pill neu">Draft</span>', SUBMITTED:'<span class="pill watch">Submitted</span>', APPROVED:'<span class="pill good">Approved</span>', REJECTED:'<span class="pill risk">Rejected</span>', COMPLETED:'<span class="pill info">Completed</span>' };
 
-// approval_status overrides the ticket/change's own status pill while a
-// Manager approval decision is outstanding or was declined.
-function statusPill(row, defaultPill) {
-  if (row.approval_status === 'PENDING') return '<span class="pill watch">Awaiting Manager Approval</span>';
-  if (row.approval_status === 'REJECTED') return '<span class="pill risk" title="' + esc(row.rejection_reason || '') + '">Rejected by Manager</span>';
-  return defaultPill;
-}
+var _ticketsById = {};
+var _changesById = {};
 
 function buildPageList(current, total) {
   if (total <= 7) { var arr = []; for (var i = 1; i <= total; i++) arr.push(i); return arr; }
@@ -213,52 +229,66 @@ function renderPagination(data, infoId, btnsId, noun, loadFn) {
   });
 }
 
-var _ticketSearchDebounce = null;
-function onTicketSearch() { clearTimeout(_ticketSearchDebounce); _ticketSearchDebounce = setTimeout(function() { loadTickets(1); }, 300); }
-var _changeSearchDebounce = null;
-function onChangeSearch() { clearTimeout(_changeSearchDebounce); _changeSearchDebounce = setTimeout(function() { loadChanges(1); }, 300); }
-
-var _ticketsById = {};
-var _changesById = {};
+var _ticketSearchDebounce = null, _changeSearchDebounce = null;
+function onSearch(kind) {
+  if (kind === 'tickets') { clearTimeout(_ticketSearchDebounce); _ticketSearchDebounce = setTimeout(function() { loadTickets(1); }, 300); }
+  else { clearTimeout(_changeSearchDebounce); _changeSearchDebounce = setTimeout(function() { loadChanges(1); }, 300); }
+}
 
 function loadTickets(page) {
-  var body = { page: page || 1, limit: 20 };
+  var params = { page: page || 1, limit: 20 };
   var search = document.getElementById('search-tickets').value.trim();
-  if (search) body.search = search;
-  api('list_my_tickets', body, function(err, d) {
+  var status = document.getElementById('f-status-tickets').value;
+  if (search) params.search = search;
+  if (status) params.status = status;
+
+  document.getElementById('tickets-body').innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
+  api('list_team_tickets', params, function(err, d) {
     var tbody = document.getElementById('tickets-body');
-    if (err) { tbody.innerHTML = '<tr><td colspan="5" class="empty">' + esc(err) + '</td></tr>'; return; }
+    if (err) { tbody.innerHTML = '<tr><td colspan="7" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.tickets || [];
-    if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No tickets submitted yet.</td></tr>'; document.getElementById('page-info-tickets').textContent = '-'; document.getElementById('page-btns-tickets').innerHTML = ''; return; }
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No tickets found.</td></tr>'; document.getElementById('page-info-tickets').textContent = '-'; document.getElementById('page-btns-tickets').innerHTML = ''; return; }
     _ticketsById = {};
     list.forEach(function(t) { _ticketsById[t.id] = t; });
     tbody.innerHTML = list.map(function(t) {
-      return '<tr class="clickable" onclick="openTicketDetail(\'' + esc(t.id) + '\')"><td><strong>' + esc(t.title) + '</strong></td>' +
+      return '<tr class="clickable" onclick="openTicketDetail(\'' + esc(t.id) + '\')">' +
+        '<td><strong>' + esc(t.title) + '</strong></td>' +
+        '<td>' + esc(t.requester_name || '-') + '</td>' +
         '<td>' + esc(t.category_name || '-') + '</td>' +
         '<td><span class="tag">' + esc(t.priority) + '</span></td>' +
-        '<td>' + statusPill(t, TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
-        '<td>' + fmtDateTime(t.created_at) + '</td></tr>';
+        '<td>' + (TICKET_PILL[t.status] || esc(t.status)) + '</td>' +
+        '<td>' + fmtDateTime(t.created_at) + '</td>' +
+        '<td><button type="button" class="btn sm" onclick="event.stopPropagation();openTicketDetail(\'' + esc(t.id) + '\')">View</button></td>' +
+        '</tr>';
     }).join('');
     renderPagination(d, 'page-info-tickets', 'page-btns-tickets', 'ticket', loadTickets);
   });
 }
 
 function loadChanges(page) {
-  var body = { page: page || 1, limit: 20 };
+  var params = { page: page || 1, limit: 20 };
   var search = document.getElementById('search-changes').value.trim();
-  if (search) body.search = search;
-  api('list_my_changes', body, function(err, d) {
+  var status = document.getElementById('f-status-changes').value;
+  if (search) params.search = search;
+  if (status) params.status = status;
+
+  document.getElementById('changes-body').innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  api('list_team_changes', params, function(err, d) {
     var tbody = document.getElementById('changes-body');
-    if (err) { tbody.innerHTML = '<tr><td colspan="4" class="empty">' + esc(err) + '</td></tr>'; return; }
+    if (err) { tbody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.changes || [];
-    if (!list.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No change requests submitted yet.</td></tr>'; document.getElementById('page-info-changes').textContent = '-'; document.getElementById('page-btns-changes').innerHTML = ''; return; }
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No change requests found.</td></tr>'; document.getElementById('page-info-changes').textContent = '-'; document.getElementById('page-btns-changes').innerHTML = ''; return; }
     _changesById = {};
     list.forEach(function(c) { _changesById[c.id] = c; });
     tbody.innerHTML = list.map(function(c) {
-      return '<tr class="clickable" onclick="openChangeDetail(\'' + esc(c.id) + '\')"><td><strong>' + esc(c.title) + '</strong></td>' +
+      return '<tr class="clickable" onclick="openChangeDetail(\'' + esc(c.id) + '\')">' +
+        '<td><strong>' + esc(c.title) + '</strong></td>' +
+        '<td>' + esc(c.requester_name || '-') + '</td>' +
         '<td><span class="tag">' + esc(c.stage || '-') + '</span></td>' +
-        '<td>' + statusPill(c, CHANGE_PILL[c.status] || esc(c.status)) + '</td>' +
-        '<td>' + fmtDateTime(c.created_at) + '</td></tr>';
+        '<td>' + (CHANGE_PILL[c.status] || esc(c.status)) + '</td>' +
+        '<td>' + fmtDateTime(c.created_at) + '</td>' +
+        '<td><button type="button" class="btn sm" onclick="event.stopPropagation();openChangeDetail(\'' + esc(c.id) + '\')">View</button></td>' +
+        '</tr>';
     }).join('');
     renderPagination(d, 'page-info-changes', 'page-btns-changes', 'change request', loadChanges);
   });
@@ -268,27 +298,16 @@ function detailField(label, value) {
   return '<div class="detail-field"><label>' + esc(label) + '</label><div>' + value + '</div></div>';
 }
 
-// Attachments work identically for tickets and change requests, just against
-// different _func names and id params - track which kind is open so
-// loadDetailAttachments/uploadDetailAttachment/downloadAttachment can pick
-// the right pair.
-var _detailKind = null; // 'ticket' | 'change'
-var _detailId = null;
-var ATTACHMENT_FUNCS = {
-  ticket: { list: 'list_ticket_attachments', upload: 'upload_ticket_attachment', get: 'get_ticket_attachment', idParam: 'ticket_id' },
-  change: { list: 'list_change_attachments', upload: 'upload_change_attachment', get: 'get_change_attachment', idParam: 'change_request_id' }
-};
-
 function openTicketDetail(id) {
   var t = _ticketsById[id];
   if (!t) return;
-  _detailKind = 'ticket'; _detailId = id;
   document.getElementById('detail-title').textContent = t.title;
   document.getElementById('detail-fields').innerHTML =
-    detailField('Status', statusPill(t, TICKET_PILL[t.status] || esc(t.status))) +
+    detailField('Requested By', esc(t.requester_name || '-')) +
     detailField('Category', esc(t.category_name || '-')) +
     detailField('Subcategory', esc(t.subcategory_name || '-')) +
     detailField('Priority', '<span class="tag">' + esc(t.priority) + '</span>') +
+    detailField('Status', TICKET_PILL[t.status] || esc(t.status)) +
     detailField('Submitted', fmtDateTime(t.created_at));
   document.getElementById('detail-description').textContent = t.description || '-';
   var resolutionWrap = document.getElementById('detail-resolution-wrap');
@@ -296,44 +315,41 @@ function openTicketDetail(id) {
     resolutionWrap.style.display = 'block';
     document.getElementById('detail-resolution-notes').textContent = t.resolution_notes;
   } else { resolutionWrap.style.display = 'none'; }
-  var rejectEl = document.getElementById('detail-reject');
-  if (t.approval_status === 'REJECTED' && t.rejection_reason) {
-    rejectEl.style.display = 'block';
-    rejectEl.textContent = 'Rejected by manager: ' + t.rejection_reason;
-  } else { rejectEl.style.display = 'none'; }
-  document.getElementById('detail-attachments-wrap').style.display = 'block';
-  loadDetailAttachments();
+  loadDetailAttachments(t.id, 'ticket');
   document.getElementById('modal-detail').classList.add('open');
 }
 
 function openChangeDetail(id) {
   var c = _changesById[id];
   if (!c) return;
-  _detailKind = 'change'; _detailId = id;
   document.getElementById('detail-title').textContent = c.title;
   document.getElementById('detail-fields').innerHTML =
-    detailField('Status', statusPill(c, CHANGE_PILL[c.status] || esc(c.status))) +
+    detailField('Requested By', esc(c.requester_name || '-')) +
     detailField('Stage', '<span class="tag">' + esc(c.stage || '-') + '</span>') +
+    detailField('Status', CHANGE_PILL[c.status] || esc(c.status)) +
     detailField('Submitted', fmtDateTime(c.created_at));
   document.getElementById('detail-description').textContent = c.description || '-';
   document.getElementById('detail-resolution-wrap').style.display = 'none';
-  var rejectEl = document.getElementById('detail-reject');
-  if (c.approval_status === 'REJECTED' && c.rejection_reason) {
-    rejectEl.style.display = 'block';
-    rejectEl.textContent = 'Rejected by manager: ' + c.rejection_reason;
-  } else { rejectEl.style.display = 'none'; }
-  document.getElementById('detail-attachments-wrap').style.display = 'block';
-  loadDetailAttachments();
+  loadDetailAttachments(c.id, 'change');
   document.getElementById('modal-detail').classList.add('open');
 }
 
 function closeDetail() { document.getElementById('modal-detail').classList.remove('open'); }
 
-function loadDetailAttachments() {
-  var funcs = ATTACHMENT_FUNCS[_detailKind];
+// Attachments work identically for tickets and change requests, just against
+// different _func names and id params.
+var ATTACHMENT_FUNCS = {
+  ticket: { list: 'list_ticket_attachments', get: 'get_ticket_attachment', idParam: 'ticket_id' },
+  change: { list: 'list_change_attachments', get: 'get_change_attachment', idParam: 'change_request_id' }
+};
+var _detailAttachmentKind = 'ticket';
+
+function loadDetailAttachments(entityId, kind) {
+  _detailAttachmentKind = kind || 'ticket';
+  var funcs = ATTACHMENT_FUNCS[_detailAttachmentKind];
   var list = document.getElementById('detail-attachments-list');
   list.innerHTML = 'Loading…';
-  var body = {}; body[funcs.idParam] = _detailId;
+  var body = {}; body[funcs.idParam] = entityId;
   api(funcs.list, body, function(err, d) {
     var atts = (d && d.attachments) || [];
     if (err) { list.innerHTML = '<span style="color:var(--muted)">Error loading attachments.</span>'; return; }
@@ -344,33 +360,8 @@ function loadDetailAttachments() {
   });
 }
 
-// UX-only shortcut so an oversized file doesn't get read/base64-encoded just
-// to be rejected - the server enforces the real limit regardless.
-var MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MB
-
-function uploadDetailAttachment() {
-  var fi = document.getElementById('detail-attachment-file');
-  if (!_detailId || !fi.files.length) return;
-  var file = fi.files[0];
-  if (file.size > MAX_ATTACHMENT_BYTES) {
-    alert(file.name + ' exceeds the 10MB attachment size limit.');
-    return;
-  }
-  var funcs = ATTACHMENT_FUNCS[_detailKind];
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var body = { file_name: file.name, file_data: ev.target.result }; body[funcs.idParam] = _detailId;
-    api(funcs.upload, body, function(err) {
-      if (err) { alert('Upload error: ' + err); return; }
-      fi.value = '';
-      loadDetailAttachments();
-    });
-  };
-  reader.readAsDataURL(file);
-}
-
 function downloadAttachment(id, fname) {
-  var funcs = ATTACHMENT_FUNCS[_detailKind];
+  var funcs = ATTACHMENT_FUNCS[_detailAttachmentKind];
   api(funcs.get, { id: id }, function(err, d) {
     if (err) { alert('Download error: ' + err); return; }
     var binary = atob(d.file_data);
@@ -383,22 +374,14 @@ function downloadAttachment(id, fname) {
   });
 }
 
-var _changesLoaded = false;
-function switchTab(name) {
-  ['tickets', 'changes'].forEach(function(t) {
-    document.getElementById('tab-btn-' + t).classList.toggle('active', t === name);
-    document.getElementById('tab-panel-' + t).classList.toggle('active', t === name);
-  });
-  if (name === 'changes' && !_changesLoaded) { _changesLoaded = true; loadChanges(1); }
-}
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
 
 (function() {
   var n = localStorage.getItem('username') || 'User';
   var nm = document.getElementById('user-name');
   if (nm) { nm.textContent = n; nm.title = n; }
   loadTickets(1);
-  var wantTab = new URLSearchParams(window.location.search).get('tab');
-  if (wantTab === 'changes') switchTab('changes');
+  loadChanges(1);
 })();
 </script>
 <script src="nav.js"></script>

@@ -52,12 +52,11 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
   <nav class="nav">
     <a href="index.html">My Requests</a>
-    <a href="new-ticket.html">New Ticket</a>
-    <a href="new-change.html">New Change</a>
+    <a href="team-tickets.html" id="nav-team-tickets">Team Requests</a>
+    <a href="approvals.html" id="nav-approvals">Approvals</a>
+    <a href="team.html" id="nav-team" class="active">My Team</a>
     <a href="policies.html">Policies</a>
     <a href="training.html">Training</a>
-    <a href="team.html" id="nav-team" class="active">My Team</a>
-    <a href="approvals.html" id="nav-approvals">Approvals</a>
   </nav>
   <div class="user">
     <span class="user-name" id="user-name">-</span>
@@ -69,15 +68,16 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div>
       <div class="eyebrow">Manager Portal</div>
       <h1>My Team</h1>
-      <p class="subtitle">Provision and manage the employee accounts that report to you.</p>
+      <p class="subtitle" id="page-subtitle">Provision and manage the employee accounts that report to you.</p>
+      <div id="breadcrumb" style="margin-top:8px;font-size:12.5px;font-weight:700;display:none"></div>
     </div>
-    <button class="btn primary" onclick="openAdd()">+ Add Team Member</button>
+    <button class="btn primary" id="add-team-btn" onclick="openAdd()">+ Add Team Member</button>
   </div>
 
   <div class="card">
     <table>
-      <thead><tr><th>Username</th><th>Email</th><th>Status</th><th>Added</th><th></th></tr></thead>
-      <tbody id="team-tbody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Added</th><th></th></tr></thead>
+      <tbody id="team-tbody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
     </table>
   </div>
 </main>
@@ -174,24 +174,81 @@ function fmtDate(s) {
   try { return new Date(s).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}); } catch(e){ return s; }
 }
 
+// drillPath: [] when viewing your own direct reports, or a stack of
+// { id, label } entries when drilled into a subordinate manager's team.
+var drillPath = [];
+
+function currentManagerId() {
+  return drillPath.length ? drillPath[drillPath.length - 1].id : null;
+}
+
+function renderBreadcrumb() {
+  var el = document.getElementById('breadcrumb');
+  var subtitle = document.getElementById('page-subtitle');
+  var addBtn = document.getElementById('add-team-btn');
+  if (!drillPath.length) {
+    el.style.display = 'none';
+    subtitle.textContent = 'Provision and manage the employee accounts that report to you.';
+    addBtn.style.display = '';
+    return;
+  }
+  el.style.display = '';
+  var crumbs = ['<a href="#" onclick="goToRoot(event)" style="color:var(--teal)">My Team</a>'];
+  drillPath.forEach(function(p, i) {
+    crumbs.push(' / ' + (i === drillPath.length - 1
+      ? '<span>' + esc(p.label) + '</span>'
+      : '<a href="#" onclick="goToDepth(event,' + i + ')" style="color:var(--teal)">' + esc(p.label) + '</a>'));
+  });
+  el.innerHTML = crumbs.join('');
+  subtitle.textContent = 'Viewing ' + drillPath[drillPath.length - 1].label + '\'s direct reports.';
+  addBtn.style.display = 'none';
+}
+
+function goToRoot(e) { e.preventDefault(); drillPath = []; loadTeam(); }
+function goToDepth(e, i) { e.preventDefault(); drillPath = drillPath.slice(0, i + 1); loadTeam(); }
+
+function drillInto(id, username, level) {
+  drillPath.push({ id: id, label: username + (level ? ' (Manager-' + level + ')' : '') });
+  loadTeam();
+}
+
 function loadTeam() {
-  api('list_my_team', { page: 1, limit: 100 }, function(err, d) {
+  renderBreadcrumb();
+  var params = { page: 1, limit: 100 };
+  var managerId = currentManagerId();
+  if (managerId) params.manager_id = managerId;
+
+  api('list_my_team', params, function(err, d) {
     var tbody = document.getElementById('team-tbody');
-    if (err) { tbody.innerHTML = '<tr><td colspan="5" class="empty">' + esc(err) + '</td></tr>'; return; }
+    if (err) { tbody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(err) + '</td></tr>'; return; }
     var list = d.users || [];
-    if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No team members yet. Click <strong>+ Add Team Member</strong> to provision one.</td></tr>'; return; }
+    if (!list.length) {
+      tbody.innerHTML = drillPath.length
+        ? '<tr><td colspan="6" class="empty">No direct reports.</td></tr>'
+        : '<tr><td colspan="6" class="empty">No team members yet. Click <strong>+ Add Team Member</strong> to provision one.</td></tr>';
+      return;
+    }
     tbody.innerHTML = list.map(function(u) {
+      var isManager = u.role === 'SUPERVISOR';
       var statusPill = u.status === 'ACTIVE' ? '<span class="pill good">Active</span>' : '<span class="pill risk">' + esc(u.status) + '</span>';
       var toggleTo = u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+      var roleCell = isManager ? '<span class="pill good">Manager-' + esc(u.manager_level) + '</span>' : 'Employee';
+      // set_team_user_status/set_team_recovery_key only ever act on a direct
+      // USER report (see Supervisor.java) — a subordinate manager row is only
+      // ever a drill-down target here, never edited from this screen.
+      var actions = isManager
+        ? '<button class="btn sm" onclick="drillInto(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\',' + (u.manager_level || 0) + ')">View Team &rarr;</button>'
+        : '<div class="row-actions">' +
+            '<button class="btn sm" onclick="openResetPassword(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\')">Password Reset Key</button>' +
+            '<button class="btn sm' + (u.status === 'ACTIVE' ? ' danger' : '') + '" onclick="toggleStatus(\'' + esc(u.id) + '\',\'' + toggleTo + '\')">' + (u.status === 'ACTIVE' ? 'Suspend' : 'Activate') + '</button>' +
+          '</div>';
       return '<tr>' +
         '<td><strong>' + esc(u.username) + '</strong></td>' +
         '<td>' + esc(u.email) + '</td>' +
+        '<td>' + roleCell + '</td>' +
         '<td>' + statusPill + '</td>' +
         '<td>' + fmtDate(u.created_at) + '</td>' +
-        '<td><div class="row-actions">' +
-          '<button class="btn sm" onclick="openResetPassword(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\')">Password Reset Key</button>' +
-          '<button class="btn sm' + (u.status === 'ACTIVE' ? ' danger' : '') + '" onclick="toggleStatus(\'' + esc(u.id) + '\',\'' + toggleTo + '\')">' + (u.status === 'ACTIVE' ? 'Suspend' : 'Activate') + '</button>' +
-        '</div></td>' +
+        '<td>' + actions + '</td>' +
         '</tr>';
     }).join('');
   });

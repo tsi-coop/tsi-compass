@@ -9,7 +9,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.security.MessageDigest;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -41,8 +50,14 @@ public class SelfService implements Action {
                 case "list_my_tickets":       OutputProcessor.send(res, 200, listMyTickets(selfId, input));       break;
                 case "list_ticket_categories": OutputProcessor.send(res, 200, listTicketCategories());            break;
                 case "list_ticket_subcategories": OutputProcessor.send(res, 200, listTicketSubcategories(input)); break;
+                case "upload_ticket_attachment": uploadTicketAttachment(req, res, input, selfId);     break;
+                case "list_ticket_attachments":  listTicketAttachments(req, res, input, selfId);      break;
+                case "get_ticket_attachment":    getTicketAttachment(req, res, input, selfId);        break;
                 case "create_change_request": createChangeRequest(req, res, input, selfId);         break;
                 case "list_my_changes":       OutputProcessor.send(res, 200, listMyChanges(selfId, input));       break;
+                case "upload_change_attachment": uploadChangeAttachment(req, res, input, selfId);     break;
+                case "list_change_attachments":  listChangeAttachments(req, res, input, selfId);      break;
+                case "get_change_attachment":    getChangeAttachment(req, res, input, selfId);        break;
                 case "list_pending_policies": OutputProcessor.send(res, 200, listPendingPolicies(selfId, input)); break;
                 case "list_my_attestations":  OutputProcessor.send(res, 200, listMyAttestations(selfId, input));  break;
                 case "acknowledge_policy":    acknowledgePolicy(req, res, input, selfId);            break;
@@ -80,6 +95,35 @@ public class SelfService implements Action {
             if (!rs.next()) return null;
             Object sup = rs.getObject("supervisor_id");
             return sup == null ? null : UUID.fromString(sup.toString());
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    // Every manager above userId in the reporting chain — direct supervisor
+    // first, then that supervisor's supervisor, and so on up to whatever
+    // Manager-N sits at the top (however many levels are actually configured).
+    // Used so a "needs your approval" notification reaches every manager who
+    // is allowed to act on it (see Supervisor.java's downlineUserIds, which
+    // grants approval rights the same way, just walked from the other end).
+    private List<UUID> managerChainIds(Connection conn, UUID userId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement(
+                "WITH RECURSIVE chain AS (" +
+                "  SELECT supervisor_id AS id, 0 AS depth FROM users WHERE id = ? " +
+                "  UNION ALL " +
+                "  SELECT u.supervisor_id, c.depth + 1 FROM users u JOIN chain c ON u.id = c.id " +
+                "  WHERE c.id IS NOT NULL AND c.depth < 6" +
+                ") " +
+                "SELECT id::text FROM chain WHERE id IS NOT NULL"
+            );
+            p.setObject(1, userId);
+            rs = p.executeQuery();
+            List<UUID> ids = new ArrayList<>();
+            while (rs.next()) ids.add(UUID.fromString(rs.getString(1)));
+            return ids;
         } finally {
             try { if (rs != null) rs.close(); } catch (Exception ignored) {}
             try { if (p != null) p.close(); } catch (Exception ignored) {}
@@ -129,10 +173,17 @@ public class SelfService implements Action {
             if (needsApproval) {
                 supervisorId = getSupervisorId(conn, selfId);
                 if (supervisorId == null) {
-                    OutputProcessor.errorResponse(res, 400, "Bad Request",
-                        "Your account has no assigned supervisor. Contact your administrator before submitting a ticket.",
-                        req.getRequestURI());
-                    return;
+                    // Employees must have a supervisor to route approval to. A
+                    // manager submitting their own ticket may legitimately have no
+                    // upline (e.g. top of the chain) - don't block them, just skip
+                    // the approval gate for this submission.
+                    if ("USER".equals(InputProcessor.getRole(req))) {
+                        OutputProcessor.errorResponse(res, 400, "Bad Request",
+                            "Your account has no assigned supervisor. Contact your administrator before submitting a ticket.",
+                            req.getRequestURI());
+                        return;
+                    }
+                    needsApproval = false;
                 }
             }
 
@@ -152,9 +203,14 @@ public class SelfService implements Action {
             OutputProcessor.send(res, 200, result);
             if (newId != null) {
                 if (needsApproval) {
-                    Notification.emitToUser("TICKET_PENDING_APPROVAL", "Ticket awaiting your approval",
-                        "\"" + title + "\" was submitted by a team member and needs your approval",
-                        "approvals.html", UUID.fromString(newId), supervisorId);
+                    // Every manager in the chain can approve (see Supervisor.java),
+                    // so every manager in the chain is notified — not just the
+                    // direct supervisor.
+                    for (UUID managerId : managerChainIds(conn, selfId)) {
+                        Notification.emitToUser("TICKET_PENDING_APPROVAL", "Ticket awaiting your approval",
+                            "\"" + title + "\" was submitted by a team member and needs your approval",
+                            "approvals.html", UUID.fromString(newId), managerId);
+                    }
                 } else {
                     Notification.emit("TICKET_CREATED", "helpdesk", "New helpdesk ticket",
                         "\"" + title + "\" was submitted", "operations-helpdesk.html", UUID.fromString(newId));
@@ -185,7 +241,8 @@ public class SelfService implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, ht.created_at::text, tc.name AS category_name, " +
+                "SELECT ht.id::text, ht.title, ht.description, ht.status, ht.priority, " +
+                "TO_CHAR(ht.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, tc.name AS category_name, " +
                 "tsc.name AS subcategory_name, " +
                 "ht.approval_status, ht.rejection_reason, ht.resolution_notes " +
                 "FROM helpdesk_tickets ht LEFT JOIN ticket_categories tc ON tc.id = ht.category_id " +
@@ -271,6 +328,299 @@ public class SelfService implements Action {
     }
 
     // -------------------------------------------------------------------------
+    // Ticket attachments
+    // -------------------------------------------------------------------------
+
+    private static final Set<String> ATTACHMENT_EXTENSIONS = new HashSet<>(Arrays.asList(
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".png", ".jpg", ".jpeg", ".zip", ".txt", ".csv"
+    ));
+
+    // Decoded file size cap. This is the authoritative check — the client-side
+    // check in new-ticket.html/index.html is just a UX shortcut and can't be
+    // trusted on its own.
+    private static final int MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MB
+
+    private boolean ownsTicket(Connection conn, String ticketId, UUID selfId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT 1 FROM helpdesk_tickets WHERE id = ?::uuid AND created_by = ?");
+            p.setString(1, ticketId); p.setObject(2, selfId);
+            rs = p.executeQuery();
+            return rs.next();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void uploadTicketAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String ticketId = (String) input.get("ticket_id");
+        String fileName = (String) input.get("file_name");
+        String fileData = (String) input.get("file_data");
+        if (isBlank(ticketId) || isBlank(fileName) || isBlank(fileData)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "ticket_id, file_name and file_data are required", req.getRequestURI()); return;
+        }
+        String safeName = new File(fileName).getName();
+        int dot = safeName.lastIndexOf('.');
+        String ext = dot >= 0 ? safeName.substring(dot).toLowerCase() : "";
+        if (!ATTACHMENT_EXTENSIONS.contains(ext)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "File type not allowed: " + ext, req.getRequestURI()); return;
+        }
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes;
+        try { bytes = Base64.getDecoder().decode(raw.trim()); }
+        catch (Exception e) { OutputProcessor.errorResponse(res, 400, "Bad Request", "Invalid base64 content", req.getRequestURI()); return; }
+        if (bytes.length > MAX_ATTACHMENT_BYTES) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request",
+                "File exceeds the " + (MAX_ATTACHMENT_BYTES / (1024 * 1024)) + "MB attachment size limit", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            if (!ownsTicket(conn, ticketId, selfId)) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found", req.getRequestURI()); return;
+            }
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) sb.append('0'); sb.append(h); }
+            String checksum = sb.toString();
+
+            String uploadDir = System.getenv("TSI_EXPORT_PATH");
+            if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+            File dir = new File(uploadDir + "/ticket_attachments");
+            if (!dir.exists() && !dir.mkdirs()) {
+                OutputProcessor.errorResponse(res, 500, "Internal Error", "Cannot create upload directory", req.getRequestURI()); return;
+            }
+            File dest = new File(dir, UUID.randomUUID().toString() + ext);
+            try (FileOutputStream fos = new FileOutputStream(dest)) { fos.write(bytes); }
+
+            p = conn.prepareStatement(
+                "INSERT INTO ticket_attachments (ticket_id, file_name, file_path, sha256_checksum, uploaded_by) " +
+                "VALUES (?::uuid, ?, ?, ?, ?) RETURNING id::text"
+            );
+            p.setString(1, ticketId); p.setString(2, safeName);
+            p.setString(3, dest.getAbsolutePath()); p.setString(4, checksum); p.setObject(5, selfId);
+            rs = p.executeQuery();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            if (rs.next()) result.put("id", rs.getString(1));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void listTicketAttachments(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String ticketId = (String) input.get("ticket_id");
+        if (isBlank(ticketId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "ticket_id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            if (!ownsTicket(conn, ticketId, selfId)) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Ticket not found", req.getRequestURI()); return;
+            }
+            p = conn.prepareStatement(
+                "SELECT id::text, file_name, sha256_checksum, uploaded_at::text FROM ticket_attachments " +
+                "WHERE ticket_id = ?::uuid ORDER BY uploaded_at DESC"
+            );
+            p.setString(1, ticketId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject a = new JSONObject();
+                a.put("id",              rs.getString("id"));
+                a.put("file_name",       rs.getString("file_name"));
+                a.put("sha256_checksum", rs.getString("sha256_checksum"));
+                a.put("uploaded_at",     rs.getString("uploaded_at"));
+                list.add(a);
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("attachments", list);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getTicketAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT ta.file_name, ta.file_path FROM ticket_attachments ta " +
+                "JOIN helpdesk_tickets ht ON ht.id = ta.ticket_id " +
+                "WHERE ta.id = ?::uuid AND ht.created_by = ?"
+            );
+            p.setString(1, id); p.setObject(2, selfId);
+            rs = p.executeQuery();
+            if (!rs.next()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Attachment not found", req.getRequestURI()); return;
+            }
+            String fileName = rs.getString("file_name");
+            String filePath = rs.getString("file_path");
+            File file = new File(filePath);
+            if (!file.exists() || !file.isFile()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "File not found on server", req.getRequestURI()); return;
+            }
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("file_name", fileName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    // -------------------------------------------------------------------------
+    // Change request attachments — identical mechanics to ticket attachments
+    // above, scoped to change_requests instead of helpdesk_tickets.
+    // -------------------------------------------------------------------------
+
+    private boolean ownsChangeRequest(Connection conn, String changeRequestId, UUID selfId) throws Exception {
+        PreparedStatement p = null; ResultSet rs = null;
+        try {
+            p = conn.prepareStatement("SELECT 1 FROM change_requests WHERE id = ?::uuid AND requester_id = ?");
+            p.setString(1, changeRequestId); p.setObject(2, selfId);
+            rs = p.executeQuery();
+            return rs.next();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (p != null) p.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void uploadChangeAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        String fileName = (String) input.get("file_name");
+        String fileData = (String) input.get("file_data");
+        if (isBlank(changeRequestId) || isBlank(fileName) || isBlank(fileData)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id, file_name and file_data are required", req.getRequestURI()); return;
+        }
+        String safeName = new File(fileName).getName();
+        int dot = safeName.lastIndexOf('.');
+        String ext = dot >= 0 ? safeName.substring(dot).toLowerCase() : "";
+        if (!ATTACHMENT_EXTENSIONS.contains(ext)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "File type not allowed: " + ext, req.getRequestURI()); return;
+        }
+        String raw = fileData.contains(",") ? fileData.substring(fileData.indexOf(',') + 1) : fileData;
+        byte[] bytes;
+        try { bytes = Base64.getDecoder().decode(raw.trim()); }
+        catch (Exception e) { OutputProcessor.errorResponse(res, 400, "Bad Request", "Invalid base64 content", req.getRequestURI()); return; }
+        if (bytes.length > MAX_ATTACHMENT_BYTES) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request",
+                "File exceeds the " + (MAX_ATTACHMENT_BYTES / (1024 * 1024)) + "MB attachment size limit", req.getRequestURI());
+            return;
+        }
+
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            if (!ownsChangeRequest(conn, changeRequestId, selfId)) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Change request not found", req.getRequestURI()); return;
+            }
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) { String h = Integer.toHexString(0xff & b); if (h.length() == 1) sb.append('0'); sb.append(h); }
+            String checksum = sb.toString();
+
+            String uploadDir = System.getenv("TSI_EXPORT_PATH");
+            if (isBlank(uploadDir)) uploadDir = System.getProperty("user.home") + "/.tsi-compass/exports";
+            File dir = new File(uploadDir + "/change_request_attachments");
+            if (!dir.exists() && !dir.mkdirs()) {
+                OutputProcessor.errorResponse(res, 500, "Internal Error", "Cannot create upload directory", req.getRequestURI()); return;
+            }
+            File dest = new File(dir, UUID.randomUUID().toString() + ext);
+            try (FileOutputStream fos = new FileOutputStream(dest)) { fos.write(bytes); }
+
+            p = conn.prepareStatement(
+                "INSERT INTO change_request_attachments (change_request_id, file_name, file_path, sha256_checksum, uploaded_by) " +
+                "VALUES (?::uuid, ?, ?, ?, ?) RETURNING id::text"
+            );
+            p.setString(1, changeRequestId); p.setString(2, safeName);
+            p.setString(3, dest.getAbsolutePath()); p.setString(4, checksum); p.setObject(5, selfId);
+            rs = p.executeQuery();
+            JSONObject result = new JSONObject(); result.put("success", true);
+            if (rs.next()) result.put("id", rs.getString(1));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void listChangeAttachments(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String changeRequestId = (String) input.get("change_request_id");
+        if (isBlank(changeRequestId)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "change_request_id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        JSONArray list = new JSONArray();
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            if (!ownsChangeRequest(conn, changeRequestId, selfId)) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Change request not found", req.getRequestURI()); return;
+            }
+            p = conn.prepareStatement(
+                "SELECT id::text, file_name, sha256_checksum, uploaded_at::text FROM change_request_attachments " +
+                "WHERE change_request_id = ?::uuid ORDER BY uploaded_at DESC"
+            );
+            p.setString(1, changeRequestId);
+            rs = p.executeQuery();
+            while (rs.next()) {
+                JSONObject a = new JSONObject();
+                a.put("id",              rs.getString("id"));
+                a.put("file_name",       rs.getString("file_name"));
+                a.put("sha256_checksum", rs.getString("sha256_checksum"));
+                a.put("uploaded_at",     rs.getString("uploaded_at"));
+                list.add(a);
+            }
+            JSONObject result = new JSONObject(); result.put("success", true); result.put("attachments", list);
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getChangeAttachment(HttpServletRequest req, HttpServletResponse res, JSONObject input, UUID selfId) throws Exception {
+        String id = (String) input.get("id");
+        if (isBlank(id)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI()); return;
+        }
+        PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
+        try {
+            pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement(
+                "SELECT ca.file_name, ca.file_path FROM change_request_attachments ca " +
+                "JOIN change_requests cr ON cr.id = ca.change_request_id " +
+                "WHERE ca.id = ?::uuid AND cr.requester_id = ?"
+            );
+            p.setString(1, id); p.setObject(2, selfId);
+            rs = p.executeQuery();
+            if (!rs.next()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "Attachment not found", req.getRequestURI()); return;
+            }
+            String fileName = rs.getString("file_name");
+            String filePath = rs.getString("file_path");
+            File file = new File(filePath);
+            if (!file.exists() || !file.isFile()) {
+                OutputProcessor.errorResponse(res, 404, "Not Found", "File not found on server", req.getRequestURI()); return;
+            }
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            JSONObject result = new JSONObject(); result.put("success", true);
+            result.put("file_name", fileName);
+            result.put("file_data", Base64.getEncoder().encodeToString(bytes));
+            OutputProcessor.send(res, 200, result);
+        } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
+    }
+
+    // -------------------------------------------------------------------------
     // Change requests
     // -------------------------------------------------------------------------
 
@@ -290,10 +640,17 @@ public class SelfService implements Action {
             if (needsApproval) {
                 supervisorId = getSupervisorId(conn, selfId);
                 if (supervisorId == null) {
-                    OutputProcessor.errorResponse(res, 400, "Bad Request",
-                        "Your account has no assigned supervisor. Contact your administrator before submitting a change request.",
-                        req.getRequestURI());
-                    return;
+                    // Employees must have a supervisor to route approval to. A
+                    // manager submitting their own change request may legitimately
+                    // have no upline (e.g. top of the chain) - don't block them,
+                    // just skip the approval gate for this submission.
+                    if ("USER".equals(InputProcessor.getRole(req))) {
+                        OutputProcessor.errorResponse(res, 400, "Bad Request",
+                            "Your account has no assigned supervisor. Contact your administrator before submitting a change request.",
+                            req.getRequestURI());
+                        return;
+                    }
+                    needsApproval = false;
                 }
             }
 
@@ -310,9 +667,14 @@ public class SelfService implements Action {
             OutputProcessor.send(res, 200, result);
             if (newId != null) {
                 if (needsApproval) {
-                    Notification.emitToUser("CHANGE_REQUEST_PENDING_APPROVAL", "Change request awaiting your approval",
-                        "\"" + title + "\" was submitted by a team member and needs your approval",
-                        "approvals.html", UUID.fromString(newId), supervisorId);
+                    // Every manager in the chain can approve (see Supervisor.java),
+                    // so every manager in the chain is notified — not just the
+                    // direct supervisor.
+                    for (UUID managerId : managerChainIds(conn, selfId)) {
+                        Notification.emitToUser("CHANGE_REQUEST_PENDING_APPROVAL", "Change request awaiting your approval",
+                            "\"" + title + "\" was submitted by a team member and needs your approval",
+                            "approvals.html", UUID.fromString(newId), managerId);
+                    }
                 } else {
                     Notification.emit("CHANGE_REQUEST_CREATED", "operations", "New change request",
                         "\"" + title + "\" was submitted", "operations-changes.html", UUID.fromString(newId));
@@ -343,7 +705,8 @@ public class SelfService implements Action {
             rs = null; p = null;
 
             p = conn.prepareStatement(
-                "SELECT id::text, title, description, stage, status, created_at::text, approval_status, rejection_reason " +
+                "SELECT id::text, title, description, stage, status, " +
+                "TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at, approval_status, rejection_reason " +
                 "FROM change_requests" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
             );
             idx = 1; p.setObject(idx++, selfId);

@@ -41,12 +41,11 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
   <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
   <nav class="nav">
     <a href="index.html">My Requests</a>
-    <a href="new-ticket.html" class="active">New Ticket</a>
-    <a href="new-change.html">New Change</a>
+    <a href="team-tickets.html" id="nav-team-tickets" style="display:none">Team Requests</a>
+    <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
+    <a href="team.html" id="nav-team" style="display:none">My Team</a>
     <a href="policies.html">Policies</a>
     <a href="training.html">Training</a>
-    <a href="team.html" id="nav-team" style="display:none">My Team</a>
-    <a href="approvals.html" id="nav-approvals" style="display:none">Approvals</a>
   </nav>
   <div class="user">
     <span class="user-name" id="user-name">-</span>
@@ -73,6 +72,9 @@ h1{font-size:24px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
       </div>
       <div class="form-row"><label>Priority</label>
         <select id="t-priority"><option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select>
+      </div>
+      <div class="form-row"><label>Attachments (optional)</label>
+        <input type="file" id="t-attachments" multiple>
       </div>
       <div class="foot">
         <a class="btn" href="index.html">Cancel</a>
@@ -112,15 +114,44 @@ function submitTicket(e) {
   if (!title || !desc) { errBox.textContent = 'Title and description are required.'; errBox.style.display = 'block'; return; }
   if (!categoryId) { errBox.textContent = 'Category is required.'; errBox.style.display = 'block'; return; }
 
+  var files = Array.prototype.slice.call(document.getElementById('t-attachments').files);
+
   var btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Submitting…';
-  api('create_ticket', { title: title, description: desc, category_id: categoryId, subcategory_id: subcategoryId || null, priority: priority }, function(err) {
-    btn.disabled = false; btn.textContent = 'Submit Ticket';
-    if (err) { errBox.textContent = err; errBox.style.display = 'block'; return; }
-    okBox.textContent = 'Ticket submitted. Redirecting to My Requests…';
-    okBox.style.display = 'block';
-    setTimeout(function() { window.location.href = 'index.html'; }, 900);
+  api('create_ticket', { title: title, description: desc, category_id: categoryId, subcategory_id: subcategoryId || null, priority: priority }, function(err, d) {
+    if (err) { btn.disabled = false; btn.textContent = 'Submit Ticket'; errBox.textContent = err; errBox.style.display = 'block'; return; }
+    uploadAttachments(d.id, files, function() {
+      btn.disabled = false; btn.textContent = 'Submit Ticket';
+      okBox.textContent = 'Ticket submitted. Redirecting to My Requests…';
+      okBox.style.display = 'block';
+      setTimeout(function() { window.location.href = 'index.html?tab=tickets'; }, 900);
+    });
   });
+}
+
+// UX-only shortcut so an oversized file doesn't get read/base64-encoded just
+// to be rejected - the server enforces the real limit regardless.
+var MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MB
+
+// Uploads each selected file to the just-created ticket, one at a time.
+// Upload failures are surfaced but never block navigation - the ticket
+// itself was already created successfully.
+function uploadAttachments(ticketId, files, done) {
+  if (!files.length) { done(); return; }
+  var file = files.shift();
+  if (file.size > MAX_ATTACHMENT_BYTES) {
+    alert(file.name + ' exceeds the 10MB attachment size limit and was not uploaded.');
+    uploadAttachments(ticketId, files, done);
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    api('upload_ticket_attachment', { ticket_id: ticketId, file_name: file.name, file_data: ev.target.result }, function(err) {
+      if (err) console.error('Attachment upload failed for ' + file.name + ': ' + err);
+      uploadAttachments(ticketId, files, done);
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Managers</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:2px}
+.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.main{padding:32px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:6px}
+.breadcrumb a{color:var(--teal);font-weight:700}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
+.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.grid{display:grid;gap:16px}
+.col5{grid-template-columns:repeat(5,1fr)}
+.mb{margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}
+.metric-note{color:var(--muted);font-size:12px}
+.stripe-blue{border-top:4px solid var(--blue)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.good{background:#eaf7ef;color:var(--green)}.watch{background:#fff4df;color:var(--amber)}.risk{background:#fdeceb;color:var(--red)}.info{background:#edf2ff;color:var(--blue)}.neu{background:#f1f5f9;color:#475569}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid #edf2f6;font-size:13px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.tbl-action{font-size:11px;font-weight:800;color:var(--teal);cursor:pointer;background:none;border:none;padding:2px 0;text-decoration:none}
+.tbl-action+.tbl-action{margin-left:10px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+.form-select{padding:6px 10px;border:1px solid var(--line);border-radius:6px;font:inherit;font-size:12px;color:var(--ink);background:#fff;outline:none}
+.form-select:focus{border-color:var(--teal)}
+.hint{color:var(--muted);font-size:12.5px;line-height:1.6;margin:0 0 16px}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col5{grid-template-columns:1fr 1fr}.page-header{display:block}}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="platform-users.html" class="subnav">User Management</a>
+      <a href="platform-roles.html" class="subnav">Roles &amp; Permissions</a>
+      <a href="platform-audit.html" class="subnav">Audit Trail</a>
+      <a href="platform-apikeys.html" class="subnav">API Keys</a>
+      <a href="platform-ticket-categories.html" class="subnav">Ticket Categories</a>
+      <a href="platform-asset-categories.html" class="subnav">Asset Categories</a>
+      <a href="platform-business-settings.html" class="subnav">Business Settings</a>
+      <a href="platform-managers.html" class="subnav active">Managers</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-register.html">Data Register</a><a href="supplychain.html">Supply Chain</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="breadcrumb"><a href="platform.html">Platform &amp; Access</a> / Managers</div>
+        <h1>Managers</h1>
+        <p class="subtitle">Register the Manager-1..Manager-5 reporting chain. A manager can view and approve for their entire downline, not just their direct reports.</p>
+      </div>
+    </div>
+
+    <div class="grid col5 mb">
+      <div class="card stripe-blue"><div class="metric-label">Manager-1</div><div class="metric-value" id="mc-1">-</div><div class="metric-note">managers</div></div>
+      <div class="card stripe-blue"><div class="metric-label">Manager-2</div><div class="metric-value" id="mc-2">-</div><div class="metric-note">managers</div></div>
+      <div class="card stripe-blue"><div class="metric-label">Manager-3</div><div class="metric-value" id="mc-3">-</div><div class="metric-note">managers</div></div>
+      <div class="card stripe-blue"><div class="metric-label">Manager-4</div><div class="metric-value" id="mc-4">-</div><div class="metric-note">managers</div></div>
+      <div class="card stripe-blue"><div class="metric-label">Manager-5</div><div class="metric-value" id="mc-5">-</div><div class="metric-note">managers</div></div>
+    </div>
+
+    <div class="card mb">
+      <div class="section-head">
+        <h2>Reporting Chain</h2>
+      </div>
+      <p class="hint">Every account with the Manager role appears here. Set each manager's level (1-5), then who they report to — a Manager-N can only report to a Manager-(N+1). A Manager-1 with no employees yet, or a top-level manager with no upline, is expected and safe to leave as-is.</p>
+      <table>
+        <thead>
+          <tr><th>Manager</th><th>Email</th><th>Status</th><th>Level</th><th>Reports To</th><th></th></tr>
+        </thead>
+        <tbody id="managers-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Loading managers…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script>
+var TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '../index.html';
+
+var managers = [];
+
+function api(func, body, cb) {
+  var payload = Object.assign({ _func: func }, body || {});
+  fetch('/api/v1/admin/platform', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) {
+    if (res.status === 401) { localStorage.removeItem('token'); window.location.href = '../index.html'; return; }
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (!data.success) cb(data.error || data.message || 'An error occurred', null);
+    else cb(null, data);
+  })
+  .catch(function(err) { cb(err.message || 'Network error', null); });
+}
+
+function showToast(msg, isErr) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);color:#fff;max-width:320px;line-height:1.4';
+  t.style.background = isErr ? 'var(--red)' : 'var(--teal)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3500);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function statusPill(s) {
+  var cls = s === 'ACTIVE' ? 'good' : s === 'PENDING' ? 'watch' : 'risk';
+  var label = s === 'ACTIVE' ? 'Active' : s === 'PENDING' ? 'Pending' : 'Suspended';
+  return '<span class="pill ' + cls + '">' + label + '</span>';
+}
+
+function uplineOptions(forManager) {
+  var wantLevel = Number(forManager.manager_level) + 1;
+  var opts = managers.filter(function(m) {
+    return m.id !== forManager.id && Number(m.manager_level) === wantLevel && m.status === 'ACTIVE';
+  });
+  var html = '<option value="">' + (wantLevel > 5 ? 'Top of chain (none)' : 'None assigned') + '</option>';
+  html += opts.map(function(m) { return '<option value="' + esc(m.id) + '">' + esc(m.username) + '</option>'; }).join('');
+  return html;
+}
+
+function renderManagers() {
+  var tbody = document.getElementById('managers-tbody');
+  for (var lvl = 1; lvl <= 5; lvl++) {
+    document.getElementById('mc-' + lvl).textContent = managers.filter(function(m) { return Number(m.manager_level) === lvl; }).length;
+  }
+  if (!managers.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No managers found. Provision a user with the Manager role on the User Management screen first.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = managers.map(function(m) {
+    var levelSelect = '<select class="form-select" onchange="onLevelChange(\'' + esc(m.id) + '\', this.value)">' +
+      [1,2,3,4,5].map(function(l) { return '<option value="' + l + '"' + (Number(m.manager_level) === l ? ' selected' : '') + '>Manager-' + l + '</option>'; }).join('') +
+      '</select>';
+    var uplineCell = (Number(m.manager_level) >= 5)
+      ? '<span style="color:var(--muted)">Top of chain</span>'
+      : '<select class="form-select" onchange="onUplineChange(\'' + esc(m.id) + '\', this.value)">' + uplineOptions(m) + '</select>';
+    return '<tr>' +
+      '<td><strong>' + esc(m.username) + '</strong></td>' +
+      '<td style="color:var(--muted)">' + esc(m.email) + '</td>' +
+      '<td>' + statusPill(m.status) + '</td>' +
+      '<td>' + levelSelect + '</td>' +
+      '<td>' + withSelected(uplineCell, m.upline_id) + '</td>' +
+      '<td></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function withSelected(selectHtml, uplineId) {
+  if (!uplineId || selectHtml.indexOf('<select') !== 0) return selectHtml;
+  return selectHtml.replace('value="' + uplineId + '"', 'value="' + uplineId + '" selected');
+}
+
+window.onLevelChange = function(id, level) {
+  api('set_manager_level', { id: id, manager_level: Number(level) }, function(err) {
+    if (err) { showToast('Failed to update level: ' + err, true); loadManagers(); return; }
+    showToast('Manager level updated.');
+    loadManagers();
+  });
+};
+
+window.onUplineChange = function(id, uplineId) {
+  api('set_manager_upline', { id: id, supervisor_id: uplineId || '' }, function(err) {
+    if (err) { showToast('Failed to update reporting line: ' + err, true); loadManagers(); return; }
+    showToast('Reporting line updated.');
+    loadManagers();
+  });
+};
+
+function loadManagers() {
+  api('list_managers', {}, function(err, data) {
+    if (err) {
+      showToast('Failed to load managers: ' + err, true);
+      document.getElementById('managers-tbody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error loading managers.</td></tr>';
+      return;
+    }
+    managers = data.managers || [];
+    renderManagers();
+  });
+}
+
+(function() {
+  var n = localStorage.getItem('username') || 'Demo Administrator';
+  var r = localStorage.getItem('role') || 'Admin';
+  var av = document.getElementById('user-avatar');
+  var nm = document.getElementById('user-name');
+  var ro = document.getElementById('user-role');
+  if (nm) nm.textContent = n;
+  if (ro) ro.textContent = r;
+  if (av) {
+    var i = n.trim().split(/\s+/).map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+    av.textContent = i || 'U';
+  }
+  loadManagers();
+})();
+</script>
+</body>
+</html>
