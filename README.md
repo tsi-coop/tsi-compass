@@ -32,12 +32,12 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 | Role | What they can do |
 |------|-------------------|
 | **Employee** | Submit helpdesk tickets and change requests, track their status, and complete policy attestations and training |
-| **Manager** | Everything an Employee can do, plus provision and manage their own team and approve or reject their team's tickets and change requests - optionally required, deployment-wide, before IT/GRC ever sees them |
+| **Manager** | Everything an Employee can do, plus provision and manage their own team and approve or reject their team's tickets and change requests - optionally required, deployment-wide, before IT/GRC ever sees them. Managers can themselves be organized into up to 5 levels (Manager-1 through Manager-5) reporting up a chain, e.g. for escalation or multi-tier approval |
 
 **Authentication and access control**
 
 - Session-based JWT login with per-module RBAC (`ADMIN`, `GRC_OFFICER`, `IT_STAFF`, `SUPERVISOR` i.e. Manager, `USER` i.e. Employee)
-- Optional deployment-wide **Manager approval** setting (Platform & Access > Business Settings): when enabled, an Employee's tickets and change requests are held for their assigned Manager to approve or reject before IT/GRC staff can see them
+- Optional deployment-wide **Manager approval** setting (Platform & Access > Business Settings): when enabled, an Employee's tickets and change requests are held for their assigned Manager to approve or reject before IT/GRC staff can see them, flowing up the Manager hierarchy as needed
 - Machine-to-machine access via API key + secret pairs (key and secret hashed at rest; plain values shown once at creation)
 - Per-user 5-word recovery passphrase for self-service password recovery
 - Every action written to an immutable `system_audit_trail` table
@@ -60,6 +60,14 @@ Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM 
 ---
 
 ## Changelog
+
+### v0.4.2
+
+- **Multi-level Manager hierarchy** - Managers can now be organized into up to 5 levels (Manager-1 through Manager-5) on a new Platform > Managers screen, each reporting to the manager one level above them. Ticket and change-request approvals flow up this same chain, rather than stopping at a single Manager.
+- **Ticket & change request attachments** - Employees can attach files to a helpdesk ticket or change request at submission, and IT/GRC staff can view them from the console; every upload is checksum-verified (SHA-256).
+- **Ticket time shown, not just date** - created/submitted timestamps for tickets and change requests, across the console and self-service portal, now show the actual time (in the viewer's local timezone) instead of a date-only value.
+- **Date-based ticket filters** - the Helpdesk console can now filter tickets by a Created date range and a Closed date range, in addition to status, priority, and category.
+- **Richer ticket exports** - the Helpdesk Excel/CSV export now includes Subcategory, Closed Date, and Resolution Notes columns. A ticket's closed date is recorded automatically when it moves to CLOSED, and cleared if it's reopened.
 
 ### v0.4.1
 
