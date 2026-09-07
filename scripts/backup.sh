@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # TSI Compass daily backup script.
 #
-# Dumps the Postgres database from the running docker-compose stack and
-# copies it to a destination directory (e.g. a NAS mount, external drive,
-# or any other mounted/local path). Run manually, or
-# schedule yourself with cron/systemd on the host — this script does not
-# install any scheduler.
+# Dumps the Postgres database from the running docker-compose stack, and
+# (by default) also archives the uploaded-files volume — policy documents,
+# audit evidence, ticket attachments, change-request attachments, and
+# generated report exports all live under TSI_EXPORT_PATH in the
+# tsi_reports_data docker volume. Both are copied to a destination
+# directory (e.g. a NAS mount, external drive, or any other mounted/local
+# path). Run manually, or schedule yourself with cron/systemd on the
+# host — this script does not install any scheduler.
 #
 # Usage:
 #   ./scripts/backup.sh
@@ -36,7 +39,11 @@ if [ -z "${BACKUP_DEST_DIR:-}" ]; then
   echo "WARNING: BACKUP_DEST_DIR not set — backups will stay in '$LOCAL_BACKUP_DIR' only, not copied off-host. Set BACKUP_DEST_DIR (e.g. a NAS mount) to copy them elsewhere." >&2
 fi
 
-INCLUDE_EXPORTS="${INCLUDE_EXPORTS:-false}"
+# Includes the uploaded-files volume (policy documents, audit evidence,
+# ticket & change-request attachments, generated exports). Defaults to
+# true since these are user data, same as the database. Set to false to
+# skip and back up the database only.
+INCLUDE_EXPORTS="${INCLUDE_EXPORTS:-true}"
 EXPORTS_VOLUME="${EXPORTS_VOLUME:-tsi-compass_tsi_reports_data}"
 
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
@@ -62,7 +69,11 @@ docker exec "$DB_CONTAINER" pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clea
   | gzip > "$LOCAL_BACKUP_DIR/$DUMP_FILE"
 
 if [ "$INCLUDE_EXPORTS" = "true" ]; then
-  log "Archiving exports volume '$EXPORTS_VOLUME'..."
+  if ! docker volume inspect "$EXPORTS_VOLUME" >/dev/null 2>&1; then
+    echo "ERROR: volume '$EXPORTS_VOLUME' does not exist. Set EXPORTS_VOLUME to match your docker-compose project name, or set INCLUDE_EXPORTS=false to skip it." >&2
+    exit 1
+  fi
+  log "Archiving uploaded-files volume '$EXPORTS_VOLUME' (policies, evidence, attachments, exports)..."
   docker run --rm \
     -v "${EXPORTS_VOLUME}:/data:ro" \
     -v "$LOCAL_BACKUP_DIR:/backup" \
@@ -83,4 +94,8 @@ log "Pruning backups older than $RETENTION_DAYS days..."
 find "$LOCAL_BACKUP_DIR" -maxdepth 1 -name 'tsi_compass_*' -mtime "+$RETENTION_DAYS" -delete
 find "$BACKUP_DEST_DIR" -maxdepth 1 -name 'tsi_compass_*' -mtime "+$RETENTION_DAYS" -delete
 
-log "Backup complete: $DUMP_FILE"
+if [ "$INCLUDE_EXPORTS" = "true" ]; then
+  log "Backup complete: $DUMP_FILE, $EXPORTS_FILE"
+else
+  log "Backup complete: $DUMP_FILE"
+fi
