@@ -42,11 +42,6 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 - Per-user 5-word recovery passphrase for self-service password recovery
 - Every action written to an immutable `system_audit_trail` table
 
----
-
-## Soft Launch
-
-Read the launch post: [TSI Compass - The Beginner's Open Source IT GRC and ITSM Platform](https://techadvisory.substack.com/p/tsi-compass-the-beginners-open-source)
 
 ---
 
