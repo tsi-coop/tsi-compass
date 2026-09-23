@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – RoPA Export</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.filter-bar{display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap;align-items:flex-end}
+.filter-bar label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.filter-bar select{height:34px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;padding:0 10px;color:var(--ink);background:#fff;min-width:220px}
+.filternote{font-size:12.5px;color:var(--muted);padding:0 20px 16px}
+.filternote strong{color:var(--ink)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:top;max-width:260px}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f1e9fb;color:#6a3fb0;margin:1px}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="data-governance-principals.html" class="subnav">Data Principals</a>
+      <a href="data-governance-register.html" class="subnav">Data Register</a>
+      <a href="data-governance-flows.html" class="subnav">Data Flows</a>
+      <a href="data-governance-ropa.html" class="subnav active">RoPA Export</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / RoPA Export</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Data Governance</div><h1>RoPA Export</h1><p class="subtitle">Record of Processing Activities, in standard DPDP/GDPR Art. 30 shape, joined from purpose, retention, recipients, principals, and data flows already in the register.</p></div>
+      <div class="acts"><button class="btn primary" onclick="downloadCsv()">&#8595; Export CSV</button></div>
+    </div>
+
+    <div class="section-card">
+      <div class="filter-bar">
+        <div><label>Framework</label><select id="f-framework" onchange="load()"><option value="">All Frameworks</option></select></div>
+        <div><label>Data Principal</label><select id="f-principal" onchange="load()"><option value="">All Principals</option></select></div>
+      </div>
+      <div class="filternote" id="filter-note"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Activity Name</th><th>Purpose</th><th>Legal Basis</th><th>Data Principal(s)</th>
+          <th>Personal Data Elements</th><th>Recipients</th><th>Retention Period</th>
+          <th>Cross-Border Transfer</th><th>Security Measures</th><th>Controller Role</th><th>Owner</th>
+        </tr></thead>
+        <tbody id="ropa-body"><tr><td colspan="11" class="empty">Loading…</td></tr></tbody>
+      </table>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script>
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
+var state={rows:[],principals:[],frameworks:[]};
+
+function api(url,func,body,cb){
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderRows(rows){
+  var body=document.getElementById('ropa-body');
+  if(!rows.length){body.innerHTML='<tr><td colspan="11" class="empty">No processing activities match this filter.</td></tr>';return;}
+  body.innerHTML=rows.map(function(r){
+    var principals=(r.data_principals||'').split(',').filter(function(s){return s.trim();})
+      .map(function(n){return '<span class="tag">'+esc(n.trim())+'</span>';}).join('');
+    return '<tr>'+
+      '<td><strong>'+esc(r.activity_name)+'</strong></td>'+
+      '<td>'+esc(r.purpose||'-')+'</td>'+
+      '<td>'+esc(r.legal_basis||'-')+'</td>'+
+      '<td>'+(principals||'-')+'</td>'+
+      '<td>'+esc(r.personal_data_elements||'-')+'</td>'+
+      '<td>'+esc(r.recipients||'-')+'</td>'+
+      '<td>'+esc(r.retention_period||'-')+'</td>'+
+      '<td>'+esc(r.cross_border_transfers||'None')+'</td>'+
+      '<td>'+esc(r.security_measures||'-')+'</td>'+
+      '<td>'+esc(r.controller_role||'-')+'</td>'+
+      '<td>'+esc(r.owner||'-')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function load(){
+  var frameworkId=document.getElementById('f-framework').value;
+  var principalId=document.getElementById('f-principal').value;
+  var body={};
+  if(frameworkId)body.framework_id=frameworkId;
+  if(principalId)body.principal_id=principalId;
+  api('/api/v1/data','get_ropa_export',body,function(err,d){
+    if(err)return;
+    state.rows=d.ropa||[];
+    renderRows(state.rows);
+    var note='Showing '+state.rows.length+' processing activit'+(state.rows.length===1?'y':'ies');
+    if(principalId){
+      var pr=state.principals.find(function(p){return p.id===principalId;});
+      note+=', filtered to Data Principal: <strong>'+esc(pr?pr.name:'')+'</strong>. Use this as the working input for that principal\'s consent policy.';
+    }
+    if(frameworkId){
+      var fw=state.frameworks.find(function(f){return f.id===frameworkId;});
+      note+=', mapped against <strong>'+esc(fw?fw.name:'')+'</strong>.';
+    }
+    document.getElementById('filter-note').innerHTML=note;
+  });
+}
+
+function csvCell(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+function downloadCsv(){
+  var cols=['activity_name','purpose','legal_basis','data_principals','personal_data_elements','recipients','retention_period','cross_border_transfers','security_measures','controller_role','owner'];
+  var header=['Activity Name','Purpose','Legal Basis','Data Principal(s)','Personal Data Elements','Recipients','Retention Period','Cross-Border Transfer','Security Measures','Controller Role','Owner'];
+  var lines=[header.map(csvCell).join(',')];
+  state.rows.forEach(function(r){ lines.push(cols.map(function(c){return csvCell(r[c]);}).join(',')); });
+  var blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='ropa-export-'+new Date().toISOString().substring(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+
+  api('/api/v1/data','list_data_principals',{},function(err,d){
+    if(err)return;
+    state.principals=d.data_principals||[];
+    var sel=document.getElementById('f-principal');
+    state.principals.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  });
+  api('/api/v1/controls','list_frameworks',{},function(err,d){
+    if(err)return;
+    state.frameworks=d.frameworks||[];
+    var sel=document.getElementById('f-framework');
+    state.frameworks.forEach(function(f){var o=document.createElement('option');o.value=f.id;o.textContent=f.name;sel.appendChild(o);});
+  });
+  load();
+})();
+</script>
+</body>
+</html>

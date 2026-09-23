@@ -72,7 +72,9 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="operations-assets.html" class="subnav">Asset Inventory</a>
       <a href="operations-vendors.html" class="subnav">Vendor Register</a>
       <a href="operations-helpdesk.html" class="subnav">Helpdesk</a>
-      <a href="data-register.html">Data Register</a><a href="supplychain.html">Supply Chain</a>
+      <a href="operations-sbom.html" class="subnav">Software Inventory</a>
+      <a href="operations-cbom.html" class="subnav">Crypto Inventory</a>
+      <a href="data-governance.html">Data Governance</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -95,7 +97,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <div>
         <div class="eyebrow">IT Operations</div>
         <h1>IT Operations</h1>
-        <p class="subtitle">Change management, asset inventory, vendor register, and helpdesk - with compliance gate enforcement.</p>
+        <p class="subtitle">Change management, asset inventory, vendor register, helpdesk, and the software and cryptographic component inventories, with compliance gate enforcement.</p>
       </div>
     </div>
 
@@ -166,6 +168,26 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         </div>
         <a href="operations-helpdesk.html" class="hub-manage">View Helpdesk &#8250;</a>
       </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#eaf5f3">&#128230;</div>
+        <h3>Software Inventory</h3>
+        <p>Software Bill of Materials: libraries, frameworks, operating systems, container images, with supplier and license, optionally linked to an IT asset.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-sbom-total">-</strong><span>Components</span></div>
+          <div class="hub-stat"><strong id="hs-sbom-licenses">-</strong><span>Licenses</span></div>
+        </div>
+        <a href="operations-sbom.html" class="hub-manage">Manage Software Inventory &#8250;</a>
+      </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#edf2ff">&#128274;</div>
+        <h3>Crypto Inventory</h3>
+        <p>Cryptography Bill of Materials: algorithms, certificates, keys, protocols, with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-cbom-total">-</strong><span>Components</span></div>
+          <div class="hub-stat"><strong id="hs-cbom-expiring">-</strong><span>Expiring soon</span></div>
+        </div>
+        <a href="operations-cbom.html" class="hub-manage">Manage Crypto Inventory &#8250;</a>
+      </div>
     </div>
   </main>
 </div>
@@ -216,6 +238,18 @@ function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
     set('hs-hd-high',     d.high_priority_tickets||0);
     set('hs-hd-total',    d.total_tickets||0);
   });
+
+  fetch('/api/v1/supplychain', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify({_func:'get_supplychain_metrics'})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d||!d.success)return;
+    set('hs-sbom-total',    d.total_sbom_components||0);
+    set('hs-sbom-licenses', d.distinct_licenses_count||0);
+    set('hs-cbom-total',    d.total_cbom_components||0);
+    set('hs-cbom-expiring', d.expiring_certificates_count||0);
+  }).catch(function(){});
 })();
 </script>
 </body>

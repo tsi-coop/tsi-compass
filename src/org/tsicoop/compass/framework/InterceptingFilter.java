@@ -66,7 +66,10 @@ public class InterceptingFilter implements Filter {
         SERVICE_MODULE_MAP.put("apikey",      "platform");
         SERVICE_MODULE_MAP.put("selfservice", "selfservice");
         SERVICE_MODULE_MAP.put("supervisor",  "selfservice");
-        SERVICE_MODULE_MAP.put("supplychain", "supplychain");
+        // Software/Crypto Inventory moved under IT Operations; permission now follows 'operations'.
+        SERVICE_MODULE_MAP.put("supplychain", "operations");
+        SERVICE_MODULE_MAP.put("data",        "data");
+        SERVICE_MODULE_MAP.put("dataflows",   "data");
     }
 
     // role:module -> permission_level, with expiry timestamp (5-minute TTL)

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TSI Compass – CBOM</title>
+<title>TSI Compass – Crypto Inventory</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 :root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
@@ -66,10 +66,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
-      <a href="data-register.html">Data Register</a>
-      <a href="supplychain.html">Supply Chain</a>
-      <a href="supplychain-sbom.html" class="subnav">SBOM</a>
-      <a href="supplychain-cbom.html" class="subnav active">CBOM</a>
+      <a href="operations-changes.html" class="subnav">Change Management</a>
+      <a href="operations-assets.html" class="subnav">Asset Inventory</a>
+      <a href="operations-vendors.html" class="subnav">Vendor Register</a>
+      <a href="operations-helpdesk.html" class="subnav">Helpdesk</a>
+      <a href="operations-sbom.html" class="subnav">Software Inventory</a>
+      <a href="operations-cbom.html" class="subnav active">Crypto Inventory</a>
+      <a href="data-governance.html">Data Governance</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -84,9 +87,9 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     </div>
   </aside>
   <main class="main">
-    <div class="breadcrumb"><a href="supplychain.html">Supply Chain</a> / CBOM</div>
+    <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Crypto Inventory</div>
     <div class="page-header">
-      <div><div class="eyebrow">Supply Chain</div><h1>CBOM - Cryptography Bill of Materials</h1><p class="subtitle">Register of cryptographic assets - algorithms, certificates, keys, protocols - with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p></div>
+      <div><div class="eyebrow">IT Operations</div><h1>Crypto Inventory (CBOM)</h1><p class="subtitle">Register of cryptographic assets: algorithms, certificates, keys, protocols, with algorithm, key size, and certificate expiry tracking, optionally linked to an IT asset.</p></div>
     </div>
     <div class="section-card">
       <div class="section-head"><h2>Components</h2><div style="display:flex;align-items:center;gap:12px"><span id="cb-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ Add Component</button></div></div>

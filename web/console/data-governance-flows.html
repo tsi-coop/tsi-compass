@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Data Flows</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.grid{display:grid;gap:16px}.col4{grid-template-columns:repeat(4,1fr)}.mb{margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}.metric-note{color:var(--muted);font-size:12px}
+.stripe-teal{border-top:4px solid var(--teal)}.stripe-blue{border-top:4px solid var(--blue)}
+.stripe-amber{border-top:4px solid var(--amber)}.stripe-red{border-top:4px solid var(--red)}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
+.filter-bar input{flex:1;min-width:160px}
+.chip-toggle{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:20px;border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);background:#fff;cursor:pointer}
+.chip-toggle.on{background:#fde8e8;border-color:#f7c7c2;color:var(--red)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.good{background:#e6f4ed;color:var(--green)}.pill.risk{background:#fde8e8;color:var(--red)}.pill.info{background:#e8eeff;color:var(--blue)}.pill.neu{background:#f0f4f8;color:var(--muted)}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin:1px}
+.row-actions{display:flex;gap:6px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 4px;font-size:17px;font-weight:900}.modal-sub{font-size:12px;color:var(--muted);margin:0 0 16px;font-weight:600}
+.form-row{margin-bottom:16px}
+.form-row label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row textarea{height:70px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.checks{display:flex;gap:20px}
+.form-row.checks label{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink)}
+.form-row.checks input{width:14px;height:14px;flex:none}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line)}
+.pagination span{font-size:12px;color:var(--muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page-btn:disabled{opacity:.45;cursor:default}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}.form-row.half{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="data-governance-principals.html" class="subnav">Data Principals</a>
+      <a href="data-governance-register.html" class="subnav">Data Register</a>
+      <a href="data-governance-flows.html" class="subnav active">Data Flows</a>
+      <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / Data Flows</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Data Governance</div><h1>Data Flow Mapping</h1><p class="subtitle">How registered data actually moves, including the ad-hoc channels nobody formally manages.</p></div>
+      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Add Data Flow</button></div>
+    </div>
+
+    <div class="grid col4 mb">
+      <div class="card stripe-teal">
+        <div class="metric-label">Total Flows</div>
+        <div class="metric-value" id="m-total">-</div>
+        <div class="metric-note">Recorded movements of data</div>
+      </div>
+      <div class="card stripe-red">
+        <div class="metric-label">Unapproved Channels</div>
+        <div class="metric-value" id="m-unapproved">-</div>
+        <div class="metric-note">Shadow-IT flows flagged</div>
+      </div>
+      <div class="card stripe-blue">
+        <div class="metric-label">Approved Channels</div>
+        <div class="metric-value" id="m-approved">-</div>
+        <div class="metric-note">Formally sanctioned routes</div>
+      </div>
+      <div class="card stripe-amber">
+        <div class="metric-label">Cross-Border</div>
+        <div class="metric-value" id="m-crossborder">-</div>
+        <div class="metric-note">Flows leaving the country</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head"><h2>Data Flows</h2><span id="df-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <div class="filter-bar">
+        <select id="f-channel" onchange="applyFilters()"><option value="">All Channels</option><option>EMAIL</option><option>WHATSAPP</option><option>API</option><option>FILE_TRANSFER</option><option>CLOUD_SYNC</option><option>PHYSICAL_MEDIA</option><option>PRINTOUT</option><option>OTHER</option></select>
+        <button type="button" class="chip-toggle" id="f-unapproved-toggle" onclick="toggleUnapproved()">Unapproved only</button>
+        <button type="button" class="chip-toggle" id="f-crossborder-toggle" onclick="toggleCrossBorder()">Cross-border only</button>
+        <input id="f-search" type="search" placeholder="Search flows…" oninput="onSearchInput()">
+      </div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Name</th><th>Source</th><th>Channel</th><th>Destination</th><th>Status</th><th>Owner</th><th>Actions</th></tr></thead>
+        <tbody id="df-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table>
+      </div>
+      <div class="pagination">
+        <span id="page-info">-</span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-flow">
+  <div class="modal">
+    <h2 id="modal-title">Add Data Flow</h2>
+    <p class="modal-sub">Records one directed movement of data, over one channel.</p>
+    <input type="hidden" id="fl-id">
+    <div class="form-row"><label>Flow Name</label><input id="fl-name" placeholder="e.g. Discharge summary to reception"></div>
+    <div class="form-row half">
+      <div><label>Source (registered asset)</label><select id="fl-source-asset"><option value="">- None -</option></select></div>
+      <div><label>Source (free text, if not registered)</label><input id="fl-source-label" placeholder="e.g. Receptionist's WhatsApp"></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Destination (registered asset)</label><select id="fl-dest-asset"><option value="">- None -</option></select></div>
+      <div><label>Destination (free text, if not registered)</label><input id="fl-dest-label" placeholder="e.g. Personal email account"></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Channel</label><select id="fl-channel"><option>EMAIL</option><option>WHATSAPP</option><option>API</option><option>FILE_TRANSFER</option><option>CLOUD_SYNC</option><option>PHYSICAL_MEDIA</option><option>PRINTOUT</option><option>OTHER</option></select></div>
+      <div><label>Frequency</label><input id="fl-frequency" placeholder="e.g. Daily, Ad hoc"></div>
+    </div>
+    <div class="form-row checks">
+      <label><input type="checkbox" id="fl-approved"> Approved channel</label>
+      <label><input type="checkbox" id="fl-crossborder" onchange="toggleCountryField()"> Cross-border</label>
+    </div>
+    <div class="form-row" id="fl-country-row" style="display:none"><label>Destination Country</label><input id="fl-country" placeholder="e.g. Singapore"></div>
+    <div class="form-row"><label>Owner</label><select id="fl-owner"><option value="">- Select -</option></select></div>
+    <div class="form-row"><label>Data Elements</label><input id="fl-elements" placeholder="e.g. Name, diagnosis summary"></div>
+    <div class="form-row"><label>Description</label><textarea id="fl-desc"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="submitFlow()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script>
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
+var state={flows:[],assets:[],staff:[],page:1,pageSize:20,unapprovedOnly:false,crossBorderOnly:false};
+var _searchDebounce=null;
+
+function api(func,body,cb){
+  fetch('/api/v1/dataflows',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+function renderFlows(list,total){
+  var body=document.getElementById('df-body');
+  var n=(total!=null?total:list.length);
+  document.getElementById('df-count').textContent=n+' flow'+(n!==1?'s':'');
+  if(!list.length){body.innerHTML='<tr><td colspan="7" class="empty">No data flows found.</td></tr>';return;}
+  body.innerHTML=list.map(function(f){
+    var source=f.source_asset_name?esc(f.source_asset_name):(esc(f.source_label||'-')+' <span class="pill neu">not registered</span>');
+    var dest=f.destination_asset_name?esc(f.destination_asset_name):(esc(f.destination_label||'-')+' <span class="pill neu">not registered</span>');
+    var status=f.is_approved_channel?'<span class="pill good">Approved</span>':'<span class="pill risk">Unapproved</span>';
+    if(f.is_cross_border)status+=' <span class="pill info">Cross-border'+(f.destination_country?(' · '+esc(f.destination_country)):'')+'</span>';
+    return '<tr>'+
+      '<td><strong>'+esc(f.name)+'</strong></td>'+
+      '<td>'+source+'</td>'+
+      '<td><span class="tag">'+esc(f.channel)+'</span></td>'+
+      '<td>'+dest+'</td>'+
+      '<td>'+status+'</td>'+
+      '<td>'+esc(f.owner_name||'-')+'</td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn sm" onclick="openEdit(\''+f.id+'\')">Edit</button>'+
+        (isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteFlow(\''+f.id+'\',\''+esc(f.name)+'\')">Delete</button>':'')+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderPagination(data){
+  var total=data.total_count||0, page=data.page||1, pageSize=data.page_size||state.pageSize;
+  var totalPages=data.total_pages||Math.ceil(total/pageSize)||1;
+  var from=total===0?0:(page-1)*pageSize+1, to=Math.min(page*pageSize,total);
+  document.getElementById('page-info').textContent='Showing '+from+'–'+to+' of '+total+' flow'+(total!==1?'s':'');
+  var btnsEl=document.getElementById('page-btns'); btnsEl.innerHTML='';
+  if(totalPages<=1)return;
+  buildPageList(page,totalPages).forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='page-btn'+(p===page?' active':'');
+    btn.textContent=p==='…'?'…':String(p);
+    if(p==='…'){btn.disabled=true;} else {(function(pg){btn.onclick=function(){loadFlows(pg);};})(p);}
+    btnsEl.appendChild(btn);
+  });
+}
+function buildPageList(current,total){
+  if(total<=7){var arr=[];for(var i=1;i<=total;i++)arr.push(i);return arr;}
+  var set=[1,total,current];
+  if(current-1>1)set.push(current-1); if(current+1<total)set.push(current+1);
+  if(current-2>1)set.push(current-2); if(current+2<total)set.push(current+2);
+  var unique=set.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+  var result=[];
+  for(var j=0;j<unique.length;j++){ if(j>0&&unique[j]-unique[j-1]>1)result.push('…'); result.push(unique[j]); }
+  return result.slice(0,9);
+}
+
+function toggleUnapproved(){ state.unapprovedOnly=!state.unapprovedOnly; document.getElementById('f-unapproved-toggle').classList.toggle('on',state.unapprovedOnly); applyFilters(); }
+function toggleCrossBorder(){ state.crossBorderOnly=!state.crossBorderOnly; document.getElementById('f-crossborder-toggle').classList.toggle('on',state.crossBorderOnly); applyFilters(); }
+
+function loadFlows(page){
+  state.page=page||1;
+  var body={page:state.page,limit:state.pageSize};
+  var channel=document.getElementById('f-channel').value;
+  var search=document.getElementById('f-search').value.trim();
+  if(channel)body.channel=channel;
+  if(search)body.search=search;
+  if(state.unapprovedOnly)body.unapproved_only=true;
+  if(state.crossBorderOnly)body.cross_border_only=true;
+  api('list_data_flows',body,function(err,d){
+    if(err)return;
+    state.flows=d.data_flows||[];
+    renderFlows(state.flows,d.total_count);
+    renderPagination(d);
+  });
+}
+function applyFilters(){loadFlows(1);}
+function onSearchInput(){ clearTimeout(_searchDebounce); _searchDebounce=setTimeout(function(){loadFlows(1);},300); }
+
+function loadMetrics(){
+  api('get_flow_metrics',{},function(err,d){
+    if(err)return;
+    set('m-total',d.total_flows||0);
+    set('m-unapproved',d.unapproved_count||0);
+    set('m-approved',d.approved_count||0);
+    set('m-crossborder',d.cross_border_count||0);
+  });
+}
+
+function loadAll(){
+  loadFlows(1);
+  api('list_data_assets',{},function(err,d){
+    if(err)return;state.assets=d.data_assets||[];
+    ['fl-source-asset','fl-dest-asset'].forEach(function(id){
+      var sel=document.getElementById(id);
+      state.assets.forEach(function(a){var o=document.createElement('option');o.value=a.id;o.textContent=a.name;sel.appendChild(o);});
+    });
+  });
+  api('list_staff',{},function(err,d){
+    if(err)return;state.staff=d.staff||[];
+    var sel=document.getElementById('fl-owner');
+    state.staff.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.username;sel.appendChild(o);});
+  });
+  loadMetrics();
+}
+
+function toggleCountryField(){
+  document.getElementById('fl-country-row').style.display=document.getElementById('fl-crossborder').checked?'block':'none';
+}
+
+function openAdd(){
+  document.getElementById('modal-title').textContent='Add Data Flow';
+  document.getElementById('fl-id').value='';
+  ['fl-name','fl-source-label','fl-dest-label','fl-frequency','fl-country','fl-elements','fl-desc'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('fl-source-asset').value=''; document.getElementById('fl-dest-asset').value='';
+  document.getElementById('fl-owner').value=''; document.getElementById('fl-channel').value='EMAIL';
+  document.getElementById('fl-approved').checked=false; document.getElementById('fl-crossborder').checked=false;
+  toggleCountryField();
+  document.getElementById('modal-flow').classList.add('open');
+}
+function openEdit(id){
+  var f=state.flows.find(function(x){return x.id===id;});if(!f)return;
+  document.getElementById('modal-title').textContent='Edit Data Flow';
+  document.getElementById('fl-id').value=f.id;
+  document.getElementById('fl-name').value=f.name||'';
+  setSelect('fl-source-asset',f.source_data_asset_id||'');
+  document.getElementById('fl-source-label').value=f.source_label||'';
+  setSelect('fl-dest-asset',f.destination_data_asset_id||'');
+  document.getElementById('fl-dest-label').value=f.destination_label||'';
+  setSelect('fl-channel',f.channel);
+  document.getElementById('fl-frequency').value=f.frequency||'';
+  document.getElementById('fl-approved').checked=!!f.is_approved_channel;
+  document.getElementById('fl-crossborder').checked=!!f.is_cross_border;
+  document.getElementById('fl-country').value=f.destination_country||'';
+  setSelect('fl-owner',f.owner_id||'');
+  document.getElementById('fl-elements').value=f.data_elements||'';
+  document.getElementById('fl-desc').value=f.description||'';
+  toggleCountryField();
+  document.getElementById('modal-flow').classList.add('open');
+}
+function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val||sel.options[i].text===val){sel.selectedIndex=i;return;}}sel.selectedIndex=0;}
+function closeModal(){document.getElementById('modal-flow').classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function submitFlow(){
+  var id=document.getElementById('fl-id').value;
+  var name=document.getElementById('fl-name').value.trim();
+  if(!name){alert('Flow name is required.');return;}
+  var sourceAsset=document.getElementById('fl-source-asset').value;
+  var sourceLabel=document.getElementById('fl-source-label').value.trim();
+  var destAsset=document.getElementById('fl-dest-asset').value;
+  var destLabel=document.getElementById('fl-dest-label').value.trim();
+  if(!sourceAsset && !sourceLabel){alert('Provide a source asset or a source label.');return;}
+  if(!destAsset && !destLabel){alert('Provide a destination asset or a destination label.');return;}
+  var body={
+    name:name, channel:document.getElementById('fl-channel').value,
+    source_data_asset_id:sourceAsset||null, source_label:sourceLabel||null,
+    destination_data_asset_id:destAsset||null, destination_label:destLabel||null,
+    is_approved_channel:document.getElementById('fl-approved').checked,
+    is_cross_border:document.getElementById('fl-crossborder').checked,
+    destination_country:document.getElementById('fl-country').value||null,
+    frequency:document.getElementById('fl-frequency').value,
+    owner_id:document.getElementById('fl-owner').value||null,
+    data_elements:document.getElementById('fl-elements').value,
+    description:document.getElementById('fl-desc').value
+  };
+  if(id){ body.id=id; api('update_data_flow',body,function(err){ if(err){alert('Error: '+err);return;} closeModal();showToast('Data flow updated');loadAll(); }); }
+  else { api('add_data_flow',body,function(err){ if(err){alert('Error: '+err);return;} closeModal();showToast('Data flow added');loadAll(); }); }
+}
+
+function deleteFlow(id,name){
+  if(!confirm('Delete data flow "'+name+'"? This cannot be undone.'))return;
+  api('delete_data_flow',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}showToast('Data flow deleted');loadAll();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadAll();
+})();
+</script>
+</body>
+</html>

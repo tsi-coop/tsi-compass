@@ -70,7 +70,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
-      <a href="data-register.html">Data Register</a><a href="supplychain.html">Supply Chain</a>
+      <a href="data-governance.html">Data Governance</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -420,7 +420,7 @@ function submitImportVendors() {
 }
 
 // ---------------------------------------------------------------------------
-// Data Register (mirrors data-register.html's former import logic)
+// Data Register (mirrors data-governance-register.html's import logic)
 // ---------------------------------------------------------------------------
 function downloadTemplateData() {
   var wb = XLSX.utils.book_new();
@@ -522,7 +522,7 @@ function submitImportObservations() {
 }
 
 // ---------------------------------------------------------------------------
-// CBOM (mirrors supplychain-cbom.html's former import logic)
+// CBOM (mirrors operations-cbom.html's import logic)
 // ---------------------------------------------------------------------------
 function downloadTemplateCbom() {
   var wb = XLSX.utils.book_new();
@@ -570,7 +570,7 @@ function submitImportCbom() {
 }
 
 // ---------------------------------------------------------------------------
-// SBOM (mirrors supplychain-sbom.html's former import logic)
+// SBOM (mirrors operations-sbom.html's import logic)
 // ---------------------------------------------------------------------------
 function downloadTemplateSbom() {
   var wb = XLSX.utils.book_new();

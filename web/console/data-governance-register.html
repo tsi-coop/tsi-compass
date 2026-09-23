@@ -13,15 +13,18 @@
 .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
 .nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
 .nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
 .side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
 .main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
 .page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
 .eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{height:28px;padding:0 10px;font-size:11px}
-.grid{display:grid;gap:16px}.col4{grid-template-columns:repeat(4,1fr)}.mb{margin-bottom:24px}
+.grid{display:grid;gap:16px}.col5{grid-template-columns:repeat(5,1fr)}.col4{grid-template-columns:repeat(4,1fr)}.mb{margin-bottom:24px}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
 .metric-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
 .metric-value{font-size:28px;font-weight:900;margin:6px 0 3px}.metric-note{color:var(--muted);font-size:12px}
@@ -33,19 +36,45 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
 .filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .filter-bar select,.filter-bar input{height:32px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 10px;color:var(--ink);background:#fff}
 .filter-bar input{flex:1;min-width:160px}
-table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+.chip-toggle{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:20px;border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);background:#fff;cursor:pointer}
+.chip-toggle.on{background:#fde8e8;border-color:#f7c7c2;color:var(--red)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .pill.good{background:#e6f4ed;color:var(--green)}.pill.watch{background:#fef3cd;color:var(--amber)}.pill.risk{background:#fde8e8;color:var(--red)}.pill.info{background:#e8eeff;color:var(--blue)}.pill.neu{background:#f0f4f8;color:var(--muted)}
 .tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f0f4f8;color:var(--muted);margin:1px}
+.tag.principal{background:#f1e9fb;color:#6a3fb0}
+.gapcount{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:20px;font-size:11px;font-weight:800;background:#f0f4f8;color:var(--muted)}
+.gapcount.some{background:#fde8e8;color:var(--red)}
 .row-actions{display:flex;gap:6px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
-.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:640px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto}
+.modal h2{margin:0 0 4px;font-size:17px;font-weight:900}
+.modal-sub{font-size:12px;color:var(--muted);margin:0 0 16px;font-weight:600}
+.form-row{margin-bottom:16px}
 .form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
 .form-row input,.form-row select,.form-row textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:13px;color:var(--ink);font-family:inherit}
-.form-row textarea{height:80px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row textarea{height:64px;padding:8px 10px;resize:vertical}.form-row.half{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.modal-section-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin:22px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.chippicker{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:44px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#f1e9fb;color:#6a3fb0;font-size:11.5px;font-weight:700;padding:4px 6px 4px 10px;border-radius:20px}
+.chip button{border:none;background:rgba(106,63,176,.15);color:#6a3fb0;width:16px;height:16px;border-radius:50%;font-size:10px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.chippicker select{width:auto;height:26px;border:1px dashed var(--line);border-radius:20px;font-size:11.5px;color:var(--muted);background:#fff;padding:0 8px}
+.minilist{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.minilist table{margin:0}.minilist th,.minilist td{padding:8px 12px;font-size:12px}
+.minirow-add{display:flex;gap:8px;padding:10px 12px;background:#f8fafb;border-top:1px solid var(--line);flex-wrap:wrap}
+.minirow-add select,.minirow-add input{height:30px;border:1px solid var(--line);border-radius:6px;font-size:11.5px;padding:0 8px;flex:1;min-width:100px}
+.minirow-add button{height:30px;padding:0 12px;border-radius:6px;border:none;background:var(--teal);color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+.checklist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checklist li{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;background:#f8fafb;border-radius:7px;padding:8px 10px}
+.mark{flex:none;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:10px;margin-top:1px;font-weight:900}
+.mark.pass{background:#e6f4ed;color:var(--green)}.mark.fail{background:#fde8e8;color:var(--red)}
+.checklist .why{color:var(--muted)}
+.reqlist{display:grid;gap:6px;max-height:180px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:10px}
+.reqlist label{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.reqlist input{width:14px;height:14px;margin-top:2px;flex:none}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
 .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 .mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
@@ -55,7 +84,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 .page-btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
 .page-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
 .page-btn:disabled{opacity:.45;cursor:default}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.col4,.col5{grid-template-columns:1fr 1fr}.page-header{display:block}.acts{margin-top:12px}.form-row.half{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -71,8 +100,11 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
-      <a href="data-register.html" class="active">Data Register</a>
-      <a href="supplychain.html">Supply Chain</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="data-governance-principals.html" class="subnav">Data Principals</a>
+      <a href="data-governance-register.html" class="subnav active">Data Register</a>
+      <a href="data-governance-flows.html" class="subnav">Data Flows</a>
+      <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -87,11 +119,13 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     </div>
   </aside>
   <main class="main">
+    <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / Data Register</div>
     <div class="page-header">
-      <div><div class="eyebrow">Data Governance</div><h1>Data Register</h1><p class="subtitle">Self-declared inventory of where data lives, what it is, and how sensitive it is - the discovery-to-classification backlog for the org's data footprint.</p></div>
+      <div><div class="eyebrow">Data Governance</div><h1>Data Register</h1><p class="subtitle">Self-declared inventory of where data lives, what it is, who it's about, and how sensitive it is, plus purpose, retention, and a gap check against mapped frameworks.</p></div>
+      <div class="acts"><button class="btn" onclick="document.getElementById('csv-input').click()">Import CSV</button><input type="file" id="csv-input" accept=".csv" style="display:none" onchange="onCsvSelected(event)"><button class="btn primary" onclick="openAdd()">+ Add Data Asset</button></div>
     </div>
 
-    <div class="grid col4 mb">
+    <div class="grid col5 mb">
       <div class="card stripe-teal">
         <div class="metric-label">Total Registered</div>
         <div class="metric-value" id="m-total">-</div>
@@ -112,6 +146,11 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <div class="metric-value" id="m-reviewed">-</div>
         <div class="metric-note">Classification confirmed</div>
       </div>
+      <div class="card stripe-red">
+        <div class="metric-label">Gaps</div>
+        <div class="metric-value" id="m-gaps">-</div>
+        <div class="metric-note">Assets with at least one open gap</div>
+      </div>
     </div>
 
     <div class="section-card">
@@ -119,12 +158,16 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div class="filter-bar">
         <select id="f-cat" onchange="applyFilters()"><option value="">All Categories</option><option>PII</option><option>FINANCIAL</option><option>HEALTH</option><option>EMPLOYEE</option><option>INTELLECTUAL_PROPERTY</option><option>PUBLIC</option><option>OTHER</option></select>
         <select id="f-sens" onchange="applyFilters()"><option value="">All Sensitivities</option><option>PUBLIC</option><option>INTERNAL</option><option>CONFIDENTIAL</option><option>RESTRICTED</option></select>
+        <select id="f-principal" onchange="applyFilters()"><option value="">All Principals</option></select>
+        <button type="button" class="chip-toggle" id="f-gaps-toggle" onclick="toggleGapsFilter()">Has gaps</button>
         <input id="f-search" type="search" placeholder="Search data assets…" oninput="onSearchInput()">
       </div>
+      <div class="table-scroll">
       <table>
-        <thead><tr><th>Name</th><th>Type</th><th>Category</th><th>Sensitivity</th><th>Owner</th><th>Linked</th><th>Status</th><th>Last Reviewed</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Category</th><th>Principals</th><th>Sensitivity</th><th>Owner</th><th>Gaps</th><th>Status</th><th>Last Reviewed</th><th>Actions</th></tr></thead>
         <tbody id="da-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
       </table>
+      </div>
       <div class="pagination">
         <span id="page-info">-</span>
         <div class="page-btns" id="page-btns"></div>
@@ -151,6 +194,18 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     </div>
     <div class="form-row"><label>Location</label><input id="add-location" placeholder="e.g. AWS RDS ap-south-1, or vendor name"></div>
     <div class="form-row"><label>Description</label><textarea id="add-desc"></textarea></div>
+
+    <div class="modal-section-label">Purpose &amp; retention</div>
+    <div class="form-row"><label>Purpose</label><textarea id="add-purpose" placeholder="Why this data is processed"></textarea></div>
+    <div class="form-row half">
+      <div><label>Processing Basis</label><select id="add-basis"><option value="">- Select -</option><option>CONSENT</option><option>LEGITIMATE_USE</option><option>CONTRACTUAL</option><option>LEGAL_OBLIGATION</option><option>OTHER</option></select></div>
+      <div><label>Retention Period</label><input id="add-retention" placeholder="e.g. 8 years post last visit"></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Deletion Trigger</label><input id="add-deletion" placeholder="e.g. Automated purge job, monthly"></div>
+      <div><label>Controller Role</label><select id="add-controller-role"><option>CONTROLLER</option><option>PROCESSOR</option><option>JOINT</option></select></div>
+    </div>
+
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn primary" onclick="submitAdd()">Add Data Asset</button>
@@ -161,6 +216,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <div class="modal-overlay" id="modal-edit">
   <div class="modal">
     <h2>Edit Data Asset</h2>
+    <div class="modal-sub" id="edit-label"></div>
     <input type="hidden" id="edit-id">
     <div class="form-row"><label>Name</label><input id="edit-name"></div>
     <div class="form-row half">
@@ -176,6 +232,50 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Volume Estimate</label><input id="edit-volume"></div>
     </div>
     <div class="form-row"><label>Description</label><textarea id="edit-desc"></textarea></div>
+
+    <div class="modal-section-label">Data Principals</div>
+    <div class="chippicker" id="edit-principals-chips"></div>
+    <div style="margin-top:8px"><select id="edit-principal-add" onchange="onAddPrincipalChip()"><option value="">+ Tag a principal…</option></select></div>
+
+    <div class="modal-section-label">Purpose &amp; retention</div>
+    <div class="form-row"><label>Purpose</label><textarea id="edit-purpose"></textarea></div>
+    <div class="form-row half">
+      <div><label>Processing Basis</label><select id="edit-basis"><option value="">- Select -</option><option>CONSENT</option><option>LEGITIMATE_USE</option><option>CONTRACTUAL</option><option>LEGAL_OBLIGATION</option><option>OTHER</option></select></div>
+      <div><label>Retention Period</label><input id="edit-retention"></div>
+    </div>
+    <div class="form-row half">
+      <div><label>Deletion Trigger</label><input id="edit-deletion"></div>
+      <div><label>Controller Role</label><select id="edit-controller-role"><option>CONTROLLER</option><option>PROCESSOR</option><option>JOINT</option></select></div>
+    </div>
+
+    <div class="modal-section-label">Shared with</div>
+    <div class="minilist">
+      <table><thead><tr><th>Recipient</th><th>Type</th><th>Purpose</th><th></th></tr></thead><tbody id="edit-recipients-body"></tbody></table>
+      <div class="minirow-add">
+        <select id="add-recipient-type"><option>VENDOR</option><option>REGULATOR</option><option>PARTNER</option><option>GROUP_ENTITY</option><option>OTHER</option></select>
+        <input id="add-recipient-name" placeholder="Recipient name">
+        <input id="add-recipient-purpose" placeholder="Purpose of sharing">
+        <button onclick="addRecipient()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="modal-section-label">Who has access</div>
+    <div class="minilist">
+      <table><thead><tr><th>Role / user</th><th>Level</th><th></th></tr></thead><tbody id="edit-access-body"></tbody></table>
+      <div class="minirow-add">
+        <input id="add-access-role" placeholder="Role, e.g. Doctors">
+        <select id="add-access-level"><option>READ</option><option>WRITE</option><option>ADMIN</option></select>
+        <button onclick="addAccess()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="modal-section-label">Gap assessment</div>
+    <ul class="checklist" id="edit-gap-checklist"></ul>
+
+    <div class="modal-section-label">Map to compliance requirements</div>
+    <div class="form-row"><label>Framework</label><select id="edit-framework" onchange="onFrameworkChange()"><option value="">- Select a framework -</option></select></div>
+    <div class="reqlist" id="edit-requirements-list"><div class="empty" style="padding:10px">Select a framework to see its requirements.</div></div>
+
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn primary" onclick="submitEdit()">Save Changes</button>
@@ -204,7 +304,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
-var state={dataAssets:[],staff:[],assets:[],vendors:[],page:1,pageSize:20};
+var state={dataAssets:[],staff:[],assets:[],vendors:[],principals:[],frameworks:[],page:1,pageSize:20,gapsOnly:false,editDetail:null};
 var _searchDebounce=null;
 
 function api(func,body,cb){
@@ -214,10 +314,22 @@ function api(func,body,cb){
   .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
   .catch(function(e){cb(e.message,null);});
 }
+function controlsApi(func,body,cb){
+  fetch('/api/v1/controls',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
 var SENS_PILL={PUBLIC:'<span class="pill neu">Public</span>',INTERNAL:'<span class="pill info">Internal</span>',CONFIDENTIAL:'<span class="pill watch">Confidential</span>',RESTRICTED:'<span class="pill risk">Restricted</span>'};
 var STATUS_PILL={DISCOVERED:'<span class="pill watch">Discovered</span>',CLASSIFIED:'<span class="pill info">Classified</span>',REVIEWED:'<span class="pill good">Reviewed</span>'};
+
+function renderPrincipalTags(csv){
+  if(!csv)return '<span style="color:var(--muted)">-</span>';
+  return csv.split(',').map(function(n){return '<span class="tag principal">'+esc(n.trim())+'</span>';}).join('');
+}
 
 function renderDataAssets(list,total){
   var body=document.getElementById('da-body');
@@ -225,14 +337,14 @@ function renderDataAssets(list,total){
   var cnt=document.getElementById('da-count');if(cnt)cnt.textContent=n+' data asset'+(n!==1?'s':'');
   if(!list.length){body.innerHTML='<tr><td colspan="9" class="empty">No data assets found.</td></tr>';return;}
   body.innerHTML=list.map(function(d){
-    var linked=d.linked_asset_name?esc(d.linked_asset_name):(d.linked_vendor_name?esc(d.linked_vendor_name):'-');
+    var gapCls=(d.gap_count>0)?'gapcount some':'gapcount';
     return '<tr>'+
       '<td><strong>'+esc(d.name)+'</strong></td>'+
-      '<td><span class="tag">'+esc(d.system_type)+'</span></td>'+
       '<td><span class="tag">'+esc(d.category)+'</span></td>'+
+      '<td>'+renderPrincipalTags(d.principals)+'</td>'+
       '<td>'+(SENS_PILL[d.sensitivity]||esc(d.sensitivity))+'</td>'+
       '<td>'+esc(d.owner_name||'-')+'</td>'+
-      '<td>'+linked+'</td>'+
+      '<td><span class="'+gapCls+'">'+(d.gap_count||0)+'</span></td>'+
       '<td>'+(STATUS_PILL[d.discovery_status]||esc(d.discovery_status))+'</td>'+
       '<td>'+esc(d.last_reviewed_at?d.last_reviewed_at.substring(0,10):'-')+'</td>'+
       '<td><div class="row-actions">'+
@@ -281,15 +393,24 @@ function buildPageList(current,total){
   return result.slice(0,9);
 }
 
+function toggleGapsFilter(){
+  state.gapsOnly=!state.gapsOnly;
+  document.getElementById('f-gaps-toggle').classList.toggle('on',state.gapsOnly);
+  applyFilters();
+}
+
 function loadDataAssets(page){
   state.page=page||1;
   var body={page:state.page,limit:state.pageSize};
   var catVal=document.getElementById('f-cat').value;
   var sensVal=document.getElementById('f-sens').value;
+  var principalVal=document.getElementById('f-principal').value;
   var srVal=document.getElementById('f-search').value.trim();
   if(catVal)body.category=catVal;
   if(sensVal)body.sensitivity=sensVal;
+  if(principalVal)body.principal_id=principalVal;
   if(srVal)body.search=srVal;
+  if(state.gapsOnly)body.has_gaps=true;
   api('list_data_assets',body,function(err,d){
     if(err)return;
     state.dataAssets=d.data_assets||[];
@@ -310,6 +431,7 @@ function loadMetrics(){
     set('m-high-sens',d.high_sensitivity_count||0);
     set('m-discovered',d.discovered_count||0);
     set('m-reviewed',d.reviewed_count||0);
+    set('m-gaps',d.gap_count||0);
   });
 }
 
@@ -336,27 +458,189 @@ function loadAll(){
       state.vendors.forEach(function(v){var o=document.createElement('option');o.value=v.id;o.textContent=v.name;sel.appendChild(o);});
     });
   });
+  api('list_data_principals',{},function(err,d){
+    if(err)return;state.principals=d.data_principals||[];
+    var fsel=document.getElementById('f-principal');
+    state.principals.forEach(function(pr){var o=document.createElement('option');o.value=pr.id;o.textContent=pr.name;fsel.appendChild(o);});
+  });
+  controlsApi('list_frameworks',{},function(err,d){
+    if(err)return;state.frameworks=d.frameworks||[];
+    var fsel=document.getElementById('edit-framework');
+    state.frameworks.forEach(function(fw){var o=document.createElement('option');o.value=fw.id;o.textContent=fw.name;fsel.appendChild(o);});
+  });
   loadMetrics();
 }
 
 function openAdd(){
-  ['add-name','add-location','add-volume','add-desc'].forEach(function(id){document.getElementById(id).value='';});
+  ['add-name','add-location','add-volume','add-desc','add-purpose','add-retention','add-deletion'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('add-owner').value='';document.getElementById('add-asset').value='';document.getElementById('add-vendor').value='';
+  document.getElementById('add-basis').value='';document.getElementById('add-controller-role').value='CONTROLLER';
   document.getElementById('modal-add').classList.add('open');
 }
 
 function openEdit(id){
   var d=state.dataAssets.find(function(x){return x.id===id;});if(!d)return;
   document.getElementById('edit-id').value=d.id;
+  document.getElementById('edit-label').textContent=d.name;
   document.getElementById('edit-name').value=d.name||'';
   document.getElementById('edit-location').value=d.location||'';
   document.getElementById('edit-volume').value=d.volume_estimate||'';
   document.getElementById('edit-desc').value=d.description||'';
+  document.getElementById('edit-purpose').value=d.purpose||'';
+  document.getElementById('edit-retention').value=d.retention_period||'';
+  document.getElementById('edit-deletion').value=d.deletion_trigger||'';
   setSelect('edit-type',d.system_type);
   setSelect('edit-owner',d.owner_id||'');
   setSelect('edit-asset',d.linked_asset_id||'');
   setSelect('edit-vendor',d.linked_vendor_id||'');
+  setSelect('edit-basis',d.processing_basis||'');
+  setSelect('edit-controller-role',d.controller_role||'CONTROLLER');
+  document.getElementById('edit-framework').value='';
+  document.getElementById('edit-requirements-list').innerHTML='<div class="empty" style="padding:10px">Select a framework to see its requirements.</div>';
+  loadEditDetail(d);
   document.getElementById('modal-edit').classList.add('open');
+}
+
+function loadEditDetail(d){
+  api('get_data_asset_detail',{id:d.id},function(err,detail){
+    if(err)return;
+    state.editDetail=detail;
+    renderPrincipalChips();
+    renderRecipients();
+    renderAccess();
+    renderGapChecklist(d);
+  });
+}
+
+function renderPrincipalChips(){
+  var wrap=document.getElementById('edit-principals-chips');
+  var tagged=(state.editDetail&&state.editDetail.principals)||[];
+  wrap.innerHTML=tagged.length?tagged.map(function(pr){
+    return '<span class="chip">'+esc(pr.name)+'<button onclick="removePrincipalChip(\''+pr.id+'\')">×</button></span>';
+  }).join(''):'<span style="color:var(--muted);font-size:12px">No principals tagged yet.</span>';
+  var addSel=document.getElementById('edit-principal-add');
+  var taggedIds=tagged.map(function(pr){return pr.id;});
+  addSel.innerHTML='<option value="">+ Tag a principal…</option>'+
+    state.principals.filter(function(pr){return taggedIds.indexOf(pr.id)===-1;})
+      .map(function(pr){return '<option value="'+pr.id+'">'+esc(pr.name)+'</option>';}).join('');
+}
+function onAddPrincipalChip(){
+  var sel=document.getElementById('edit-principal-add');
+  var principalId=sel.value; if(!principalId)return;
+  var assetId=document.getElementById('edit-id').value;
+  api('add_data_asset_principal',{data_asset_id:assetId,principal_id:principalId},function(err){
+    if(err){alert('Error: '+err);return;}
+    loadEditDetail(currentEditAsset());
+  });
+}
+function removePrincipalChip(principalId){
+  var assetId=document.getElementById('edit-id').value;
+  api('delete_data_asset_principal',{data_asset_id:assetId,principal_id:principalId},function(err){
+    if(err){alert('Error: '+err);return;}
+    loadEditDetail(currentEditAsset());
+  });
+}
+function currentEditAsset(){
+  var id=document.getElementById('edit-id').value;
+  return state.dataAssets.find(function(x){return x.id===id;})||{id:id};
+}
+
+function renderRecipients(){
+  var body=document.getElementById('edit-recipients-body');
+  var rows=(state.editDetail&&state.editDetail.recipients)||[];
+  body.innerHTML=rows.length?rows.map(function(r){
+    return '<tr><td>'+esc(r.recipient_name||'-')+'</td><td><span class="tag">'+esc(r.recipient_type)+'</span></td>'+
+      '<td>'+esc(r.purpose_of_sharing||'-')+'</td><td><button class="btn sm" onclick="removeRecipient(\''+r.id+'\')">Remove</button></td></tr>';
+  }).join(''):'<tr><td colspan="4" class="empty">No recipients recorded.</td></tr>';
+}
+function addRecipient(){
+  var assetId=document.getElementById('edit-id').value;
+  var name=document.getElementById('add-recipient-name').value.trim();
+  if(!name){alert('Recipient name is required.');return;}
+  api('add_data_asset_recipient',{
+    data_asset_id:assetId, recipient_type:document.getElementById('add-recipient-type').value,
+    recipient_name:name, purpose_of_sharing:document.getElementById('add-recipient-purpose').value
+  },function(err){
+    if(err){alert('Error: '+err);return;}
+    document.getElementById('add-recipient-name').value='';document.getElementById('add-recipient-purpose').value='';
+    loadEditDetail(currentEditAsset());
+  });
+}
+function removeRecipient(id){
+  api('delete_data_asset_recipient',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}
+    loadEditDetail(currentEditAsset());
+  });
+}
+
+function renderAccess(){
+  var body=document.getElementById('edit-access-body');
+  var rows=(state.editDetail&&state.editDetail.access)||[];
+  body.innerHTML=rows.length?rows.map(function(a){
+    var who=a.username?('User: '+esc(a.username)):('Role: '+esc(a.role||'-'));
+    return '<tr><td>'+who+'</td><td><span class="tag">'+esc(a.access_level)+'</span></td>'+
+      '<td><button class="btn sm" onclick="removeAccess(\''+a.id+'\')">Remove</button></td></tr>';
+  }).join(''):'<tr><td colspan="3" class="empty">No access grants recorded.</td></tr>';
+}
+function addAccess(){
+  var assetId=document.getElementById('edit-id').value;
+  var role=document.getElementById('add-access-role').value.trim();
+  if(!role){alert('Role is required.');return;}
+  api('add_data_asset_access',{
+    data_asset_id:assetId, role:role, access_level:document.getElementById('add-access-level').value
+  },function(err){
+    if(err){alert('Error: '+err);return;}
+    document.getElementById('add-access-role').value='';
+    loadEditDetail(currentEditAsset());
+  });
+}
+function removeAccess(id){
+  api('delete_data_asset_access',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}
+    loadEditDetail(currentEditAsset());
+  });
+}
+
+function renderGapChecklist(d){
+  var basis=document.getElementById('edit-basis').value;
+  var retention=document.getElementById('edit-retention').value;
+  var deletion=document.getElementById('edit-deletion').value;
+  var status=d.discovery_status;
+  var reqCount=(state.editDetail&&state.editDetail.requirement_ids)?state.editDetail.requirement_ids.length:0;
+  var checks=[
+    {pass:status==='REVIEWED', label:'Reviewed', why:status==='REVIEWED'?'status is REVIEWED':'status is '+status},
+    {pass:!(needsBasis(d)&&!basis), label:'Processing basis recorded', why:needsBasis(d)?(basis||'missing'):'not required for this sensitivity/category'},
+    {pass:!!(retention||deletion), label:'Retention policy recorded', why:(retention||deletion)?(retention||deletion):'no retention_period or deletion_trigger'},
+    {pass:reqCount>0, label:'Mapped to a requirement', why:reqCount>0?(reqCount+' requirement(s) mapped'):'not mapped to any framework requirement'}
+  ];
+  document.getElementById('edit-gap-checklist').innerHTML=checks.map(function(c){
+    return '<li><span class="mark '+(c.pass?'pass':'fail')+'">'+(c.pass?'✓':'✕')+'</span><span>'+c.label+': <span class="why">'+esc(c.why)+'</span></span></li>';
+  }).join('');
+}
+function needsBasis(d){ return (d.sensitivity==='CONFIDENTIAL'||d.sensitivity==='RESTRICTED'||d.category==='PII'); }
+
+function onFrameworkChange(){
+  var frameworkId=document.getElementById('edit-framework').value;
+  var listEl=document.getElementById('edit-requirements-list');
+  if(!frameworkId){listEl.innerHTML='<div class="empty" style="padding:10px">Select a framework to see its requirements.</div>';return;}
+  controlsApi('list_framework_requirements',{framework_id:frameworkId},function(err,d){
+    if(err){listEl.innerHTML='<div class="empty" style="padding:10px">Could not load requirements.</div>';return;}
+    var reqs=d.requirements||[];
+    var mapped=(state.editDetail&&state.editDetail.requirement_ids)||[];
+    listEl.innerHTML=reqs.length?reqs.map(function(r){
+      var checked=mapped.indexOf(r.id)!==-1;
+      return '<label><input type="checkbox" '+(checked?'checked':'')+' onchange="onRequirementToggle(\''+r.id+'\',this.checked)">'+
+        '<span><strong>'+esc(r.section_code)+'</strong> '+esc(r.title)+'</span></label>';
+    }).join(''):'<div class="empty" style="padding:10px">No requirements in this framework.</div>';
+  });
+}
+function onRequirementToggle(requirementId,checked){
+  var assetId=document.getElementById('edit-id').value;
+  var func=checked?'map_data_asset_requirement':'unmap_data_asset_requirement';
+  api(func,{data_asset_id:assetId,requirement_id:requirementId},function(err){
+    if(err){alert('Error: '+err);return;}
+    loadEditDetail(currentEditAsset());
+  });
 }
 
 function openClassify(id){
@@ -380,7 +664,10 @@ function submitAdd(){
     name:name,system_type:document.getElementById('add-type').value,category:document.getElementById('add-cat').value,
     owner_id:document.getElementById('add-owner').value||null,linked_asset_id:document.getElementById('add-asset').value||null,
     linked_vendor_id:document.getElementById('add-vendor').value||null,location:document.getElementById('add-location').value,
-    volume_estimate:document.getElementById('add-volume').value,description:document.getElementById('add-desc').value
+    volume_estimate:document.getElementById('add-volume').value,description:document.getElementById('add-desc').value,
+    purpose:document.getElementById('add-purpose').value, processing_basis:document.getElementById('add-basis').value||null,
+    retention_period:document.getElementById('add-retention').value, deletion_trigger:document.getElementById('add-deletion').value,
+    controller_role:document.getElementById('add-controller-role').value
   },function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Data asset added');loadAll();
   });
@@ -392,7 +679,10 @@ function submitEdit(){
     id:id,name:document.getElementById('edit-name').value,system_type:document.getElementById('edit-type').value,
     owner_id:document.getElementById('edit-owner').value||null,linked_asset_id:document.getElementById('edit-asset').value||null,
     linked_vendor_id:document.getElementById('edit-vendor').value||null,location:document.getElementById('edit-location').value,
-    volume_estimate:document.getElementById('edit-volume').value,description:document.getElementById('edit-desc').value
+    volume_estimate:document.getElementById('edit-volume').value,description:document.getElementById('edit-desc').value,
+    purpose:document.getElementById('edit-purpose').value, processing_basis:document.getElementById('edit-basis').value||null,
+    retention_period:document.getElementById('edit-retention').value, deletion_trigger:document.getElementById('edit-deletion').value,
+    controller_role:document.getElementById('edit-controller-role').value
   },function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Data asset updated');loadAll();
   });
@@ -409,12 +699,32 @@ function submitClassify(){
   });
 }
 
-
 function deleteDataAsset(id,name){
   if(!confirm('Delete data asset "'+name+'"? This cannot be undone.'))return;
   api('delete_data_asset',{id:id},function(err){
     if(err){alert('Error: '+err);return;}showToast('Data asset deleted');loadAll();
   });
+}
+
+function onCsvSelected(evt){
+  var file=evt.target.files[0]; if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    var lines=String(reader.result).split(/\r?\n/).filter(function(l){return l.trim();});
+    if(lines.length<2){alert('CSV has no data rows.');return;}
+    var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});
+    var rows=lines.slice(1).map(function(line){
+      var cells=line.split(',').map(function(c){return c.trim().replace(/^"|"$/g,'');});
+      var row={}; headers.forEach(function(h,i){row[h]=cells[i]||'';}); return row;
+    });
+    api('import_data_assets',{rows:rows},function(err,d){
+      if(err){alert('Import error: '+err);return;}
+      showToast('Imported '+d.imported+' row(s)'+((d.errors&&d.errors.length)?(', '+d.errors.length+' skipped'):''));
+      loadAll();
+    });
+  };
+  reader.readAsText(file);
+  evt.target.value='';
 }
 
 document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});

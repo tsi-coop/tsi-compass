@@ -19,9 +19,8 @@ The console, used by `ADMIN`, `GRC_OFFICER`, and `IT_STAFF`.
 | **Risk & Vulnerability** | Risk register, VAPT tracking, risk scoring, and treatment plans |
 | **Compliance & Controls** | Controls register, framework mappings (ISO 27001, SOC 2, etc.), and exception management |
 | **Audit & Evidence** | Audit scheduling, findings, and an evidence locker |
-| **IT Operations** | Asset inventory, change management, vendor register, and help desk |
-| **Supply Chain** | SBOM (Software Bill of Materials) and CBOM (Cryptography Bill of Materials) inventory of the components and cryptographic assets that make up your software estate, optionally linked to IT assets, with bulk import |
-| **Data Register** | Self-declared data discovery and classification register, with optional links to IT assets and vendors |
+| **IT Operations** | Asset inventory, change management, vendor register, help desk, plus a Software Inventory (SBOM) and Crypto Inventory (CBOM) of the components and cryptographic assets that make up your software estate, optionally linked to IT assets, with bulk import |
+| **Data Governance** | Data Principal registry (who your data is about, e.g. Customer, Employee, Patient), a self-declared data asset inventory (what data exists, where, purpose, retention, recipients, and access) tagged by principal, a compliance gap check per asset against mapped framework requirements, data flow mapping (including unapproved/shadow-IT channels like personal WhatsApp or email), and a RoPA (Record of Processing Activities) export filterable by framework or by data principal |
 | **Incidents** | Incident register, knowledge base, and staff training records |
 | **Reports** | Exportable compliance and risk summary reports |
 
@@ -55,6 +54,16 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 ---
 
 ## Changelog
+
+### v0.4.3
+
+- **Data Governance module** - a new top-level console section replacing the old standalone Data Register page, built around four pieces:
+  - **Data Principals** - an org-editable register of who your data is about (Customer, Employee, Patient, Vendor Contact, Prospect by default, and freely extendable), tagged onto data assets many-to-many.
+  - **Purpose, retention, recipients, access** - the Data Register's Add/Edit modal now captures purpose, processing basis, retention period, deletion trigger, and controller/processor role, plus who a data asset is shared with and who has access to it.
+  - **Gap assessment** - every data asset is checked live against four conditions (reviewed, processing basis recorded, retention recorded, mapped to a compliance requirement), surfaced as a Gaps stat card, a "Has gaps" filter, and a pass/fail checklist on each asset.
+  - **Data Flow Mapping** - a new page recording how data actually moves between systems and parties, including free-text endpoints for channels nobody formally manages (a personal WhatsApp, a personal email account), with an Unapproved-channel badge and cross-border transfer tracking.
+  - **RoPA Export** - a Record of Processing Activities export, in standard DPDP/GDPR Art. 30 shape, filterable by framework or by data principal - the filtered view is meant as the working input for drafting a consent policy for that principal.
+- **Software Inventory & Crypto Inventory moved under IT Operations** - the former Supply Chain module (SBOM/CBOM) is now reachable from IT Operations, relabeled Software Inventory and Crypto Inventory; the standalone Supply Chain menu is retired.
 
 ### v0.4.2
 
@@ -138,7 +147,9 @@ tsi-compass/
 │   ├── 02_data_register.sql      # Data Register module schema (applied after 01_init.sql)
 │   ├── 03_selfservice.sql        # Self-service portal schema additions
 │   ├── 04_notifications.sql      # In-app notifications schema
-│   └── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
+│   ├── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
+│   ├── ...                       # 06-17: ticket categories, asset categories, manager hierarchy, attachments, etc.
+│   └── 18_data_governance.sql    # Data Governance module: principals, purpose/retention/access, gap mappings, data flows
 ├── scripts/
 │   ├── backup.sh                 # Daily DB backup to a shared/NAS directory (see scripts/README.md)
 │   └── restore.sh                # Restore + verify a backup (see scripts/README.md)

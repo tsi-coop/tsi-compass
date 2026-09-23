@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Data Principals</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.section-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.section-head h2{margin:0;font-size:15px;font-weight:800}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafcfd}
+.row-actions{display:flex;gap:6px}
+.gapcount{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:20px;font-size:11px;font-weight:800;background:#f0f4f8;color:var(--muted)}
+.gapcount.used{background:#e6f4ed;color:var(--green)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(23,32,51,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}.modal{background:#fff;border-radius:12px;padding:28px;width:440px;max-width:calc(100vw - 32px)}
+.modal h2{margin:0 0 20px;font-size:17px;font-weight:900}.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+.form-row input,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:inherit}
+.form-row input{height:36px}.form-row textarea{height:70px;resize:vertical}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:200;display:none}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="data-governance-principals.html" class="subnav active">Data Principals</a>
+      <a href="data-governance-register.html" class="subnav">Data Register</a>
+      <a href="data-governance-flows.html" class="subnav">Data Flows</a>
+      <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / Data Principals</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Data Governance</div><h1>Data Principals</h1><p class="subtitle">Who your data is about. Org-editable, not a fixed list: a hospital needs Patient, a school needs Student, a SaaS product needs Subscriber.</p></div>
+      <div class="acts"><button class="btn primary" onclick="openAdd()">+ Add Data Principal</button></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head"><h2>Defined Principals</h2><span id="dp-count" style="font-size:12px;color:var(--muted)">Loading…</span></div>
+      <table>
+        <thead><tr><th>Name</th><th>Description</th><th>Assets Tagged</th><th>Actions</th></tr></thead>
+        <tbody id="dp-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <h2 id="modal-title">Add Data Principal</h2>
+    <input type="hidden" id="dp-id">
+    <div class="form-row"><label>Name</label><input id="dp-name" placeholder="e.g. Guardian, Subscriber, Donor"></div>
+    <div class="form-row"><label>Description</label><textarea id="dp-desc" placeholder="Who this principal type refers to"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="submitPrincipal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script>
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
+var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
+var state={principals:[]};
+
+function api(func,body,cb){
+  fetch('/api/v1/data',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg||'Saved';t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
+
+function renderPrincipals(){
+  var body=document.getElementById('dp-body');
+  var n=state.principals.length;
+  document.getElementById('dp-count').textContent=n+' principal'+(n!==1?'s':'');
+  if(!n){body.innerHTML='<tr><td colspan="4" class="empty">No data principals defined yet.</td></tr>';return;}
+  body.innerHTML=state.principals.map(function(p){
+    var used=(p.asset_count||0)>0;
+    return '<tr>'+
+      '<td><strong>'+esc(p.name)+'</strong></td>'+
+      '<td>'+esc(p.description||'-')+'</td>'+
+      '<td><span class="gapcount'+(used?' used':'')+'">'+(p.asset_count||0)+'</span></td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn sm" onclick="openEdit(\''+p.id+'\')">Edit</button>'+
+        (isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deletePrincipal(\''+p.id+'\',\''+esc(p.name)+'\',' + (p.asset_count||0) + ')">Delete</button>':'')+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function load(){
+  api('list_data_principals',{},function(err,d){
+    if(err)return;
+    state.principals=d.data_principals||[];
+    renderPrincipals();
+  });
+}
+
+function openAdd(){
+  document.getElementById('modal-title').textContent='Add Data Principal';
+  document.getElementById('dp-id').value='';
+  document.getElementById('dp-name').value='';
+  document.getElementById('dp-desc').value='';
+  document.getElementById('modal-add').classList.add('open');
+}
+function openEdit(id){
+  var p=state.principals.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('modal-title').textContent='Edit Data Principal';
+  document.getElementById('dp-id').value=p.id;
+  document.getElementById('dp-name').value=p.name;
+  document.getElementById('dp-desc').value=p.description||'';
+  document.getElementById('modal-add').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-add').classList.remove('open');}
+
+function submitPrincipal(){
+  var id=document.getElementById('dp-id').value;
+  var name=document.getElementById('dp-name').value.trim();
+  if(!name){alert('Name is required.');return;}
+  var desc=document.getElementById('dp-desc').value;
+  var func=id?'update_data_principal':'add_data_principal';
+  var body=id?{id:id,name:name,description:desc}:{name:name,description:desc};
+  api(func,body,function(err){
+    if(err){alert('Error: '+err);return;}
+    closeModal();showToast(id?'Data principal updated':'Data principal added');load();
+  });
+}
+
+function deletePrincipal(id,name,assetCount){
+  if(assetCount>0){alert('"'+name+'" is tagged on '+assetCount+' data asset(s). Remove those tags first.');return;}
+  if(!confirm('Delete data principal "'+name+'"?'))return;
+  api('delete_data_principal',{id:id},function(err){
+    if(err){alert('Error: '+err);return;}
+    showToast('Data principal deleted');load();
+  });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  load();
+})();
+</script>
+</body>
+</html>
