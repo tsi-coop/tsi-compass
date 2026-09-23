@@ -750,7 +750,7 @@ public class DataRegister implements Action {
             pool = new PoolDB(); conn = pool.getConnection();
             String sql =
                 "SELECT d.id::text, d.name AS activity_name, d.purpose, d.processing_basis AS legal_basis, " +
-                "d.retention_period, d.controller_role, o.username AS owner_name, d.description, " +
+                "d.category, d.retention_period, d.controller_role, o.username AS owner_name, d.description, " +
                 "(SELECT STRING_AGG(dp.name, ', ' ORDER BY dp.name) FROM data_asset_principals dap " +
                 " JOIN data_principals dp ON dp.id = dap.principal_id WHERE dap.data_asset_id = d.id) AS data_principals, " +
                 "(SELECT STRING_AGG(r.recipient_name || ' (' || r.recipient_type || ')', '; ') FROM data_asset_recipients r " +
@@ -775,6 +775,7 @@ public class DataRegister implements Action {
                 o.put("activity_name", rs.getString("activity_name"));
                 o.put("purpose", rs.getString("purpose"));
                 o.put("legal_basis", rs.getString("legal_basis"));
+                o.put("personal_data_category", rs.getString("category"));
                 o.put("data_principals", rs.getString("data_principals"));
                 String elements = rs.getString("flow_elements");
                 o.put("personal_data_elements", isBlank(elements) ? rs.getString("description") : elements);

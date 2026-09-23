@@ -279,10 +279,13 @@ A Record of Processing Activities (RoPA — Art. 30 GDPR, and the equivalent und
 | Transfer mechanism | `data_flows` (2d) | — |
 | Cross-border transfer flag | `data_flows.is_cross_border`/`.destination_country` (2d) | — |
 | **Categories of data subjects** | `data_asset_principals` → `data_principals` (2a) | — *(closed by 2a, no longer needs an additive column)* |
+| **Categories of personal data** | `data_assets.category` (v1: PII/FINANCIAL/HEALTH/EMPLOYEE/INTELLECTUAL_PROPERTY/PUBLIC/OTHER) | — *(v1 field, not previously wired into the export - see revision note below)* |
 | Security measures | `data_asset_requirement_mappings` → `framework_requirements` (2c), if those are in turn linked to `controls` | partial — depends on 2c being built and requirements having a control mapping |
 | **Controller vs. processor role** | nothing | **yes** |
 
 Only one real gap remains, and it gets one additive column.
+
+**Revision note:** the RoPA field-mapping table above conflated two distinct RoPA requirements — "categories of data subjects" (who) and "categories of personal data" (what kind of data) — and only ever addressed the first, via Data Principals. The second was sitting unused the whole time: `data_assets.category` is v1's own PII/FINANCIAL/HEALTH/etc. classification, and it already does double duty as the trigger for the gap-assessment's processing-basis rule (`category = 'PII'` forces a lawful-basis requirement, same idea as GDPR's special-category data). It was never wired into `get_ropa_export`'s `SELECT` — now added as `personal_data_category`, its own column in the export and on `data-governance-ropa.html`, positioned right after Legal Basis and before Data Principal(s) to match Art. 30's field order.
 
 ### Schema — add to the same phase-2 script
 
@@ -298,7 +301,7 @@ ALTER TABLE data_assets
 - `get_ropa_export(framework_id?, principal_id?)` on `DataRegister.java` — one row per `data_asset`, with `data_asset_principals`, `data_asset_recipients`, and `data_flows` each aggregated (string-concatenated, same idea as any "roll up children into one export row" query) and, if 2c is built, `data_asset_requirement_mappings` → `framework_requirements` → `controls` joined in for a security-measures column.
   - `framework_id` scopes to assets mapped to that framework, same pattern as `get_gap_assessment`.
   - `principal_id` scopes to assets tagged with that principal — **this is the "data-principal-wise" export**: pick "Customer" and get back only the processing activities that touch customer data, in one place, as the working document for that principal's consent policy.
-- Row shape: `activity_name, purpose, legal_basis, data_principals, personal_data_elements, recipients, retention_period, cross_border_transfers, security_measures, controller_role, owner`. (`data_subject_category` from the earlier draft is now `data_principals`, sourced from 2a instead of a fixed enum, and concatenated the same way `recipients` already is when more than one principal is tagged.)
+- Row shape: `activity_name, purpose, legal_basis, personal_data_category, data_principals, personal_data_elements, recipients, retention_period, cross_border_transfers, security_measures, controller_role, owner`. (`data_subject_category` from the earlier draft is now `data_principals`, sourced from 2a instead of a fixed enum, and concatenated the same way `recipients` already is when more than one principal is tagged. `personal_data_category` is `data_assets.category` passed through as-is, per the revision note above.)
 - Read-only — no write path of its own.
 
 ### Frontend — new `web/console/data-governance-ropa.html`

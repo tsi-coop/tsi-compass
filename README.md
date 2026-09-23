@@ -150,6 +150,8 @@ tsi-compass/
 │   ├── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
 │   ├── ...                       # 06-17: ticket categories, asset categories, manager hierarchy, attachments, etc.
 │   └── 18_data_governance.sql    # Data Governance module: principals, purpose/retention/access, gap mappings, data flows
+├── examples/
+│   └── datagov/                  # Data Governance demo data (Varam DPDP RoPA scenario) - see its README
 ├── scripts/
 │   ├── backup.sh                 # Daily DB backup to a shared/NAS directory (see scripts/README.md)
 │   └── restore.sh                # Restore + verify a backup (see scripts/README.md)

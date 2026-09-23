@@ -90,11 +90,11 @@ tr:last-child td{border-bottom:none}
       <div class="table-scroll">
       <table>
         <thead><tr>
-          <th>Activity Name</th><th>Purpose</th><th>Legal Basis</th><th>Data Principal(s)</th>
+          <th>Activity Name</th><th>Purpose</th><th>Legal Basis</th><th>Personal Data Category</th><th>Data Principal(s)</th>
           <th>Personal Data Elements</th><th>Recipients</th><th>Retention Period</th>
           <th>Cross-Border Transfer</th><th>Security Measures</th><th>Controller Role</th><th>Owner</th>
         </tr></thead>
-        <tbody id="ropa-body"><tr><td colspan="11" class="empty">Loading…</td></tr></tbody>
+        <tbody id="ropa-body"><tr><td colspan="12" class="empty">Loading…</td></tr></tbody>
       </table>
       </div>
     </div>
@@ -117,7 +117,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 function renderRows(rows){
   var body=document.getElementById('ropa-body');
-  if(!rows.length){body.innerHTML='<tr><td colspan="11" class="empty">No processing activities match this filter.</td></tr>';return;}
+  if(!rows.length){body.innerHTML='<tr><td colspan="12" class="empty">No processing activities match this filter.</td></tr>';return;}
   body.innerHTML=rows.map(function(r){
     var principals=(r.data_principals||'').split(',').filter(function(s){return s.trim();})
       .map(function(n){return '<span class="tag">'+esc(n.trim())+'</span>';}).join('');
@@ -125,6 +125,7 @@ function renderRows(rows){
       '<td><strong>'+esc(r.activity_name)+'</strong></td>'+
       '<td>'+esc(r.purpose||'-')+'</td>'+
       '<td>'+esc(r.legal_basis||'-')+'</td>'+
+      '<td>'+esc(r.personal_data_category||'-')+'</td>'+
       '<td>'+(principals||'-')+'</td>'+
       '<td>'+esc(r.personal_data_elements||'-')+'</td>'+
       '<td>'+esc(r.recipients||'-')+'</td>'+
@@ -162,8 +163,8 @@ function load(){
 
 function csvCell(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
 function downloadCsv(){
-  var cols=['activity_name','purpose','legal_basis','data_principals','personal_data_elements','recipients','retention_period','cross_border_transfers','security_measures','controller_role','owner'];
-  var header=['Activity Name','Purpose','Legal Basis','Data Principal(s)','Personal Data Elements','Recipients','Retention Period','Cross-Border Transfer','Security Measures','Controller Role','Owner'];
+  var cols=['activity_name','purpose','legal_basis','personal_data_category','data_principals','personal_data_elements','recipients','retention_period','cross_border_transfers','security_measures','controller_role','owner'];
+  var header=['Activity Name','Purpose','Legal Basis','Personal Data Category','Data Principal(s)','Personal Data Elements','Recipients','Retention Period','Cross-Border Transfer','Security Measures','Controller Role','Owner'];
   var lines=[header.map(csvCell).join(',')];
   state.rows.forEach(function(r){ lines.push(cols.map(function(c){return csvCell(r[c]);}).join(',')); });
   var blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
