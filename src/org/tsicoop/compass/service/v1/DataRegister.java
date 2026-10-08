@@ -157,6 +157,8 @@ public class DataRegister implements Action {
                 "SELECT d.id::text, d.name, d.system_type, d.category, d.sensitivity, d.location, d.volume_estimate, " +
                 "d.description, d.discovery_status, d.last_reviewed_at::text, d.created_at::text, " +
                 "d.purpose, d.processing_basis, d.retention_period, d.deletion_trigger, d.controller_role, " +
+                "d.is_large_scale, d.involves_profiling, " +
+                "EXISTS (SELECT 1 FROM discovery_findings df WHERE df.data_asset_id = d.id) AS from_discovery, " +
                 "d.owner_id::text, o.username AS owner_name, " +
                 "d.reviewed_by::text, r.username AS reviewer_name, " +
                 "d.linked_asset_id::text, a.name AS linked_asset_name, " +
@@ -197,6 +199,9 @@ public class DataRegister implements Action {
                 d.put("retention_period",    rs.getString("retention_period"));
                 d.put("deletion_trigger",    rs.getString("deletion_trigger"));
                 d.put("controller_role",     rs.getString("controller_role"));
+                d.put("is_large_scale",      rs.getBoolean("is_large_scale"));
+                d.put("involves_profiling",  rs.getBoolean("involves_profiling"));
+                d.put("from_discovery",      rs.getBoolean("from_discovery"));
                 d.put("owner_id",            rs.getString("owner_id"));
                 d.put("owner_name",          rs.getString("owner_name"));
                 d.put("reviewed_by",         rs.getString("reviewed_by"));
@@ -286,8 +291,8 @@ public class DataRegister implements Action {
             pool = new PoolDB(); conn = pool.getConnection();
             p = conn.prepareStatement(
                 "INSERT INTO data_assets (name, system_type, category, owner_id, linked_asset_id, linked_vendor_id, location, volume_estimate, description, " +
-                "purpose, processing_basis, retention_period, deletion_trigger, controller_role) " +
-                "VALUES (?,?,?,?::uuid,?::uuid,?::uuid,?,?,?,?,?,?,?,COALESCE(?,'CONTROLLER')) RETURNING id::text"
+                "purpose, processing_basis, retention_period, deletion_trigger, controller_role, is_large_scale, involves_profiling) " +
+                "VALUES (?,?,?,?::uuid,?::uuid,?::uuid,?,?,?,?,?,?,?,COALESCE(?,'CONTROLLER'),COALESCE(?::boolean,false),COALESCE(?::boolean,false)) RETURNING id::text"
             );
             p.setString(1, name); p.setString(2, sysType); p.setString(3, category);
             String ownerId = (String) input.get("owner_id");
@@ -304,6 +309,8 @@ public class DataRegister implements Action {
             p.setString(12, (String) input.get("retention_period"));
             p.setString(13, (String) input.get("deletion_trigger"));
             p.setString(14, (String) input.get("controller_role"));
+            p.setString(15, boolStr(input.get("is_large_scale")));
+            p.setString(16, boolStr(input.get("involves_profiling")));
             rs = p.executeQuery();
             JSONObject result = new JSONObject(); result.put("success", true);
             if (rs.next()) result.put("id", rs.getString(1));
@@ -325,7 +332,8 @@ public class DataRegister implements Action {
                 "volume_estimate=COALESCE(?,volume_estimate), description=COALESCE(?,description), " +
                 "purpose=COALESCE(?,purpose), processing_basis=COALESCE(?,processing_basis), " +
                 "retention_period=COALESCE(?,retention_period), deletion_trigger=COALESCE(?,deletion_trigger), " +
-                "controller_role=COALESCE(?,controller_role) WHERE id=?::uuid"
+                "controller_role=COALESCE(?,controller_role), is_large_scale=COALESCE(?::boolean,is_large_scale), " +
+                "involves_profiling=COALESCE(?::boolean,involves_profiling) WHERE id=?::uuid"
             );
             p.setString(1, (String) input.get("name")); p.setString(2, (String) input.get("system_type"));
             String ownerId = (String) input.get("owner_id"); p.setString(3, isBlank(ownerId) ? null : ownerId);
@@ -339,7 +347,9 @@ public class DataRegister implements Action {
             p.setString(11, (String) input.get("retention_period"));
             p.setString(12, (String) input.get("deletion_trigger"));
             p.setString(13, (String) input.get("controller_role"));
-            p.setString(14, id);
+            p.setString(14, boolStr(input.get("is_large_scale")));
+            p.setString(15, boolStr(input.get("involves_profiling")));
+            p.setString(16, id);
             p.executeUpdate();
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(null, p, conn); } catch(Exception i){} }
@@ -466,7 +476,7 @@ public class DataRegister implements Action {
         JSONArray vendors = new JSONArray();
         try {
             pool = new PoolDB(); conn = pool.getConnection();
-            p = conn.prepareStatement("SELECT id::text, name FROM vendors ORDER BY name");
+            p = conn.prepareStatement("SELECT id::text, name FROM vendors WHERE archived_at IS NULL ORDER BY name");
             rs = p.executeQuery();
             while (rs.next()) { JSONObject v=new JSONObject(); v.put("id",rs.getString(1)); v.put("name",rs.getString(2)); vendors.add(v); }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -790,6 +800,12 @@ public class DataRegister implements Action {
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
         JSONObject result = new JSONObject(); result.put("success", true); result.put("ropa", list); return result;
+    }
+
+    /** "true"/"false" for a boolean-ish JSON value, or null when absent (so COALESCE keeps the stored value). */
+    private String boolStr(Object v) {
+        if (v == null) return null;
+        return Boolean.TRUE.equals(v) || "true".equalsIgnoreCase(v.toString()) ? "true" : "false";
     }
 
     private String strVal(JSONObject obj, String key) {

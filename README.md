@@ -16,11 +16,11 @@ The console, used by `ADMIN`, `GRC_OFFICER`, and `IT_STAFF`.
 |--------|---------------|
 | **Platform & Access** | Organisation structure, departments, user provisioning, role-based access control, API key management, and a full platform audit trail |
 | **Governance & Policy** | Policy library, governance committees, and attestation workflows |
-| **Risk & Vulnerability** | Risk register, VAPT tracking, risk scoring, and treatment plans |
+| **Risk & Vulnerability** | Risk register, VAPT tracking, risk scoring, and treatment plans, plus **Third-Party Risk**: rate your vendors by risk, assess them with a questionnaire, track their findings, contracts and certificates, and optionally let them answer online |
 | **Compliance & Controls** | Controls register, framework mappings (ISO 27001, SOC 2, etc.), and exception management |
 | **Audit & Evidence** | Audit scheduling, findings, and an evidence locker |
-| **IT Operations** | Asset inventory, change management, vendor register, help desk, plus a Software Inventory (SBOM) and Crypto Inventory (CBOM) of the components and cryptographic assets that make up your software estate, optionally linked to IT assets, with bulk import |
-| **Data Governance** | Data Principal registry (who your data is about, e.g. Customer, Employee, Patient), a self-declared data asset inventory (what data exists, where, purpose, retention, recipients, and access) tagged by principal, a compliance gap check per asset against mapped framework requirements, data flow mapping (including unapproved/shadow-IT channels like personal WhatsApp or email), and a RoPA (Record of Processing Activities) export filterable by framework or by data principal |
+| **IT Operations** | Asset inventory, change management, a lightweight vendor register (risk tiers and reviews live in Third-Party Risk and are visible only to GRC), help desk, plus a Software Inventory (SBOM) and Crypto Inventory (CBOM) of the components and cryptographic assets that make up your software estate, optionally linked to IT assets, with bulk import |
+| **Data Governance** | Data Principal registry (who your data is about, e.g. Customer, Employee, Patient), a self-declared data asset inventory (what data exists, where, purpose, retention, recipients, and access) tagged by principal, a compliance gap check per asset against mapped framework requirements, data flow mapping (including unapproved/shadow-IT channels like personal WhatsApp or email), a RoPA (Record of Processing Activities) export filterable by framework or by data principal, DPIAs (Data Protection Impact Assessments) auto-derived from the register and flows with a Draft → Under Review → Approved → Submitted workflow, and Data Discovery, which matches column names in an uploaded database schema export against India-focused rules (Aadhaar, PAN, GSTIN, UPI and more) and proposes Data Register entries for you to accept or reject |
 | **Incidents** | Incident register, knowledge base, and staff training records |
 | **Reports** | Exportable compliance and risk summary reports |
 
@@ -33,9 +33,14 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 | **Employee** | Submit helpdesk tickets and change requests, track their status, and complete policy attestations and training |
 | **Manager** | Everything an Employee can do, plus provision and manage their own team and approve or reject their team's tickets and change requests - optionally required, deployment-wide, before IT/GRC ever sees them. Managers can themselves be organized into up to 5 levels (Manager-1 through Manager-5) reporting up a chain, e.g. for escalation or multi-tier approval |
 
+### For Vendors
+
+An optional Vendor Portal at `/vendorportal/` (off unless `TSI_VENDOR_PORTAL_ENABLED=true`). Vendors sign in, answer the questionnaire sent to them, attach evidence and submit. They see nothing else in Compass.
+
 **Authentication and access control**
 
-- Session-based JWT login with per-module RBAC (`ADMIN`, `GRC_OFFICER`, `IT_STAFF`, `SUPERVISOR` i.e. Manager, `USER` i.e. Employee)
+- Session-based JWT login with per-module RBAC (`ADMIN`, `GRC_OFFICER`, `IT_STAFF`, `SUPERVISOR` i.e. Manager, `USER` i.e. Employee, `VENDOR` for the optional vendor portal). A role with read-only access to a module cannot call its write functions, and the pages of a module a role cannot use are not served to it
+- Failed sign-ins are rate-limited per account and address
 - Optional deployment-wide **Manager approval** setting (Platform & Access > Business Settings): when enabled, an Employee's tickets and change requests are held for their assigned Manager to approve or reject before IT/GRC staff can see them, flowing up the Manager hierarchy as needed
 - Machine-to-machine access via API key + secret pairs (key and secret hashed at rest; plain values shown once at creation)
 - Per-user 5-word recovery passphrase for self-service password recovery
@@ -53,55 +58,6 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 | **Ticketing System Demo - Supervisor Approval** | [https://youtu.be/SBxnE55q3Z8](https://youtu.be/SBxnE55q3Z8) |
 ---
 
-## Changelog
-
-### v0.4.3
-
-- **Data Governance module** - a new top-level console section replacing the old standalone Data Register page, built around four pieces:
-  - **Data Principals** - an org-editable register of who your data is about (Customer, Employee, Patient, Vendor Contact, Prospect by default, and freely extendable), tagged onto data assets many-to-many.
-  - **Purpose, retention, recipients, access** - the Data Register's Add/Edit modal now captures purpose, processing basis, retention period, deletion trigger, and controller/processor role, plus who a data asset is shared with and who has access to it.
-  - **Gap assessment** - every data asset is checked live against four conditions (reviewed, processing basis recorded, retention recorded, mapped to a compliance requirement), surfaced as a Gaps stat card, a "Has gaps" filter, and a pass/fail checklist on each asset.
-  - **Data Flow Mapping** - a new page recording how data actually moves between systems and parties, including free-text endpoints for channels nobody formally manages (a personal WhatsApp, a personal email account), with an Unapproved-channel badge and cross-border transfer tracking.
-  - **RoPA Export** - a Record of Processing Activities export, in standard DPDP/GDPR Art. 30 shape, filterable by framework or by data principal - the filtered view is meant as the working input for drafting a consent policy for that principal.
-- **Software Inventory & Crypto Inventory moved under IT Operations** - the former Supply Chain module (SBOM/CBOM) is now reachable from IT Operations, relabeled Software Inventory and Crypto Inventory; the standalone Supply Chain menu is retired.
-
-### v0.4.2
-
-- **Multi-level Manager hierarchy** - Managers can now be organized into up to 5 levels (Manager-1 through Manager-5) on a new Platform > Managers screen, each reporting to the manager one level above them. Ticket and change-request approvals flow up this same chain, rather than stopping at a single Manager.
-- **Ticket & change request attachments** - Employees can attach files to a helpdesk ticket or change request at submission, and IT/GRC staff can view them from the console; every upload is checksum-verified (SHA-256).
-- **Ticket time shown, not just date** - created/submitted timestamps for tickets and change requests, across the console and self-service portal, now show the actual time (in the viewer's local timezone) instead of a date-only value.
-- **Date-based ticket filters** - the Helpdesk console can now filter tickets by a Created date range and a Closed date range, in addition to status, priority, and category.
-- **Richer ticket exports** - the Helpdesk Excel/CSV export now includes Subcategory, Closed Date, and Resolution Notes columns. A ticket's closed date is recorded automatically when it moves to CLOSED, and cleared if it's reopened.
-
-### v0.4.1
-
-- **Manager-issued password reset keys** - Managers can now reset a team member's password from the My Team page by generating a one-time 5-word recovery passphrase, the same mechanism Admins use, instead of setting a plaintext password directly.
-- **Consistent "Password Reset Key" labeling** - the Admin and Manager screens now use the same "Password Reset Key" wording for this action.
-
-### v0.4
-
-- **Manager approval workflow** - a new optional deployment-wide setting (Platform & Access > Business Settings) routes an Employee's helpdesk tickets and change requests to their assigned Manager for approval or rejection before IT/GRC staff can see them. Employees with no assigned Manager are blocked from submitting until one is assigned.
-- **Manager Portal: My Team** - Managers can provision, edit, suspend/reactivate, and reset the password for the Employees who report to them, directly from the self-service portal, without needing Admin access.
-- **Manager Portal: Approvals** - a dedicated queue where Managers review and approve or reject pending tickets and change requests from their team.
-- **Employee / Manager role labels** - the `USER` and `SUPERVISOR` roles now display as "Employee" and "Manager" throughout the console and self-service portal for clarity (underlying role keys are unchanged).
-- **Supply Chain module (SBOM/CBOM)** - new Supply Chain console page for tracking a Software Bill of Materials and Cryptography Bill of Materials, each entry optionally linked to an IT asset, with add/edit/delete and bulk import.
-
-### v0.3
-
-- **Search + pagination across the console** - added server-side search and pagination to every list view
-- **Self-service portal** - created a self service portal for employees to manage the ITSM activities.
-- **One-click ticket-to-incident escalation** - Helpdesk tickets can now be escalated to a Security Incident directly from the ticket
-- **White labeling** - Branding support
-
-### v0.2
-
-- **Data Register module** - new self-declared data discovery and classification register (`data_assets` table), tracking what data exists, where it lives, its category and sensitivity, and a `DISCOVERED` → `CLASSIFIED` → `REVIEWED` review workflow. Entries can optionally link to an existing IT asset or vendor instead of re-entering ownership details.
-- Added a **Data Register** console page and nav entry (positioned after IT Operations, since records commonly link to assets/vendors managed there).
-- New `data` module added to the RBAC permission matrix (`ADMIN`: full access, `GRC_OFFICER`: read/write, `IT_STAFF`: no access).
-- Schema split: `db/init.sql` renamed to `db/01_init.sql`; Data Register tables and seed permissions now live in their own `db/02_data_register.sql`, applied after the base schema.
-
----
-
 ## Quick start
 
 **Prerequisites:** Docker and Docker Compose.
@@ -109,13 +65,27 @@ A separate Self-Service Portal, used by `USER` (Employee) and `SUPERVISOR` (Mana
 ```bash
 git clone https://github.com/tsi-coop/tsi-compass.git
 cd tsi-compass
+
+# Create a one-time setup token. Compass will not let anyone create the first admin without it.
+echo "TSI_BOOTSTRAP_TOKEN=$(openssl rand -hex 32)" > .env
+cat .env        # keep this value, you will paste it into the setup page
+
 docker compose up -d
 ```
-Once the installation is complete, head to **http://localhost:8085/tour** for an guided introduction to the platform. It walks you through each module and is the best starting point before exploring the console.
+
+Then create the first admin:
+
+1. Open **http://localhost:8085/setup/**.
+2. Paste the `TSI_BOOTSTRAP_TOKEN` value from `.env`, enter the admin name, email and a password of at least 10 characters, and submit.
+3. Sign in at **http://localhost:8085/**.
+
+If `TSI_BOOTSTRAP_TOKEN` is not set, setup is disabled and the page returns an error (503). Once the admin exists, setup cannot be run again; you can remove the token from `.env` and restart.
+
+Next, head to **http://localhost:8085/tour** for a guided introduction to the platform. It walks you through each module and is the best starting point before exploring the console.
 
 ### Environment variables
 
-All secrets have safe local defaults. Override them for any non-local deployment.
+All secrets have safe local defaults, except `TSI_BOOTSTRAP_TOKEN`, which has none. Override them for any non-local deployment.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -125,10 +95,12 @@ All secrets have safe local defaults. Override them for any non-local deployment
 | `JWT_SECRET` | *(dev placeholder)* | Secret used to sign JWTs (**change in production**) |
 | `DB_ENCRYPTION_KEY` | *(dev placeholder)* | Key for field-level encryption (**change in production**) |
 | `TSI_LOOKUP_SALT` | *(dev placeholder)* | Salt for deterministic lookups (**change in production**) |
+| `TSI_BOOTSTRAP_TOKEN` | *(none - required)* | Token required to create the first admin at `/setup/`. If unset, setup is disabled (503). Generate with `openssl rand -hex 32`, set it before first boot, then unset or rotate it after setup |
 | `APP_PORT_MAP` | `8085:8080` | Host:container port mapping |
 | `DB_PORT_MAP` | `5437:5432` | PostgreSQL port mapping |
 | `TSI_EXPORT_PATH` | `/var/lib/tsi-compass/exports/` | Report export directory |
 | `ALLOWED_ORIGINS` | `http://localhost:8085` | CORS allowed origin |
+| `TSI_VENDOR_PORTAL_ENABLED` | `false` | Turns on the vendor portal (`/vendorportal/`). When off, vendor logins are refused and the portal pages return 404. If you turn it on, only `/vendorportal/`, `/index.html` and `/api/` need to be reachable from outside; the console can stay on your internal network |
 
 ---
 
@@ -149,7 +121,11 @@ tsi-compass/
 │   ├── 04_notifications.sql      # In-app notifications schema
 │   ├── 05_ticket_escalation.sql  # Unique index enforcing one incident per escalated ticket
 │   ├── ...                       # 06-17: ticket categories, asset categories, manager hierarchy, attachments, etc.
-│   └── 18_data_governance.sql    # Data Governance module: principals, purpose/retention/access, gap mappings, data flows
+    ├── 18_data_governance.sql    # Data Governance module: principals, purpose/retention/access, gap mappings, data flows
+│   ├── 19_dpia.sql               # DPIA under Data Governance: dpias table, is_large_scale / involves_profiling on data_assets
+│   ├── 20_data_discovery.sql     # Data Discovery: sources, imports, findings and seeded column-name detection rules
+│   ├── 21_tprm.sql               # Third-Party Risk: vendor risk columns, questionnaires, assessments, findings, contracts, documents
+│   └── 22_vendor_portal.sql      # Vendor portal: VENDOR role, request state on assessments, vendor evidence
 ├── examples/
 │   └── datagov/                  # Data Governance demo data (Varam DPDP RoPA scenario) - see its README
 ├── scripts/
@@ -199,6 +175,67 @@ If a user forgets their password:
 
 1. **Admin resets it directly** - Platform & Access > User Management > Reset Password
 2. **Self-service** - if the admin has set a recovery passphrase for the user (User Management > "Set Key"), the user can recover their own access at `/password-reset.html` by entering their email and 5-word passphrase
+
+---
+
+## Changelog
+
+### v0.4.4 (Unreleased)
+
+- **Third-Party Risk Management** - a new page under Risk & Vulnerability to manage vendor risk:
+  - Rates each vendor Low to Critical, based on what they do and what data they receive.
+  - Assesses vendors with a ready-made questionnaire and scores the result.
+  - Tracks findings, contracts and certificates, and flags gaps such as personal data shared with no DPA.
+  - Optional **vendor portal** (off by default): vendors answer the questionnaire online and see nothing else.
+  - Deleting a vendor now archives it instead of erasing its history.
+- **Data Governance: DPIA and Data Discovery** - DPIAs auto-derived from the register and flows with an approval workflow; Data Discovery matches column names in an uploaded schema export against India-focused rules and proposes Data Register entries for review.
+- **Sign-in throttling** - repeated failed sign-ins for the same account from the same address are now rate-limited (429) for every role.
+- **Access control** - roles with READ on a module can no longer call write functions, and the console pages of a module a role has no access to are no longer served.
+
+### v0.4.3
+
+- **Data Governance module** - a new top-level console section replacing the old standalone Data Register page, built around four pieces:
+  - **Data Principals** - an org-editable register of who your data is about (Customer, Employee, Patient, Vendor Contact, Prospect by default, and freely extendable), tagged onto data assets many-to-many.
+  - **Purpose, retention, recipients, access** - the Data Register's Add/Edit modal now captures purpose, processing basis, retention period, deletion trigger, and controller/processor role, plus who a data asset is shared with and who has access to it.
+  - **Gap assessment** - every data asset is checked live against four conditions (reviewed, processing basis recorded, retention recorded, mapped to a compliance requirement), surfaced as a Gaps stat card, a "Has gaps" filter, and a pass/fail checklist on each asset.
+  - **Data Flow Mapping** - a new page recording how data actually moves between systems and parties, including free-text endpoints for channels nobody formally manages (a personal WhatsApp, a personal email account), with an Unapproved-channel badge and cross-border transfer tracking.
+  - **RoPA Export** - a Record of Processing Activities export, in standard DPDP/GDPR Art. 30 shape, filterable by framework or by data principal - the filtered view is meant as the working input for drafting a consent policy for that principal.
+- **Software Inventory & Crypto Inventory moved under IT Operations** - the former Supply Chain module (SBOM/CBOM) is now reachable from IT Operations, relabeled Software Inventory and Crypto Inventory; the standalone Supply Chain menu is retired.
+
+### v0.4.2
+
+- **Multi-level Manager hierarchy** - Managers can now be organized into up to 5 levels (Manager-1 through Manager-5) on a new Platform > Managers screen, each reporting to the manager one level above them. Ticket and change-request approvals flow up this same chain, rather than stopping at a single Manager.
+- **Ticket & change request attachments** - Employees can attach files to a helpdesk ticket or change request at submission, and IT/GRC staff can view them from the console; every upload is checksum-verified (SHA-256).
+- **Ticket time shown, not just date** - created/submitted timestamps for tickets and change requests, across the console and self-service portal, now show the actual time (in the viewer's local timezone) instead of a date-only value.
+- **Date-based ticket filters** - the Helpdesk console can now filter tickets by a Created date range and a Closed date range, in addition to status, priority, and category.
+- **Richer ticket exports** - the Helpdesk Excel/CSV export now includes Subcategory, Closed Date, and Resolution Notes columns. A ticket's closed date is recorded automatically when it moves to CLOSED, and cleared if it's reopened.
+
+### v0.4.1
+
+- **Manager-issued password reset keys** - Managers can now reset a team member's password from the My Team page by generating a one-time 5-word recovery passphrase, the same mechanism Admins use, instead of setting a plaintext password directly.
+- **Consistent "Password Reset Key" labeling** - the Admin and Manager screens now use the same "Password Reset Key" wording for this action.
+
+### v0.4
+
+- **Manager approval workflow** - a new optional deployment-wide setting (Platform & Access > Business Settings) routes an Employee's helpdesk tickets and change requests to their assigned Manager for approval or rejection before IT/GRC staff can see them. Employees with no assigned Manager are blocked from submitting until one is assigned.
+- **Manager Portal: My Team** - Managers can provision, edit, suspend/reactivate, and reset the password for the Employees who report to them, directly from the self-service portal, without needing Admin access.
+- **Manager Portal: Approvals** - a dedicated queue where Managers review and approve or reject pending tickets and change requests from their team.
+- **Employee / Manager role labels** - the `USER` and `SUPERVISOR` roles now display as "Employee" and "Manager" throughout the console and self-service portal for clarity (underlying role keys are unchanged).
+- **Supply Chain module (SBOM/CBOM)** - new Supply Chain console page for tracking a Software Bill of Materials and Cryptography Bill of Materials, each entry optionally linked to an IT asset, with add/edit/delete and bulk import.
+
+### v0.3
+
+- **Search + pagination across the console** - added server-side search and pagination to every list view
+- **Self-service portal** - created a self service portal for employees to manage the ITSM activities.
+- **One-click ticket-to-incident escalation** - Helpdesk tickets can now be escalated to a Security Incident directly from the ticket
+- **White labeling** - Branding support
+
+### v0.2
+
+- **Data Register module** - new self-declared data discovery and classification register (`data_assets` table), tracking what data exists, where it lives, its category and sensitivity, and a `DISCOVERED` → `CLASSIFIED` → `REVIEWED` review workflow. Entries can optionally link to an existing IT asset or vendor instead of re-entering ownership details.
+- Added a **Data Register** console page and nav entry (positioned after IT Operations, since records commonly link to assets/vendors managed there).
+- New `data` module added to the RBAC permission matrix (`ADMIN`: full access, `GRC_OFFICER`: read/write, `IT_STAFF`: no access).
+- Schema split: `db/init.sql` renamed to `db/01_init.sql`; Data Register tables and seed permissions now live in their own `db/02_data_register.sql`, applied after the base schema.
 
 ---
 

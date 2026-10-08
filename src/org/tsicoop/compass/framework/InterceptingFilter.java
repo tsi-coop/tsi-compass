@@ -48,6 +48,7 @@ public class InterceptingFilter implements Filter {
     private static final Set<String> ADMIN_NOAUTH_FUNCS = new HashSet<>(Arrays.asList(
             "reset_password",
             "login",
+            "logout",
             "verify_recovery_key",
             "reset_password_via_recovery"
     ));
@@ -70,13 +71,17 @@ public class InterceptingFilter implements Filter {
         SERVICE_MODULE_MAP.put("supplychain", "operations");
         SERVICE_MODULE_MAP.put("data",        "data");
         SERVICE_MODULE_MAP.put("dataflows",   "data");
+        SERVICE_MODULE_MAP.put("dpia",        "data");
+        SERVICE_MODULE_MAP.put("discovery",   "data");
+        SERVICE_MODULE_MAP.put("tprm",        "risks");
+        SERVICE_MODULE_MAP.put("vendorportal", "vendorportal");
     }
 
     // role:module -> permission_level, with expiry timestamp (5-minute TTL)
     private static final Map<String, String[]> PERM_CACHE = new ConcurrentHashMap<>();
     private static final long PERM_CACHE_TTL_MS = 300_000L;
 
-    private static String getPermissionLevel(String role, String module) {
+    static String getPermissionLevel(String role, String module) {
         String key = role + ":" + module;
         String[] cached = PERM_CACHE.get(key);
         if (cached != null && System.currentTimeMillis() < Long.parseLong(cached[1])) {
@@ -104,6 +109,18 @@ public class InterceptingFilter implements Filter {
             if (pool != null) pool.cleanup(rs, pstmt, conn);
         }
         return level;
+    }
+
+    // _func prefixes that never modify data; everything else needs WRITE or higher on the module.
+    private static final String[] READ_ONLY_FUNC_PREFIXES = {"get_", "list_", "search_", "export_", "download_", "count_", "check_"};
+
+    private static boolean isReadOnlyFunc(String func) {
+        if (func == null) return false;
+        String f = func.toLowerCase();
+        for (String prefix : READ_ONLY_FUNC_PREFIXES) {
+            if (f.startsWith(prefix)) return true;
+        }
+        return false;
     }
 
     // Permission Scopes
@@ -326,10 +343,6 @@ public class InterceptingFilter implements Filter {
                 OutputProcessor.errorResponse(res, HttpServletResponse.SC_BAD_REQUEST, "Bad Request", "Missing required '_func' attribute in input JSON.", uri);
                 return;
             }
-            if (!InputProcessor.validate(req, res)) { // Validates content-type and basic body parsing
-                return; // Error response already sent by InputProcessor
-            }
-
             // Enforce _func whitelist for Client APIs
             if (CLIENT_URI_PATH.equalsIgnoreCase(apiCategory)) {
                 if (!CLIENT_ALLOWED_FUNCS.contains(func.toLowerCase())) {
@@ -365,6 +378,32 @@ public class InterceptingFilter implements Filter {
                 return;
             }
 
+            // Schema validation runs only after authentication, so an unauthenticated
+            // caller can't enumerate request fields from the validator's error messages.
+            if (!InputProcessor.validate(req, res)) {
+                return; // Error response already sent by InputProcessor
+            }
+
+            // --- Vendor portal isolation ---
+            // A VENDOR token (an outside party) may call only the vendor portal service. This is an explicit
+            // rule rather than relying on NONE rows, because services missing from SERVICE_MODULE_MAP skip the
+            // module check below, and so would any service added later.
+            if (ADMIN_URI_PATH.equalsIgnoreCase(apiCategory)
+                    && !ADMIN_NOAUTH_FUNCS.contains(func != null ? func.toLowerCase() : "")) {
+                String callerRole = InputProcessor.getRole(req);
+                boolean portalCall = "vendorportal".equalsIgnoreCase(serviceName);
+                if ("VENDOR".equals(callerRole) && !portalCall) {
+                    OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                        "Vendor accounts can only use the vendor portal.", uri);
+                    return;
+                }
+                if (portalCall && !"VENDOR".equals(callerRole)) {
+                    OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                        "The vendor portal is for vendor accounts only.", uri);
+                    return;
+                }
+            }
+
             // --- Module-level RBAC enforcement ---
             // For authenticated admin requests that are not pre-auth funcs, check role_permissions.
             if (ADMIN_URI_PATH.equalsIgnoreCase(apiCategory)
@@ -377,6 +416,12 @@ public class InterceptingFilter implements Filter {
                         if ("NONE".equals(permLevel)) {
                             OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
                                 "Your role does not have access to this module.", uri);
+                            return;
+                        }
+                        // READ-level roles may call read-only functions only.
+                        if ("READ".equals(permLevel) && !isReadOnlyFunc(func)) {
+                            OutputProcessor.errorResponse(res, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                                "Your role has read-only access to this module.", uri);
                             return;
                         }
                     }

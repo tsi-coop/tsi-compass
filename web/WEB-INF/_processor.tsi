@@ -27,6 +27,7 @@
 /api/v1/supplychain=org.tsicoop.compass.service.v1.SupplyChain
 /api/v1/selfservice=org.tsicoop.compass.service.v1.SelfService
 /api/v1/supervisor=org.tsicoop.compass.service.v1.Supervisor
-
-
-
+/api/v1/dpia=org.tsicoop.compass.service.v1.Dpia
+/api/v1/discovery=org.tsicoop.compass.service.v1.DataDiscovery
+/api/v1/tprm=org.tsicoop.compass.service.v1.Tprm
+/api/v1/vendorportal=org.tsicoop.compass.service.v1.VendorPortal

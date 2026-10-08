@@ -1,6 +1,6 @@
 # DPIA (Data Protection Impact Assessment) under Data Governance
 
-Status: **planned, not started.** To be revisited.
+Status: **implemented and verified** (`db/19_dpia.sql`, `Dpia.java`, `data-governance-dpia.html`; walkthrough in `examples/datagov/data-governance-varam-dpia.md`).
 
 ## Context
 Data Governance has Principals, Data Register, Data Flows and a RoPA Export. Nothing yet produces a DPIA, which DPDP Sec 10(2)(c)(i) / Rule 13(1) requires from Significant Data Fiduciaries. Goal: a new **DPIA** page, auto-derived from the RoPA (a "processing activity" = a `data_assets` row, exactly as `getRopaExport` in `DataRegister.java:739` treats it), with summary tiles, one row per activity showing risk / key factors / residual / status, and an expandable detail (Necessity & Lawful Basis, Proportionality, Risk Factors, Mitigations, Residual Risk).
@@ -50,8 +50,8 @@ Copy the chrome from `data-governance-ropa.html` (same CSS, sidebar, `api()` hel
 ### 5. Docs
 `README.md` tree entry for `19_dpia.sql`; document the scoring table (this file can be extended). Optionally add a DPIA walkthrough to `examples/datagov/`.
 
-## Open point to confirm at implementation
-"Dept" comes from the asset owner's department. Not yet checked whether `users` has a department column. If not, drop the column or derive it from the owner's role.
+## Resolved at implementation
+`users` has no department column, so the "Dept" column was dropped; the table shows the asset owner instead.
 
 ## Verification
 1. Apply `19_dpia.sql` on a local DB (docker-compose), build with Maven, load the console.

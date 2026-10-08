@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Discovery</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.filter-bar{display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap;align-items:flex-end}
+.filter-bar label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.filter-bar select{height:34px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;padding:0 10px;color:var(--ink);background:#fff;min-width:220px}
+.filternote{font-size:12.5px;color:var(--muted);padding:0 20px 16px}
+.filternote strong{color:var(--ink)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:top;max-width:260px}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f1e9fb;color:#6a3fb0;margin:1px}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+.cards{display:grid;gap:14px;grid-template-columns:repeat(4,1fr);margin-bottom:20px}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;border-top:3px solid var(--blue)}
+.mcard.red{border-top-color:var(--red)}.mcard.amber{border-top-color:var(--amber)}.mcard.green{border-top-color:var(--green)}
+.mlabel{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.mval{font-size:26px;font-weight:900;margin-top:4px}
+.banner{background:#fff8e6;border:1px solid #f3dca0;color:#7a5a12;border-radius:8px;padding:12px 16px;font-size:12.5px;line-height:1.6;margin-bottom:20px}
+.badge{display:inline-flex;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800}
+.b-HIGH{background:#fde8e8;color:#b42318}.b-MEDIUM{background:#fff4e0;color:#b7791f}.b-LOW{background:#e6f4ec;color:#27794f}
+.s-DRAFT{background:#eef1f5;color:#607086}.s-UNDER_REVIEW{background:#e8effa;color:#2457a6}.s-APPROVED{background:#e6f4ec;color:#27794f}.s-SUBMITTED{background:#eaf5f3;color:#006a67}
+.stale{background:#fde8e8;color:#b42318;margin-left:6px}
+.factor{display:inline-block;font-size:11px;background:#f3f5f8;border-radius:4px;padding:2px 6px;margin:1px 2px 1px 0}
+.detail td{background:#fafcfd;max-width:none;padding:16px 20px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dsec h4{margin:0 0 6px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--teal)}
+.dsec textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;font-size:12.5px}
+.dsec textarea[readonly]{background:#f3f7f8}
+.dsec ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7}
+.dacts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.danger{color:var(--red);border-color:#f3c5c0}
+select.sm{height:30px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 8px;background:#fff}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:none;z-index:50}
+@media(max-width:980px){.cards{grid-template-columns:1fr 1fr}.dgrid{grid-template-columns:1fr}}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{padding:9px 16px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:0;border-left:0;border-right:0}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.b-NEW{background:#e8effa;color:#2457a6}.b-ACCEPTED{background:#e6f4ec;color:#27794f}.b-REJECTED{background:#eef1f5;color:#607086}
+.sens-RESTRICTED{background:#fde8e8;color:#b42318}.sens-CONFIDENTIAL{background:#fff4e0;color:#b7791f}.sens-INTERNAL{background:#e8effa;color:#2457a6}.sens-PUBLIC{background:#e6f4ec;color:#27794f}
+.col{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#f3f5f8;border-radius:4px;padding:2px 4px 2px 7px;margin:2px 3px 2px 0}
+.col code{font-size:11px}.col .x{border:0;background:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:0 3px}
+.col .x:hover{color:var(--red)}
+.bulk{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.bulk .grow{flex:1;color:var(--muted);font-size:12.5px}
+.modal-bg{position:fixed;inset:0;background:rgba(23,32,51,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:40}
+.modal{background:#fff;border-radius:10px;max-width:720px;width:100%;padding:24px}
+.modal h3{margin:0 0 4px;font-size:18px}.modal .sub{color:var(--muted);font-size:12.5px;margin:0 0 16px;line-height:1.6}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid label,.modal label.l{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fgrid input,.fgrid select,.modal input[type=text],.modal select{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;padding:0 10px;background:#fff}
+pre.sql{background:#172033;color:#e6edf5;border-radius:6px;padding:12px;font-size:11.5px;line-height:1.6;white-space:pre-wrap;margin:6px 0 0}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
+.filter-bar input[type=checkbox]{width:auto}
+</style>
+</head>
+<body>
+<header class="mobilebar"><a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a></header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="data-governance-principals.html" class="subnav">Data Principals</a>
+      <a href="data-governance-register.html" class="subnav">Data Register</a>
+      <a href="data-governance-flows.html" class="subnav">Data Flows</a>
+      <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
+      <a href="data-governance-dpia.html" class="subnav">DPIA</a>
+      <a href="data-governance-discovery.html" class="subnav active">Discovery</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1"><div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink)">Demo Administrator</div><div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div></div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / <a href="data-governance-register.html">Data Register</a> / Discovery</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Data Governance</div><h1>Discovery</h1><p class="subtitle">Find columns that look like personal data in a database schema export, and turn them into Data Register entries you then classify and review.</p></div>
+      <div class="acts">
+        <button class="btn primary" onclick="openImport()">+ Import schema</button>
+        <a class="btn" href="data-governance-register.html">&#8249; Data Register</a>
+      </div>
+    </div>
+
+    <div class="banner">Discovery proposes; people decide. You run one query on your database and upload the result (table, column and data type). Compass matches <strong>column names only</strong>: it never connects to your database and never sees or stores any data values. Nothing reaches the Data Register until you accept it. A name match is a hint, not proof, so expect some false positives and check them before accepting.</div>
+
+    <div class="cards">
+      <div class="mcard"><div class="mlabel">Sources</div><div class="mval" id="m-sources">-</div></div>
+      <div class="mcard amber"><div class="mlabel">Tables to review</div><div class="mval" id="m-tables">-</div></div>
+      <div class="mcard"><div class="mlabel">Findings to review</div><div class="mval" id="m-new">-</div></div>
+      <div class="mcard green"><div class="mlabel">Accepted</div><div class="mval" id="m-accepted">-</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-findings" onclick="showTab('findings')">Findings</button>
+      <button class="tab" id="tab-sources" onclick="showTab('sources')">Sources &amp; imports</button>
+      <button class="tab" id="tab-rules" onclick="showTab('rules')">Detection rules</button>
+    </div>
+
+    <div id="pane-findings">
+      <div class="section-card">
+        <div class="filter-bar">
+          <div><label>Source</label><select id="f-source" onchange="loadFindings()"><option value="">All sources</option></select></div>
+          <div><label>Status</label><select id="f-status" onchange="loadFindings()"><option value="NEW">To review</option><option value="ACCEPTED">Accepted</option><option value="REJECTED">Rejected</option><option value="">All</option></select></div>
+          <div><label>Confidence</label><select id="f-conf" onchange="loadFindings()"><option value="">All</option><option>MEDIUM</option><option>LOW</option></select></div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th style="width:30px"><input type="checkbox" id="sel-all" onchange="selectAll(this.checked)"></th><th>Table</th><th>Columns matched</th><th>Confidence</th><th>Suggested</th><th>Status</th></tr></thead>
+            <tbody id="find-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="bulk" id="bulk-bar">
+          <span class="grow" id="sel-note">Select tables to act on them together.</span>
+          <button class="btn primary" id="btn-accept" onclick="acceptSelected()">Accept as Data Register entries</button>
+          <button class="btn" id="btn-reject" onclick="rejectSelected()">Reject</button>
+          <button class="btn" id="btn-reopen" onclick="reopenSelected()" style="display:none">Reopen</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pane-sources" style="display:none">
+      <div class="section-card">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Source</th><th>Type</th><th>Location</th><th>Last import</th><th>To review</th><th>Accepted</th><th>Rejected</th><th></th></tr></thead>
+            <tbody id="src-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="section-card">
+        <div style="padding:14px 20px;font-weight:800;font-size:13px">Recent imports</div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>When</th><th>Source</th><th>By</th><th>Tables</th><th>Columns</th><th>New</th><th>Refreshed</th><th>Left as reviewed</th><th>Status</th></tr></thead>
+            <tbody id="run-body"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="pane-rules" style="display:none">
+      <div class="banner" style="background:#eef6ff;border-color:#c9dcf5;color:#2b4a7a">Rules match a column name (case-insensitive; camelCase and punctuation are normalised, so <code>aadhaarNo</code> and <code>AADHAAR-NO</code> both become <code>aadhaar_no</code>). Only administrators can switch rules on or off. Generic <em>name</em> and <em>address</em> rules are always low confidence.</div>
+      <div class="section-card">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Detects</th><th>Column name pattern</th><th>Category</th><th>Sensitivity</th><th>Confidence</th><th>Enabled</th></tr></thead>
+            <tbody id="rule-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modal-import">
+  <div class="modal">
+    <h3>Import a schema export</h3>
+    <p class="sub">1. Run the query below on your database (read-only access to <code>information_schema</code> is enough). 2. Save the result as CSV with a header row. 3. Upload it here. Re-importing the same source later updates findings without creating duplicates, and your accept/reject decisions are kept.</p>
+    <div class="fgrid">
+      <div><label>Source name *</label><input type="text" id="im-name" list="im-names" placeholder="e.g. Core Banking DB"><datalist id="im-names"></datalist></div>
+      <div><label>Database type</label><select id="im-type" onchange="showQuery()"><option value="POSTGRES">PostgreSQL</option><option value="MYSQL">MySQL / MariaDB</option><option value="MSSQL">SQL Server</option><option value="ORACLE">Oracle</option><option value="OTHER">Other</option></select></div>
+      <div style="grid-column:1/3"><label>Location (optional)</label><input type="text" id="im-loc" placeholder="Host / database name, copied onto the Data Register entry"></div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="l">Query to run</label>
+      <pre class="sql" id="im-sql"></pre>
+      <div style="margin-top:6px"><button class="btn" type="button" onclick="copyQuery()">Copy query</button></div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="l">CSV file *</label>
+      <input type="file" id="im-file" accept=".csv,text/csv" onchange="onFile(event)">
+      <div class="hint" id="im-info">Expected columns: <code>table_schema</code>, <code>table_name</code>, <code>column_name</code>, <code>data_type</code> (schema and type are optional). Up to 50,000 columns per import.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeImport()">Cancel</button>
+      <button class="btn primary" id="im-go" onclick="runImport()">Scan</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script>
+var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
+var IS_ADMIN=(localStorage.getItem('role')==='ADMIN');
+var MAX_COLUMNS=50000;
+var state={findings:[],tables:[],sources:[],selected:{},parsed:null};
+
+var QUERIES={
+  POSTGRES:"SELECT table_schema, table_name, column_name, data_type\nFROM information_schema.columns\nWHERE table_schema NOT IN ('pg_catalog','information_schema')\nORDER BY table_schema, table_name, ordinal_position;",
+  MYSQL:"SELECT table_schema, table_name, column_name, data_type\nFROM information_schema.columns\nWHERE table_schema NOT IN ('mysql','sys','information_schema','performance_schema')\nORDER BY table_schema, table_name, ordinal_position;",
+  MSSQL:"SELECT table_schema, table_name, column_name, data_type\nFROM INFORMATION_SCHEMA.COLUMNS\nWHERE table_schema NOT IN ('sys','INFORMATION_SCHEMA')\nORDER BY table_schema, table_name, ordinal_position;",
+  ORACLE:"SELECT owner AS table_schema, table_name, column_name, data_type\nFROM all_tab_columns\nWHERE owner NOT IN ('SYS','SYSTEM','XDB','CTXSYS','MDSYS','OUTLN','DBSNMP')\nORDER BY owner, table_name, column_id",
+  OTHER:"-- Any query returning one row per column with these headers:\n-- table_schema, table_name, column_name, data_type"
+};
+
+function api(func,body,cb){
+  fetch('/api/v1/discovery',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+  body:JSON.stringify(Object.assign({_func:func},body||{}))})
+  .then(function(r){if(r.status===401){localStorage.removeItem('token');window.location.href='../index.html';return;}return r.json();})
+  .then(function(d){if(!d)return;if(!d.success)cb(d.message||d.error||'Error',null);else cb(null,d);})
+  .catch(function(e){cb(e.message,null);});
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none';},3200);}
+function val(id){var e=document.getElementById(id);return e?e.value:'';}
+function fmtDate(s){return s?s.substring(0,16).replace('T',' '):'-';}
+
+function showTab(t){
+  ['findings','sources','rules'].forEach(function(k){
+    document.getElementById('pane-'+k).style.display=(k===t)?'':'none';
+    document.getElementById('tab-'+k).className='tab'+(k===t?' active':'');
+  });
+  if(t==='sources'){loadSources();loadRuns();}
+  if(t==='rules')loadRules();
+}
+
+// ---------- metrics ----------
+function loadMetrics(){
+  api('get_discovery_metrics',{},function(err,d){
+    if(err)return;
+    document.getElementById('m-sources').textContent=d.source_count;
+    document.getElementById('m-tables').textContent=d.new_tables;
+    document.getElementById('m-new').textContent=d.new_findings;
+    document.getElementById('m-accepted').textContent=d.accepted_findings;
+  });
+}
+
+// ---------- findings ----------
+function tableKey(f){return f.source_id+'|'+f.schema_name+'|'+f.table_name;}
+function groupFindings(list){
+  var map={},order=[];
+  list.forEach(function(f){
+    var k=tableKey(f);
+    if(!map[k]){map[k]={key:k,source_name:f.source_name,schema_name:f.schema_name,table_name:f.table_name,cols:[],asset_name:f.asset_name,conf:f.confidence,sens:f.suggested_sensitivity,cat:f.suggested_category};order.push(k);}
+    var g=map[k];g.cols.push(f);
+    var rank={HIGH:3,MEDIUM:2,LOW:1},sr={RESTRICTED:3,CONFIDENTIAL:2,INTERNAL:1,PUBLIC:0};
+    if(rank[f.confidence]>rank[g.conf])g.conf=f.confidence;
+    if(sr[f.suggested_sensitivity]>sr[g.sens]){g.sens=f.suggested_sensitivity;g.cat=f.suggested_category;}
+    if(f.asset_name)g.asset_name=f.asset_name;
+  });
+  return order.map(function(k){return map[k];});
+}
+function loadFindings(){
+  var body={};
+  var s=val('f-source'),st=val('f-status'),c=val('f-conf');
+  if(s)body.source_id=s;if(st)body.status=st;if(c)body.confidence=c;
+  api('list_findings',body,function(err,d){
+    if(err){document.getElementById('find-body').innerHTML='<tr><td colspan="6" class="empty">'+esc(err)+'</td></tr>';return;}
+    state.findings=d.findings||[];state.tables=groupFindings(state.findings);state.selected={};
+    renderFindings();
+  });
+}
+function qualified(g){return g.source_name+' / '+(g.schema_name?g.schema_name+'.':'')+g.table_name;}
+function renderFindings(){
+  var body=document.getElementById('find-body');
+  var st=val('f-status');
+  if(!state.tables.length){
+    body.innerHTML='<tr><td colspan="6" class="empty">'+(st==='NEW'?'Nothing to review. Click <strong>Import schema</strong> to scan a database.':'No findings match these filters.')+'</td></tr>';
+    updateBulk();return;
+  }
+  body.innerHTML=state.tables.map(function(g,i){
+    var cols=g.cols.map(function(f){
+      var x=(f.status==='NEW')?'<button class="x" title="Reject this column only" onclick="rejectOne(\''+f.id+'\')">&times;</button>':'';
+      return '<span class="col"><code>'+esc(f.column_name)+'</code> <span style="color:var(--muted)">'+esc(f.detected_label)+'</span>'+x+'</span>';
+    }).join('');
+    var statuses={};g.cols.forEach(function(f){statuses[f.status]=1;});
+    var stBadge=Object.keys(statuses).map(function(s){return '<span class="badge b-'+esc(s)+'">'+esc(s==='NEW'?'To review':s.charAt(0)+s.slice(1).toLowerCase())+'</span>';}).join(' ');
+    var asset=g.asset_name?'<div style="font-size:11.5px;color:var(--muted);margin-top:4px">In Register as <a href="data-governance-register.html" style="color:var(--teal);font-weight:700">'+esc(g.asset_name)+'</a></div>':'';
+    return '<tr>'+
+      '<td><input type="checkbox" '+(state.selected[g.key]?'checked ':'')+'onchange="toggleSel('+i+',this.checked)"></td>'+
+      '<td><strong>'+esc(g.table_name)+'</strong><div style="font-size:11.5px;color:var(--muted)">'+esc(g.source_name)+(g.schema_name?' &middot; '+esc(g.schema_name):'')+'</div>'+asset+'</td>'+
+      '<td>'+cols+'</td>'+
+      '<td><span class="badge b-'+esc(g.conf)+'">'+esc(g.conf)+'</span></td>'+
+      '<td><span class="badge sens-'+esc(g.sens)+'">'+esc(g.sens)+'</span> <span class="tag">'+esc(g.cat)+'</span></td>'+
+      '<td>'+stBadge+'</td></tr>';
+  }).join('');
+  updateBulk();
+}
+function toggleSel(i,on){var g=state.tables[i];if(on)state.selected[g.key]=true;else delete state.selected[g.key];updateBulk();}
+function selectAll(on){state.selected={};if(on)state.tables.forEach(function(g){state.selected[g.key]=true;});renderFindings();document.getElementById('sel-all').checked=on;}
+function selectedIds(status){
+  var ids=[];
+  state.tables.forEach(function(g){if(state.selected[g.key])g.cols.forEach(function(f){if(f.status===status)ids.push(f.id);});});
+  return ids;
+}
+function updateBulk(){
+  var n=Object.keys(state.selected).length;
+  var st=val('f-status');
+  var newIds=selectedIds('NEW').length,rejIds=selectedIds('REJECTED').length;
+  document.getElementById('sel-note').textContent=n?(n+' table'+(n===1?'':'s')+' selected'):'Select tables to act on them together.';
+  document.getElementById('btn-accept').disabled=!newIds;
+  document.getElementById('btn-reject').disabled=!newIds;
+  document.getElementById('btn-reopen').disabled=!rejIds;
+  document.getElementById('btn-reopen').style.display=(st==='REJECTED'||st==='')?'':'none';
+  document.getElementById('btn-accept').style.display=(st==='REJECTED'||st==='ACCEPTED')?'none':'';
+  document.getElementById('btn-reject').style.display=(st==='REJECTED'||st==='ACCEPTED')?'none':'';
+}
+function afterChange(){loadMetrics();loadFindings();loadSources(true);}
+function acceptSelected(){
+  var ids=selectedIds('NEW');if(!ids.length)return;
+  var n=Object.keys(state.selected).length;
+  if(!confirm('Create or update '+n+' Data Register entr'+(n===1?'y':'ies')+' from the selected table(s)?\n\nThey are added as "Discovered", for you to classify and review.'))return;
+  api('accept_findings',{ids:ids},function(err,d){
+    if(err){alert('Error: '+err);return;}
+    toast('Accepted '+d.accepted+' column(s): '+d.assets_created+' new Register entr'+(d.assets_created===1?'y':'ies')+(d.assets_linked?', '+d.assets_linked+' linked to existing':''));
+    afterChange();
+  });
+}
+function rejectSelected(){
+  var ids=selectedIds('NEW');if(!ids.length)return;
+  if(!confirm('Reject '+ids.length+' finding(s)? They will not reappear when you re-import the same schema. You can reopen them from the Rejected filter.'))return;
+  api('reject_findings',{ids:ids},function(err,d){if(err){alert('Error: '+err);return;}toast('Rejected '+d.updated);afterChange();});
+}
+function rejectOne(id){
+  api('reject_findings',{ids:[id]},function(err){if(err){alert('Error: '+err);return;}toast('Rejected');afterChange();});
+}
+function reopenSelected(){
+  var ids=selectedIds('REJECTED');if(!ids.length)return;
+  api('reopen_findings',{ids:ids},function(err,d){if(err){alert('Error: '+err);return;}toast('Reopened '+d.updated);afterChange();});
+}
+
+// ---------- sources / runs ----------
+function loadSources(quiet){
+  api('list_sources',{},function(err,d){
+    if(err)return;
+    state.sources=d.sources||[];
+    var sel=document.getElementById('f-source'),cur=sel.value;
+    sel.innerHTML='<option value="">All sources</option>'+state.sources.map(function(s){return '<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>';}).join('');
+    sel.value=cur;
+    document.getElementById('im-names').innerHTML=state.sources.map(function(s){return '<option value="'+esc(s.name)+'">';}).join('');
+    if(quiet)return;
+    var body=document.getElementById('src-body');
+    if(!state.sources.length){body.innerHTML='<tr><td colspan="8" class="empty">No sources yet. Click <strong>Import schema</strong>.</td></tr>';return;}
+    body.innerHTML=state.sources.map(function(s,i){
+      return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+esc(s.source_type)+'</td><td>'+esc(s.location||'-')+'</td><td>'+esc(fmtDate(s.last_scanned_at))+'</td>'+
+        '<td>'+s.new_count+'</td><td>'+s.accepted_count+'</td><td>'+s.rejected_count+'</td>'+
+        '<td><button class="btn" onclick="reimport('+i+')">Re-import</button> '+(IS_ADMIN?'<button class="btn danger" onclick="delSource('+i+')">Delete</button>':'')+'</td></tr>';
+    }).join('');
+  });
+}
+function loadRuns(){
+  api('list_runs',{},function(err,d){
+    if(err)return;
+    var body=document.getElementById('run-body'),runs=d.runs||[];
+    if(!runs.length){body.innerHTML='<tr><td colspan="9" class="empty">No imports yet.</td></tr>';return;}
+    body.innerHTML=runs.map(function(r){
+      return '<tr><td>'+esc(fmtDate(r.started_at))+'</td><td>'+esc(r.source_name)+'</td><td>'+esc(r.started_by_name||'-')+'</td><td>'+r.tables_scanned+'</td><td>'+r.columns_scanned+'</td>'+
+        '<td>'+r.findings_new+'</td><td>'+r.findings_updated+'</td><td>'+r.findings_unchanged+'</td><td><span class="badge b-'+(r.status==='COMPLETED'?'ACCEPTED':'HIGH')+'">'+esc(r.status)+'</span></td></tr>';
+    }).join('');
+  });
+}
+function delSource(i){
+  var s=state.sources[i];
+  if(!confirm('Delete source "'+s.name+'" with all its imports and findings?\n\nData Register entries already created from it are kept.'))return;
+  api('delete_source',{id:s.id},function(err){if(err){alert('Error: '+err);return;}toast('Source deleted');afterChange();loadSources();loadRuns();});
+}
+
+// ---------- rules ----------
+function loadRules(){
+  api('list_rules',{},function(err,d){
+    if(err)return;
+    document.getElementById('rule-body').innerHTML=(d.rules||[]).map(function(r){
+      return '<tr><td><strong>'+esc(r.label)+'</strong><div style="font-size:11px;color:var(--muted)">'+esc(r.code)+'</div></td><td><code style="font-size:11.5px;word-break:break-all">'+esc(r.name_regex)+'</code></td>'+
+        '<td><span class="tag">'+esc(r.category)+'</span></td><td><span class="badge sens-'+esc(r.sensitivity)+'">'+esc(r.sensitivity)+'</span></td><td><span class="badge b-'+esc(r.base_confidence)+'">'+esc(r.base_confidence)+'</span></td>'+
+        '<td><input type="checkbox" '+(r.enabled?'checked ':'')+(IS_ADMIN?'':'disabled ')+'onchange="toggleRule(\''+r.id+'\',this.checked)"></td></tr>';
+    }).join('');
+  });
+}
+function toggleRule(id,on){
+  api('update_rule',{id:id,enabled:on},function(err){if(err){alert('Error: '+err);loadRules();return;}toast(on?'Rule enabled':'Rule disabled');});
+}
+
+// ---------- import ----------
+function showQuery(){document.getElementById('im-sql').textContent=QUERIES[val('im-type')]||'';}
+function copyQuery(){
+  var t=document.getElementById('im-sql').textContent;
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('Query copied');});
+  else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Query copied');}
+}
+function openImport(src){
+  state.parsed=null;document.getElementById('im-file').value='';
+  document.getElementById('im-name').value=src?src.name:'';
+  document.getElementById('im-type').value=src?src.source_type:'POSTGRES';
+  document.getElementById('im-loc').value=src&&src.location?src.location:'';
+  document.getElementById('im-info').innerHTML='Expected columns: <code>table_schema</code>, <code>table_name</code>, <code>column_name</code>, <code>data_type</code> (schema and type are optional). Up to '+MAX_COLUMNS+' columns per import.';
+  document.getElementById('im-go').disabled=false;
+  showQuery();document.getElementById('modal-import').style.display='flex';
+}
+function reimport(i){openImport(state.sources[i]);}
+function closeImport(){document.getElementById('modal-import').style.display='none';}
+
+// Minimal RFC 4180 parser: quoted fields, escaped quotes, CRLF, BOM.
+function parseCsv(text){
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  var rows=[],row=[],f='',q=false,i=0,c;
+  for(;i<text.length;i++){
+    c=text[i];
+    if(q){
+      if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;
+    }else if(c==='"'){q=true;}
+    else if(c===','){row.push(f);f='';}
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&text[i+1]==='\n')i++;
+      row.push(f);f='';if(row.length>1||row[0]!=='')rows.push(row);row=[];
+    }else f+=c;
+  }
+  if(f!==''||row.length){row.push(f);if(row.length>1||row[0]!=='')rows.push(row);}
+  return rows;
+}
+function colIndex(headers,names){
+  for(var i=0;i<headers.length;i++){if(names.indexOf(headers[i])>=0)return i;}
+  return -1;
+}
+function onFile(evt){
+  var file=evt.target.files[0];state.parsed=null;if(!file)return;
+  var info=document.getElementById('im-info');
+  var reader=new FileReader();
+  reader.onload=function(){
+    var rows=parseCsv(String(reader.result));
+    if(rows.length<2){info.innerHTML='<span style="color:var(--red)">The file has no data rows.</span>';return;}
+    var h=rows[0].map(function(x){return x.trim().toLowerCase();});
+    var iT=colIndex(h,['table_name','table','tablename']),iC=colIndex(h,['column_name','column','columnname']);
+    var iS=colIndex(h,['table_schema','schema_name','schema','owner','table_owner']),iD=colIndex(h,['data_type','type','column_type','datatype']);
+    if(iT<0||iC<0){info.innerHTML='<span style="color:var(--red)">Could not find <code>table_name</code> and <code>column_name</code> headers. Found: '+esc(rows[0].join(', '))+'</span>';return;}
+    var cols=[];
+    for(var r=1;r<rows.length;r++){
+      var x=rows[r];
+      cols.push({schema_name:iS>=0?x[iS]:'',table_name:x[iT],column_name:x[iC],data_type:iD>=0?x[iD]:''});
+    }
+    if(cols.length>MAX_COLUMNS){info.innerHTML='<span style="color:var(--red)">'+cols.length+' columns is over the '+MAX_COLUMNS+' limit. Split the export by schema.</span>';return;}
+    state.parsed=cols;
+    var tables={};cols.forEach(function(c){tables[(c.schema_name||'')+'.'+c.table_name]=1;});
+    info.innerHTML='Ready: <strong>'+cols.length+'</strong> columns in <strong>'+Object.keys(tables).length+'</strong> tables.'+(iD<0?' No data type column found; types are optional.':'');
+  };
+  reader.readAsText(file);
+}
+function runImport(){
+  var name=val('im-name').trim();
+  if(!name){alert('Enter a source name.');return;}
+  if(!state.parsed){alert('Choose a CSV file first.');return;}
+  var btn=document.getElementById('im-go');btn.disabled=true;btn.textContent='Scanning…';
+  api('import_schema',{source_name:name,source_type:val('im-type'),location:val('im-loc').trim(),columns:state.parsed},function(err,d){
+    btn.disabled=false;btn.textContent='Scan';
+    if(err){alert('Error: '+err);return;}
+    closeImport();
+    toast('Scanned '+d.columns_scanned+' columns in '+d.tables_scanned+' tables: '+d.findings_new+' new finding(s)'+(d.findings_updated?', '+d.findings_updated+' refreshed':'')+(d.findings_unchanged?', '+d.findings_unchanged+' already reviewed':''));
+    document.getElementById('f-status').value='NEW';document.getElementById('f-source').value='';
+    showTab('findings');afterChange();
+  });
+}
+
+(function(){
+  var n=localStorage.getItem('username')||'Demo Administrator';var r=localStorage.getItem('role')||'Admin';
+  var av=document.getElementById('user-avatar'),nm=document.getElementById('user-name'),ro=document.getElementById('user-role');
+  if(nm)nm.textContent=n;if(ro)ro.textContent=r;
+  if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
+  loadMetrics();loadSources(true);loadFindings();
+})();
+</script>
+</body>
+</html>

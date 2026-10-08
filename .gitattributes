@@ -1,0 +1,3 @@
+# The console and portals are large static HTML pages. Leave them out of GitHub's language breakdown
+# so it reflects the Java backend and SQL schema instead.
+*.html linguist-detectable=false

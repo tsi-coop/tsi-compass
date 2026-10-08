@@ -42,7 +42,13 @@ services:
       JWT_SECRET: "${JWT_SECRET:-tsi-compass-local-dev-secret-do-not-use-in-production}"
       DB_ENCRYPTION_KEY: "${DB_ENCRYPTION_KEY:-local-dev-enc-key-do-not-use-in-production}"
       TSI_LOOKUP_SALT: "${TSI_LOOKUP_SALT:-local-dev-lookup-salt-do-not-use-in-production}"
+      # No default on purpose: this gates the one-time admin creation at /setup/. Leaving it
+      # unset disables that endpoint entirely (fails closed, 503). Set it before first boot,
+      # complete setup, then you may unset/rotate it. Generate with: openssl rand -hex 32
+      TSI_BOOTSTRAP_TOKEN: "${TSI_BOOTSTRAP_TOKEN:-}"
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:8085}"
+      # Vendor portal (/vendorportal/) for outside vendors to answer security questionnaires. Off unless set to true.
+      TSI_VENDOR_PORTAL_ENABLED: "${TSI_VENDOR_PORTAL_ENABLED:-false}"
     volumes:
       - "tsi_reports_data:${TSI_EXPORT_PATH:-/var/lib/tsi-compass/exports/}:rw"
     depends_on:

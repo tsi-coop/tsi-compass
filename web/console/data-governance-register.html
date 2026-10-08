@@ -105,6 +105,8 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <a href="data-governance-register.html" class="subnav active">Data Register</a>
       <a href="data-governance-flows.html" class="subnav">Data Flows</a>
       <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
+      <a href="data-governance-dpia.html" class="subnav">DPIA</a>
+      <a href="data-governance-discovery.html" class="subnav">Discovery</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -122,7 +124,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="data-governance.html">Data Governance</a> / Data Register</div>
     <div class="page-header">
       <div><div class="eyebrow">Data Governance</div><h1>Data Register</h1><p class="subtitle">Self-declared inventory of where data lives, what it is, who it's about, and how sensitive it is, plus purpose, retention, and a gap check against mapped frameworks.</p></div>
-      <div class="acts"><button class="btn" onclick="document.getElementById('csv-input').click()">Import CSV</button><input type="file" id="csv-input" accept=".csv" style="display:none" onchange="onCsvSelected(event)"><button class="btn primary" onclick="openAdd()">+ Add Data Asset</button></div>
+      <div class="acts"><a class="btn" href="data-governance-discovery.html" title="Find personal data in a database schema export">&#128269; Discover</a><button class="btn" onclick="document.getElementById('csv-input').click()">Import CSV</button><input type="file" id="csv-input" accept=".csv" style="display:none" onchange="onCsvSelected(event)"><button class="btn primary" onclick="openAdd()">+ Add Data Asset</button></div>
     </div>
 
     <div class="grid col5 mb">
@@ -205,6 +207,10 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
       <div><label>Deletion Trigger</label><input id="add-deletion" placeholder="e.g. Automated purge job, monthly"></div>
       <div><label>Controller Role</label><select id="add-controller-role"><option>CONTROLLER</option><option>PROCESSOR</option><option>JOINT</option></select></div>
     </div>
+    <div class="form-row half">
+      <div><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="add-large-scale" style="width:auto"> Large-scale processing</label></div>
+      <div><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="add-profiling" style="width:auto"> Involves profiling / behavioural tracking</label></div>
+    </div>
 
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
@@ -246,6 +252,10 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="form-row half">
       <div><label>Deletion Trigger</label><input id="edit-deletion"></div>
       <div><label>Controller Role</label><select id="edit-controller-role"><option>CONTROLLER</option><option>PROCESSOR</option><option>JOINT</option></select></div>
+    </div>
+    <div class="form-row half">
+      <div><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="edit-large-scale" style="width:auto"> Large-scale processing</label></div>
+      <div><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="edit-profiling" style="width:auto"> Involves profiling / behavioural tracking</label></div>
     </div>
 
     <div class="modal-section-label">Shared with</div>
@@ -339,7 +349,7 @@ function renderDataAssets(list,total){
   body.innerHTML=list.map(function(d){
     var gapCls=(d.gap_count>0)?'gapcount some':'gapcount';
     return '<tr>'+
-      '<td><strong>'+esc(d.name)+'</strong></td>'+
+      '<td><strong>'+esc(d.name)+'</strong>'+(d.from_discovery?' <span class="tag" style="background:#e8effa;color:#2457a6" title="Created from a Discovery finding">From discovery</span>':'')+'</td>'+
       '<td><span class="tag">'+esc(d.category)+'</span></td>'+
       '<td>'+renderPrincipalTags(d.principals)+'</td>'+
       '<td>'+(SENS_PILL[d.sensitivity]||esc(d.sensitivity))+'</td>'+
@@ -475,6 +485,7 @@ function openAdd(){
   ['add-name','add-location','add-volume','add-desc','add-purpose','add-retention','add-deletion'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('add-owner').value='';document.getElementById('add-asset').value='';document.getElementById('add-vendor').value='';
   document.getElementById('add-basis').value='';document.getElementById('add-controller-role').value='CONTROLLER';
+  document.getElementById('add-large-scale').checked=false;document.getElementById('add-profiling').checked=false;
   document.getElementById('modal-add').classList.add('open');
 }
 
@@ -495,6 +506,7 @@ function openEdit(id){
   setSelect('edit-vendor',d.linked_vendor_id||'');
   setSelect('edit-basis',d.processing_basis||'');
   setSelect('edit-controller-role',d.controller_role||'CONTROLLER');
+  document.getElementById('edit-large-scale').checked=!!d.is_large_scale;document.getElementById('edit-profiling').checked=!!d.involves_profiling;
   document.getElementById('edit-framework').value='';
   document.getElementById('edit-requirements-list').innerHTML='<div class="empty" style="padding:10px">Select a framework to see its requirements.</div>';
   loadEditDetail(d);
@@ -667,7 +679,8 @@ function submitAdd(){
     volume_estimate:document.getElementById('add-volume').value,description:document.getElementById('add-desc').value,
     purpose:document.getElementById('add-purpose').value, processing_basis:document.getElementById('add-basis').value||null,
     retention_period:document.getElementById('add-retention').value, deletion_trigger:document.getElementById('add-deletion').value,
-    controller_role:document.getElementById('add-controller-role').value
+    controller_role:document.getElementById('add-controller-role').value,
+    is_large_scale:document.getElementById('add-large-scale').checked, involves_profiling:document.getElementById('add-profiling').checked
   },function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-add');showToast('Data asset added');loadAll();
   });
@@ -682,7 +695,8 @@ function submitEdit(){
     volume_estimate:document.getElementById('edit-volume').value,description:document.getElementById('edit-desc').value,
     purpose:document.getElementById('edit-purpose').value, processing_basis:document.getElementById('edit-basis').value||null,
     retention_period:document.getElementById('edit-retention').value, deletion_trigger:document.getElementById('edit-deletion').value,
-    controller_role:document.getElementById('edit-controller-role').value
+    controller_role:document.getElementById('edit-controller-role').value,
+    is_large_scale:document.getElementById('edit-large-scale').checked, involves_profiling:document.getElementById('edit-profiling').checked
   },function(err){
     if(err){alert('Error: '+err);return;}closeModal('modal-edit');showToast('Data asset updated');loadAll();
   });

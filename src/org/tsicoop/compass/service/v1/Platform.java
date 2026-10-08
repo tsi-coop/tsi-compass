@@ -275,6 +275,10 @@ public class Platform implements Action {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "Password must be at least 10 characters", req.getRequestURI());
             return;
         }
+        if ("VENDOR".equals(role)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "Vendor portal accounts are created from Third-Party Risk, on the vendor's Portal users tab", req.getRequestURI());
+            return;
+        }
         // supervisor_id is only meaningful for USER accounts; ignore it for any other role.
         if (!"USER".equals(role)) supervisorId = null;
 
@@ -357,6 +361,10 @@ public class Platform implements Action {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "id is required", req.getRequestURI());
             return;
         }
+        if ("VENDOR".equals(role)) {
+            OutputProcessor.errorResponse(res, 400, "Bad Request", "Vendor portal accounts are created from Third-Party Risk", req.getRequestURI());
+            return;
+        }
 
         PoolDB pool = null;
         Connection conn = null;
@@ -369,6 +377,18 @@ public class Platform implements Action {
             if (supervisorIdProvided && !isBlank(supervisorId) && !isSupervisor(conn, supervisorId)) {
                 OutputProcessor.errorResponse(res, 400, "Bad Request", "supervisor_id must reference a user with role SUPERVISOR", req.getRequestURI());
                 return;
+            }
+
+            if (!isBlank(role)) {
+                PreparedStatement cur = conn.prepareStatement("SELECT role FROM users WHERE id = ?");
+                cur.setObject(1, UUID.fromString(id));
+                ResultSet cr = cur.executeQuery();
+                boolean isVendorUser = cr.next() && "VENDOR".equals(cr.getString(1));
+                cr.close(); cur.close();
+                if (isVendorUser) {
+                    OutputProcessor.errorResponse(res, 400, "Bad Request", "The role of a vendor portal account cannot be changed", req.getRequestURI());
+                    return;
+                }
             }
 
             StringBuilder sql = new StringBuilder("UPDATE users SET");

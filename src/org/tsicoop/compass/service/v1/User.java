@@ -6,6 +6,8 @@ import org.json.simple.JSONObject;
 import org.tsicoop.compass.framework.Action;
 import org.tsicoop.compass.framework.InputProcessor;
 import org.tsicoop.compass.framework.JWTUtil;
+import org.tsicoop.compass.framework.LoginRateLimiter;
+import org.tsicoop.compass.framework.PortalConfig;
 import org.tsicoop.compass.framework.OutputProcessor;
 import org.tsicoop.compass.framework.PasswordHasher;
 import org.tsicoop.compass.framework.PoolDB;
@@ -29,6 +31,9 @@ public class User implements Action {
                 case "login":
                     login(req, res, input);
                     break;
+                case "logout":
+                    logout(req, res);
+                    break;
                 default:
                     OutputProcessor.errorResponse(res, 400, "Bad Request", "Unknown function: " + func, req.getRequestURI());
             }
@@ -49,6 +54,14 @@ public class User implements Action {
 
         if (isBlank(email) || isBlank(password)) {
             OutputProcessor.errorResponse(res, 400, "Bad Request", "Email and password are required", req.getRequestURI());
+            return;
+        }
+
+        // Throttle repeated attempts. Keyed on client address plus email so one noisy address cannot lock
+        // everyone out when many users share a proxy, while a guessing run against one account is still stopped.
+        String limiterKey = LoginRateLimiter.getClientIp(req) + "|" + email.toLowerCase().trim();
+        if (!LoginRateLimiter.isAllowed(limiterKey)) {
+            OutputProcessor.errorResponse(res, 429, "Too Many Requests", "Too many sign-in attempts. Please wait a few minutes and try again.", req.getRequestURI());
             return;
         }
 
@@ -74,6 +87,12 @@ public class User implements Action {
 
             String username = rs.getString("username");
             String role = rs.getString("role");
+            if ("VENDOR".equals(role) && !PortalConfig.vendorPortalEnabled()) {
+                // Same message as a failed login so the switch does not reveal which accounts exist.
+                OutputProcessor.errorResponse(res, 401, "Unauthorized", "Invalid email or password", req.getRequestURI());
+                return;
+            }
+            LoginRateLimiter.recordSuccess(limiterKey);
             String token = JWTUtil.generateToken(email.toLowerCase().trim(), username, role);
 
             // Load module permissions for this role on the same connection so the
@@ -97,6 +116,7 @@ public class User implements Action {
             result.put("username", username);
             result.put("role", role);
             result.put("permissions", permissions);
+            InputProcessor.setConsoleSessionCookie(res, token);
             OutputProcessor.send(res, 200, result);
 
         } finally {
@@ -104,6 +124,28 @@ public class User implements Action {
                 try { pool.cleanup(rs, pstmt, conn); } catch (Exception ignored) {}
             }
         }
+    }
+
+    /**
+     * Clears the console session cookie and revokes its token. Deliberately callable
+     * without a valid Bearer token: the browser's cookie is all that is needed to sign out.
+     */
+    @SuppressWarnings("unchecked")
+    private void logout(HttpServletRequest req, HttpServletResponse res) {
+        jakarta.servlet.http.Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie c : cookies) {
+                if (InputProcessor.CONSOLE_SESSION_COOKIE.equals(c.getName()) && JWTUtil.isTokenValid(c.getValue())) {
+                    String jti = JWTUtil.getJtiFromToken(c.getValue());
+                    java.util.Date expiry = JWTUtil.getExpiryFromToken(c.getValue());
+                    if (jti != null && expiry != null) org.tsicoop.compass.framework.TokenBlocklist.revoke(jti, expiry.getTime());
+                }
+            }
+        }
+        InputProcessor.clearConsoleSessionCookie(res);
+        JSONObject out = new JSONObject();
+        out.put("success", true);
+        OutputProcessor.send(res, 200, out);
     }
 
     private boolean isBlank(String s) {

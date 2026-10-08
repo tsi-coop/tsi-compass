@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Questionnaire</title>
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <div class="user"><span class="user-name" id="user-name"></span>
+    <button class="signout" onclick="signOut()" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div>
+</header>
+<main class="main">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px"><a href="index.html" style="color:var(--teal);font-weight:700">All questionnaires</a> / <span id="crumb"></span></div>
+  <div class="eyebrow" id="eyebrow">Questionnaire</div>
+  <h1 id="title">Loading…</h1>
+  <p class="subtitle" id="sub"></p>
+  <div id="state"></div>
+  <div style="margin-bottom:18px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px"><span id="prog-txt"></span><span id="due"></span></div><div class="bar"><i id="bar" style="width:0"></i></div></div>
+  <div id="questions"></div>
+  <div class="card" id="evidence-card"><div class="card-head"><h2>Supporting evidence</h2></div><div style="padding:16px 20px" id="evidence"></div></div>
+  <div class="card" id="submit-card" style="display:none"><div class="card-head"><h2>Submit</h2></div><div class="submitbox" id="submitbox"></div></div>
+</main>
+<div class="footer">We keep your name and email on this account and on the questionnaires you submit, so the requesting organisation can see who completed them. Files must be PDF, DOCX, XLSX, PNG or JPG, up to 10 MB each.</div>
+<div class="toast" id="toast"></div>
+<script src="portal.js"></script>
+<script>
+var ID = new URLSearchParams(location.search).get('id');
+var A = null; // last server state: { portal_status, questions, evidence, ... }
+var QTEXT = {};
+
+function load() {
+  return call('get_assessment', { assessment_id: ID }).then(function (d) { A = d; topbar(); render(); }).catch(function (e) {
+    $('title').textContent = 'Not available'; $('sub').textContent = e.message; $('questions').innerHTML = ''; $('evidence-card').style.display = 'none';
+  });
+}
+function openState() { return A.portal_status === 'SENT' || A.portal_status === 'IN_PROGRESS' || A.portal_status === 'RETURNED'; }
+
+function render() {
+  var det = A.details || {};
+  $('crumb').textContent = det.questionnaire_name || '';
+  $('title').textContent = det.questionnaire_name || 'Questionnaire';
+  $('eyebrow').textContent = A.vendor_name + ' · ' + statusText();
+  $('sub').textContent = 'Answer every question. Use N/A only where it genuinely does not apply. Your answers are saved as you go.';
+  $('due').textContent = A.due_date ? 'Due ' + A.due_date.substring(0, 10) : '';
+  var st = A.portal_status, html = '';
+  if (st === 'SUBMITTED') html = '<div class="banner ok"><strong>Submitted' + (det.submitted_at ? ' on ' + esc(det.submitted_at.substring(0, 10)) : '') + '.</strong> Thank you. The requesting organisation will review your answers and may contact you or return some questions for clarification.</div>';
+  else if (st === 'COMPLETED') html = '<div class="banner ok"><strong>This review is complete.</strong> The requesting organisation will contact you directly about any outcome or follow-up.</div>';
+  else if (st === 'RETURNED') html = '<div class="banner warn"><strong>' + A.returned_open + ' question' + (A.returned_open === 1 ? ' was' : 's were') + ' returned for clarification.</strong> Update the highlighted questions below, then submit again. The other answers are locked.</div>';
+  $('state').innerHTML = html;
+  var scored = A.questions.filter(function (q) { return q.answer_type !== 'TEXT'; }).length, done = scored - A.unanswered;
+  $('prog-txt').textContent = done + ' of ' + scored + ' questions answered';
+  $('bar').style.width = (scored ? Math.round(100 * done / scored) : 0) + '%';
+
+  var sec = null, out = '';
+  A.questions.forEach(function (q) {
+    QTEXT[q.id] = q.text;
+    if (q.section !== sec) { sec = q.section; out += '<div class="sechead">' + esc(sec) + '</div>'; }
+    var dis = q.editable ? '' : ' disabled';
+    out += '<div class="q' + (q.returned ? ' returned' : '') + (q.editable ? '' : ' locked') + '" id="q-' + esc(q.id) + '"><div class="qtext">' + q.position + '. ' + esc(q.text) + '</div>' +
+      (q.guidance ? '<div class="qhelp">' + esc(q.guidance) + '</div>' : '') +
+      (q.returned && q.return_note ? '<div class="note"><strong>Reviewer note:</strong> ' + esc(q.return_note) + '</div>' : '');
+    if (q.answer_type === 'TEXT') {
+      out += '<textarea id="t-' + esc(q.id) + '" rows="3" maxlength="4000" placeholder="Your answer"' + dis + ' onblur="saveField(\'' + esc(q.id) + '\')">' + esc(q.text_answer || '') + '</textarea>';
+    } else {
+      var ch = q.answer_type === 'YES_NO_NA' ? ['YES', 'NO', 'NA'] : ['YES', 'NO'];
+      out += '<div class="ans">' + ch.map(function (c) { return '<button class="opt ' + c + (q.answer === c ? ' on' : '') + '"' + dis + ' onclick="setAnswer(\'' + esc(q.id) + '\',\'' + c + '\')">' + (c === 'NA' ? 'N/A' : c.charAt(0) + c.slice(1).toLowerCase()) + '</button>'; }).join('') + '</div>' +
+        '<input type="text" id="c-' + esc(q.id) + '" maxlength="2000" placeholder="Comment (optional)" value="' + esc(q.comment || '') + '"' + dis + ' onblur="saveField(\'' + esc(q.id) + '\')">';
+    }
+    var files = A.evidence.filter(function (e) { return e.question_id === q.id; });
+    out += '<div class="files">' + files.map(function (f) { return fileRow(f); }).join('') +
+      (q.editable && q.answer_type !== 'TEXT' ? '<button class="linkbtn" onclick="pick(\'' + esc(q.id) + '\')">+ Attach a file to this question</button>' : '') + '</div></div>';
+  });
+  $('questions').innerHTML = out;
+
+  var general = A.evidence.filter(function (e) { return !e.question_id; });
+  var ev = (general.length ? '<div class="files">' + general.map(fileRow).join('') + '</div>' : '<div style="font-size:12.5px;color:var(--muted)">No general files yet. Attach certificates, SOC reports, policies and similar documents here, or against the question they support.</div>');
+  if (openState()) {
+    ev += '<div class="row" style="margin-top:14px"><div><label>Type</label><select class="fld" id="e-type"><option value="CERTIFICATE">Certificate</option><option value="SOC_REPORT">SOC report</option><option value="PENTEST_SUMMARY">Pen-test summary</option><option value="POLICY">Policy</option><option value="OTHER">Other</option></select></div>' +
+      '<div><label>Valid until (optional)</label><input class="fld" type="date" id="e-valid"></div><div style="flex:0"><button class="btn" onclick="pick(\'\')">Choose file…</button></div></div>';
+  }
+  $('evidence').innerHTML = ev;
+
+  var sc = $('submit-card');
+  if (openState()) {
+    sc.style.display = '';
+    var blocked = st === 'RETURNED' ? A.returned_open > 0 && A.questions.some(function (q) { return q.returned; }) : false;
+    $('submitbox').innerHTML = (A.unanswered ? '<div class="banner warn">' + A.unanswered + ' question' + (A.unanswered === 1 ? ' is' : 's are') + ' still unanswered. <a href="#" style="color:var(--teal);font-weight:700" onclick="jumpUnanswered();return false">Go to the first one</a></div>' : '') +
+      '<label><input type="checkbox" id="decl"> <span>I confirm that these answers are accurate to the best of my knowledge, and that I am authorised to give them on behalf of ' + esc(A.vendor_name) + '.</span></label>' +
+      '<button class="btn primary" id="submit-btn" onclick="submitNow()">Submit questionnaire</button>';
+  } else sc.style.display = 'none';
+}
+function statusText() { var x = STATUS[A.portal_status]; return x ? x[0] : A.portal_status; }
+function fileRow(f) {
+  var kb = f.file_size ? Math.max(1, Math.round(f.file_size / 1024)) + ' KB' : '';
+  return '<div class="file"><span>&#128206;</span> <strong>' + esc(f.file_name) + '</strong> <span>' + esc(f.doc_type.replace(/_/g, ' ').toLowerCase()) + (f.valid_until ? ', valid until ' + esc(f.valid_until.substring(0, 10)) : '') + (kb ? ', ' + kb : '') + '</span>' +
+    '<button class="linkbtn" onclick="download(\'' + esc(f.id) + '\')">Download</button>' + (openState() ? '<button class="linkbtn" style="color:var(--red)" onclick="removeFile(\'' + esc(f.id) + '\')">Remove</button>' : '') + '</div>';
+}
+function q(id) { return A.questions.filter(function (x) { return x.id === id; })[0]; }
+function cur(id) { var c = $('c-' + id), t = $('t-' + id); return { comment: c ? c.value : '', text_answer: t ? t.value : '' }; }
+// Saves are queued one after another so a quick comment edit can never overtake the answer click before it.
+var saveChain = Promise.resolve();
+function saveQ(id) {
+  var x = q(id), v = cur(id);
+  x.comment = v.comment; x.text_answer = v.text_answer;
+  var body = { assessment_id: ID, question_id: id, answer: x.answer == null ? '' : x.answer, comment: v.comment, text_answer: v.text_answer };
+  var p = saveChain.then(function () { return call('save_answer', body); });
+  saveChain = p.catch(function () {});
+  return p.then(function (d) {
+    A.portal_status = d.portal_status;
+    A.unanswered = A.questions.filter(function (y) { return y.answer_type !== 'TEXT' && !y.answer; }).length;
+    if (x.returned) return load(); // the server has cleared the returned flag; refresh the notes and what is still open
+  });
+}
+function setAnswer(id, c) {
+  var x = q(id), prev = x.answer;
+  // Clicking the selected answer again clears it, except on a returned question where it confirms the answer.
+  x.answer = (prev === c && !x.returned) ? null : c; // reflect the click immediately; any later save reads this value
+  Array.prototype.forEach.call(document.querySelectorAll('#q-' + id + ' .opt'), function (b) { b.classList.toggle('on', b.classList.contains(x.answer || '__none')); });
+  A.unanswered = A.questions.filter(function (y) { return y.answer_type !== 'TEXT' && !y.answer; }).length; refreshProgress();
+  saveQ(id).catch(function (e) { x.answer = prev; fail(e); load(); });
+}
+function saveField(id) {
+  var x = q(id), v = cur(id);
+  if (v.comment === (x.comment || '') && v.text_answer === (x.text_answer || '')) return;
+  saveQ(id).catch(fail);
+}
+function refreshProgress() {
+  var scored = A.questions.filter(function (y) { return y.answer_type !== 'TEXT'; }).length, done = scored - A.unanswered;
+  $('prog-txt').textContent = done + ' of ' + scored + ' questions answered'; $('bar').style.width = (scored ? Math.round(100 * done / scored) : 0) + '%';
+  $('eyebrow').textContent = A.vendor_name + ' · ' + statusText();
+}
+function jumpUnanswered() {
+  var u = A.questions.filter(function (y) { return y.answer_type !== 'TEXT' && !y.answer && y.editable; })[0];
+  if (u) { var el = $('q-' + u.id); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+}
+
+// ----- evidence -----
+var pickFor = '';
+function pick(qid) {
+  pickFor = qid;
+  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pdf,.docx,.xlsx,.png,.jpg,.jpeg';
+  inp.onchange = function () { if (inp.files[0]) upload(inp.files[0], pickFor); };
+  inp.click();
+}
+function upload(file, qid) {
+  if (file.size > 10 * 1024 * 1024) { toast('That file is larger than 10 MB.'); return; }
+  var r = new FileReader();
+  r.onload = function () {
+    var body = { assessment_id: ID, file_name: file.name, file_data: String(r.result).split(',')[1] || '', doc_type: qid ? 'OTHER' : $('e-type').value };
+    if (qid) body.question_id = qid; else if ($('e-valid') && $('e-valid').value) body.valid_until = $('e-valid').value;
+    toast('Uploading…');
+    call('upload_evidence', body).then(function (d) { A.evidence = d.evidence; render(); toast('Uploaded ' + file.name); }).catch(fail);
+  };
+  r.readAsDataURL(file);
+}
+function download(id) {
+  call('get_evidence', { id: id }).then(function (d) {
+    var b = atob(d.file_data), arr = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
+    var url = URL.createObjectURL(new Blob([arr])), a = document.createElement('a'); a.href = url; a.download = d.file_name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }).catch(fail);
+}
+function removeFile(id) {
+  if (!confirm('Remove this file?')) return;
+  call('remove_evidence', { id: id }).then(function (d) { A.evidence = d.evidence; render(); toast('Removed'); }).catch(fail);
+}
+
+function submitNow() {
+  if (!$('decl').checked) { toast('Please tick the declaration first.'); return; }
+  if (A.unanswered) { toast(A.unanswered + ' question(s) are still unanswered.'); jumpUnanswered(); return; }
+  $('submit-btn').disabled = true;
+  call('submit_assessment', { assessment_id: ID, declaration: true }).then(function () { toast('Submitted. Thank you.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return load(); }).catch(function (e) { $('submit-btn').disabled = false; fail(e); });
+}
+if (!ID) { window.location.replace('index.html'); } else load();
+</script>
+</body>
+</html>

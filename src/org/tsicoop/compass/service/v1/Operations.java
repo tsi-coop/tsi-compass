@@ -39,7 +39,7 @@ public class Operations implements Action {
                 case "list_assets":        OutputProcessor.send(res, 200, listAssets(input));     break;
                 case "add_asset":          addAsset(req, res, input);                             break;
                 case "update_asset":       updateAsset(req, res, input);                          break;
-                case "list_vendors":       OutputProcessor.send(res, 200, listVendors(input));    break;
+                case "list_vendors":       OutputProcessor.send(res, 200, listVendors(input, InputProcessor.getRole(req))); break;
                 case "add_vendor":         addVendor(req, res, input);                            break;
                 case "update_vendor":      updateVendor(req, res, input);                         break;
                 case "list_tickets":       OutputProcessor.send(res, 200, listTickets(input, role)); break;
@@ -96,7 +96,7 @@ public class Operations implements Action {
             pool.cleanup(rs, p, null); rs=null; p=null;
 
             p = conn.prepareStatement(
-                "SELECT COUNT(*) FILTER (WHERE license_expiry < CURRENT_DATE + 90) AS due_review, COUNT(*) AS total FROM vendors"
+                "SELECT COUNT(*) FILTER (WHERE license_expiry < CURRENT_DATE + 90) AS due_review, COUNT(*) AS total FROM vendors WHERE archived_at IS NULL"
             ); rs = p.executeQuery();
             if (rs.next()) { result.put("vendor_reviews_due",rs.getLong("due_review")); result.put("total_vendors",rs.getLong("total")); }
             pool.cleanup(rs, p, null); rs=null; p=null;
@@ -407,7 +407,8 @@ public class Operations implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject listVendors(JSONObject input) throws Exception {
+    private JSONObject listVendors(JSONObject input, String role) throws Exception {
+        boolean riskView = !"IT_STAFF".equals(role); // tier and review data belong to the GRC team
         String search = (String) input.get("search");
         String qStatus = (String) input.get("questionnaire_status");
         boolean dueOnly = "1".equals(String.valueOf(input.get("due")));
@@ -423,7 +424,7 @@ public class Operations implements Action {
         if (page < 1) page = 1;
         long offset = (page - 1) * limit;
 
-        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        StringBuilder where = new StringBuilder(" WHERE archived_at IS NULL");
         if (!isBlank(qStatus)) where.append(" AND security_questionnaire_status=?");
         if (dueOnly)           where.append(" AND license_expiry < CURRENT_DATE + 90");
         if (!isBlank(search))  where.append(" AND (name ILIKE ? OR agreement_details ILIKE ?)");
@@ -449,6 +450,7 @@ public class Operations implements Action {
             String dataSql =
                 "SELECT id::text, name, agreement_details, license_expiry::text, baseline_risk_score, " +
                 "security_questionnaire_status, created_at::text, " +
+                "criticality, inherent_risk, residual_risk, lifecycle_status, next_review_due::text AS next_review_due, " +
                 "(license_expiry < CURRENT_DATE + 90) AS review_due " +
                 "FROM vendors" + where +
                 " ORDER BY CASE WHEN license_expiry < CURRENT_DATE THEN 0 WHEN license_expiry < CURRENT_DATE+90 THEN 1 ELSE 2 END, name" +
@@ -468,6 +470,13 @@ public class Operations implements Action {
                 v.put("security_questionnaire_status",rs.getString("security_questionnaire_status"));
                 v.put("created_at",                   rs.getString("created_at"));
                 v.put("review_due",                   rs.getBoolean("review_due"));
+                if (riskView) {
+                    v.put("criticality",     rs.getString("criticality"));
+                    v.put("inherent_risk",   rs.getString("inherent_risk"));
+                    v.put("residual_risk",   rs.getString("residual_risk"));
+                    v.put("lifecycle_status",rs.getString("lifecycle_status"));
+                    v.put("next_review_due", rs.getString("next_review_due"));
+                }
                 list.add(v);
             }
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
@@ -486,6 +495,12 @@ public class Operations implements Action {
         PoolDB pool = null; Connection conn = null; PreparedStatement p = null; ResultSet rs = null;
         try {
             pool = new PoolDB(); conn = pool.getConnection();
+            p = conn.prepareStatement("SELECT (archived_at IS NOT NULL) AS archived FROM vendors WHERE LOWER(name) = LOWER(?)");
+            p.setString(1, name.trim()); rs = p.executeQuery();
+            if (rs.next()) {
+                OutputProcessor.errorResponse(res, 409, "Conflict", rs.getBoolean("archived") ? "An archived vendor with this name exists, restore it instead" : "A vendor with this name already exists", req.getRequestURI()); return;
+            }
+            pool.cleanup(rs, p, null); rs = null; p = null;
             p = conn.prepareStatement("INSERT INTO vendors (name,agreement_details,license_expiry,baseline_risk_score,security_questionnaire_status) VALUES (?,?,?::date,?,?) RETURNING id::text");
             p.setString(1,name); p.setString(2,(String)input.get("agreement_details"));
             String exp=(String)input.get("license_expiry"); p.setString(3, isBlank(exp)?null:exp);
@@ -917,10 +932,12 @@ public class Operations implements Action {
             p.setString(1, id); rs = p.executeQuery();
             String name = rs.next() ? rs.getString("name") : id;
             pool.cleanup(rs, p, null); rs = null; p = null;
-            p = conn.prepareStatement("DELETE FROM vendors WHERE id=?::uuid");
-            p.setString(1, id); p.executeUpdate();
+            // Vendors are archived, never hard-deleted: assessments, findings, contracts and documents are audit records.
+            p = conn.prepareStatement("UPDATE vendors SET archived_at = CURRENT_TIMESTAMP, archived_by = ?::uuid, lifecycle_status = 'TERMINATED' WHERE id=?::uuid AND archived_at IS NULL");
+            java.util.UUID archiver = InputProcessor.getAuthenticatedUserId(req);
+            p.setString(1, archiver == null ? null : archiver.toString()); p.setString(2, id); p.executeUpdate();
             JSONObject ctx = new JSONObject(); ctx.put("vendor_id", id); ctx.put("vendor_name", name);
-            EventLog.log(InputProcessor.getEmail(req), "VENDOR_DELETED", ctx.toJSONString());
+            EventLog.log(InputProcessor.getEmail(req), "TPRM_VENDOR_ARCHIVED", ctx.toJSONString());
             JSONObject result = new JSONObject(); result.put("success", true); OutputProcessor.send(res, 200, result);
         } finally { if (pool != null) try { pool.cleanup(rs, p, conn); } catch(Exception i){} }
     }

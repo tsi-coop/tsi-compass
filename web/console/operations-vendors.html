@@ -85,6 +85,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
     <div class="breadcrumb"><a href="operations.html">IT Operations</a> / Vendor Register</div>
     <div class="page-header">
       <div><div class="eyebrow">IT Operations</div><h1>Vendor Register</h1><p class="subtitle">Track vendors, agreement details, license expiry, security questionnaire status, and risk scores.</p></div>
+      <div class="acts" id="tprm-link" style="display:none"><a class="btn" href="risks-tprm.html">Manage in Third-Party Risk &#8250;</a></div>
     </div>
     <div class="section-card">
       <div class="section-head"><h2>Vendors</h2><div style="display:flex;align-items:center;gap:12px"><span id="vnd-count" style="font-size:12px;color:var(--muted)">Loading…</span><button class="btn primary" onclick="openAdd()">+ Add Vendor</button></div></div>
@@ -94,7 +95,7 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
         <input id="f-search" type="search" placeholder="Search vendors…" oninput="onSearchInput()">
       </div>
       <table>
-        <thead><tr><th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th></tr></thead>
+        <thead><tr id="vnd-head"><th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th></tr></thead>
         <tbody id="vnd-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="pagination"><span id="page-info">-</span><div class="page-btns" id="page-btns"></div></div>
@@ -146,6 +147,11 @@ td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-ali
 <script>
 var TOKEN=localStorage.getItem('token');if(!TOKEN)window.location.href='../index.html';
 var isSuperAdmin=(localStorage.getItem('role')==='ADMIN');
+// Tier and review data belong to the GRC team; IT staff see the plain register.
+var showRisk=(localStorage.getItem('role')!=='IT_STAFF');
+if(showRisk){document.getElementById('tprm-link').style.display='';document.getElementById('vnd-head').innerHTML='<th>Vendor Name</th><th>License Expiry</th><th>Risk Score</th><th>Tier</th><th>Next Review</th><th>Questionnaire</th><th>Review Due</th><th>Actions</th>';}
+var COLS=showRisk?8:6;
+var TIER_PILL={CRITICAL:'<span class="pill risk">Critical</span>',HIGH:'<span class="pill risk">High</span>',MEDIUM:'<span class="pill watch">Medium</span>',LOW:'<span class="pill good">Low</span>'};
 var state={vendors:[],page:1,pageSize:20};
 var _searchDebounce=null;
 
@@ -170,16 +176,17 @@ function renderVendors(list,total){
   var body=document.getElementById('vnd-body');
   var n=(total!=null?total:list.length);
   var cnt=document.getElementById('vnd-count');if(cnt)cnt.textContent=n+' vendor'+(n!==1?'s':'');
-  if(!list.length){body.innerHTML='<tr><td colspan="6" class="empty">No vendors found.</td></tr>';return;}
+  if(!list.length){body.innerHTML='<tr><td colspan="'+COLS+'" class="empty">No vendors found.</td></tr>';return;}
   body.innerHTML=list.map(function(v){
     var duePill=v.review_due?'<span class="pill watch">Due</span>':'<span class="pill neu">OK</span>';
     return '<tr>'+
       '<td><strong>'+esc(v.name)+'</strong></td>'+
       '<td>'+esc(v.license_expiry||'-')+'</td>'+
       '<td style="font-size:16px;font-weight:900;color:'+riskColor(v.baseline_risk_score)+'">'+esc(v.baseline_risk_score||'-')+'</td>'+
+      (showRisk?'<td>'+(TIER_PILL[v.inherent_risk]||'<span class="pill neu">-</span>')+'</td><td>'+esc(v.next_review_due||'-')+'</td>':'')+
       '<td>'+(QS_PILL[v.security_questionnaire_status]||'<span class="pill neu">-</span>')+'</td>'+
       '<td>'+duePill+'</td>'+
-      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVendor(\''+v.id+'\',\''+esc(v.name)+'\')">Delete</button>':'')+'</div></td>'+
+      '<td><div class="row-actions"><button class="btn sm" onclick="openEdit(\''+v.id+'\')">Edit</button>'+(isSuperAdmin?'<button class="btn sm" style="color:var(--red);border-color:#fde8e8" onclick="deleteVendor(\''+v.id+'\',\''+esc(v.name)+'\')">Archive</button>':'')+'</div></td>'+
     '</tr>';
   }).join('');
 }
@@ -283,9 +290,9 @@ function submitEdit(){
 
 
 function deleteVendor(id,name){
-  if(!confirm('Delete vendor "'+name+'"? This cannot be undone.'))return;
+  if(!confirm('Archive vendor "'+name+'"? It is hidden from this list and made read-only; its assessments, findings, contracts and documents are kept, and it can be restored from Third-Party Risk.'))return;
   api('delete_vendor',{id:id},function(err){
-    if(err){alert('Error: '+err);return;}showToast('Vendor deleted');loadAll();
+    if(err){alert('Error: '+err);return;}showToast('Vendor archived');loadAll();
   });
 }
 

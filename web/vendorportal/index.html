@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Vendor Portal</title>
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+  <div class="user"><span class="user-name" id="user-name"></span>
+    <button class="signout" onclick="signOut()" title="Sign Out" aria-label="Sign Out"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div>
+</header>
+<main class="main">
+  <div class="eyebrow">Vendor Portal</div>
+  <h1 id="title">Security questionnaires</h1>
+  <p class="subtitle" id="sub">Questionnaires sent to your company appear here. Answer each question, attach supporting evidence, and submit when you are done. You can save and come back at any time.</p>
+  <div class="card">
+    <div class="card-head"><h2>My assessments</h2></div>
+    <table>
+      <thead><tr><th>Questionnaire</th><th>Type</th><th>Due</th><th>Progress</th><th>Status</th><th></th></tr></thead>
+      <tbody id="list"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</main>
+<div class="footer">We keep your name and email on this account and on the questionnaires you submit, so the requesting organisation can see who completed them. Contact them if you need an account changed or removed.</div>
+<div class="toast" id="toast"></div>
+<script src="portal.js"></script>
+<script>
+var TYPES = { ONBOARDING: 'Onboarding', PERIODIC: 'Periodic review', EVENT_DRIVEN: 'Follow-up review' };
+call('list_my_assessments').then(function (d) {
+  topbar(d.user_name);
+  $('title').textContent = d.vendor_name ? d.vendor_name + ': security questionnaires' : 'Security questionnaires';
+  var rows = d.assessments || [];
+  $('list').innerHTML = rows.length ? rows.map(function (a) {
+    var pct = a.scored_total ? Math.round(100 * a.answered / a.scored_total) : 0;
+    var action = a.portal_status === 'COMPLETED' || a.portal_status === 'SUBMITTED' ? 'View' : (a.portal_status === 'RETURNED' ? 'Review' : (a.portal_status === 'SENT' ? 'Start' : 'Continue'));
+    return '<tr><td><strong>' + esc(a.questionnaire_name) + '</strong></td><td>' + esc(TYPES[a.assessment_type] || a.assessment_type) + '</td><td>' + day(a.due_date) + '</td>' +
+      '<td style="min-width:130px"><div class="bar"><i style="width:' + pct + '%"></i></div><div style="font-size:11px;color:var(--muted);margin-top:3px">' + a.answered + ' of ' + a.scored_total + ' answered' + (a.returned_count ? ', ' + a.returned_count + ' returned' : '') + '</div></td>' +
+      '<td>' + statusPill(a.portal_status) + '</td><td><a class="btn primary sm" href="assessment.html?id=' + encodeURIComponent(a.id) + '">' + action + '</a></td></tr>';
+  }).join('') : '<tr><td colspan="6" class="empty">Nothing has been sent to you yet.<br>When the requesting organisation sends a questionnaire it will appear here.</td></tr>';
+}).catch(function (e) { $('list').innerHTML = '<tr><td colspan="6" class="empty">' + esc(e.message) + '</td></tr>'; });
+</script>
+</body>
+</html>

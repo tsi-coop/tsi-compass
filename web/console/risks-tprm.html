@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSI Compass – Third-Party Risk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--ink:#172033;--muted:#607086;--line:#d9e2ec;--wash:#f3f7f8;--teal:#006a67;--blue:#2457a6;--amber:#b7791f;--green:#27794f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--wash)}a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:800}.mark{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.nav{display:grid;gap:3px}.nav a{padding:9px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:600}
+.nav a:hover,.nav a.active{background:#eaf5f3;color:var(--teal);font-weight:700}
+.nav a.subnav{padding:6px 10px 6px 28px;font-size:12px;font-weight:600}
+.nav a.subnav.active,.nav a.subnav:hover{background:#eaf5f3;color:var(--teal);font-weight:700}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+.main{padding:32px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--teal);font-weight:600}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+.eyebrow{color:var(--teal);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:24px}
+.filter-bar{display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap;align-items:flex-end}
+.filter-bar label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.filter-bar select{height:34px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;padding:0 10px;color:var(--ink);background:#fff;min-width:220px}
+.filternote{font-size:12.5px;color:var(--muted);padding:0 20px 16px}
+.filternote strong{color:var(--ink)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:top;max-width:260px}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#f1e9fb;color:#6a3fb0;margin:1px}
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.mobilebar{display:none;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;align-items:center;justify-content:space-between}
+@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex}.main{padding:20px}.page-header{display:block}.acts{margin-top:12px}}
+.cards{display:grid;gap:14px;grid-template-columns:repeat(4,1fr);margin-bottom:20px}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;border-top:3px solid var(--blue)}
+.mcard.red{border-top-color:var(--red)}.mcard.amber{border-top-color:var(--amber)}.mcard.green{border-top-color:var(--green)}
+.mlabel{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.mval{font-size:26px;font-weight:900;margin-top:4px}
+.banner{background:#fff8e6;border:1px solid #f3dca0;color:#7a5a12;border-radius:8px;padding:12px 16px;font-size:12.5px;line-height:1.6;margin-bottom:20px}
+.badge{display:inline-flex;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800}
+.b-HIGH{background:#fde8e8;color:#b42318}.b-MEDIUM{background:#fff4e0;color:#b7791f}.b-LOW{background:#e6f4ec;color:#27794f}
+.s-DRAFT{background:#eef1f5;color:#607086}.s-UNDER_REVIEW{background:#e8effa;color:#2457a6}.s-APPROVED{background:#e6f4ec;color:#27794f}.s-SUBMITTED{background:#eaf5f3;color:#006a67}
+.stale{background:#fde8e8;color:#b42318;margin-left:6px}
+.factor{display:inline-block;font-size:11px;background:#f3f5f8;border-radius:4px;padding:2px 6px;margin:1px 2px 1px 0}
+.detail td{background:#fafcfd;max-width:none;padding:16px 20px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dsec h4{margin:0 0 6px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--teal)}
+.dsec textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;font-size:12.5px}
+.dsec textarea[readonly]{background:#f3f7f8}
+.dsec ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7}
+.dacts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.danger{color:var(--red);border-color:#f3c5c0}
+select.sm{height:30px;border:1px solid var(--line);border-radius:6px;font-size:12px;padding:0 8px;background:#fff}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:none;z-index:50}
+@media(max-width:980px){.cards{grid-template-columns:1fr 1fr}.dgrid{grid-template-columns:1fr}}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{padding:9px 16px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:0;border-left:0;border-right:0}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.b-NEW{background:#e8effa;color:#2457a6}.b-ACCEPTED{background:#e6f4ec;color:#27794f}.b-REJECTED{background:#eef1f5;color:#607086}
+.sens-RESTRICTED{background:#fde8e8;color:#b42318}.sens-CONFIDENTIAL{background:#fff4e0;color:#b7791f}.sens-INTERNAL{background:#e8effa;color:#2457a6}.sens-PUBLIC{background:#e6f4ec;color:#27794f}
+.col{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#f3f5f8;border-radius:4px;padding:2px 4px 2px 7px;margin:2px 3px 2px 0}
+.col code{font-size:11px}.col .x{border:0;background:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:0 3px}
+.col .x:hover{color:var(--red)}
+.bulk{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.bulk .grow{flex:1;color:var(--muted);font-size:12.5px}
+.modal-bg{position:fixed;inset:0;background:rgba(23,32,51,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:40}
+.modal{background:#fff;border-radius:10px;max-width:720px;width:100%;padding:24px}
+.modal h3{margin:0 0 4px;font-size:18px}.modal .sub{color:var(--muted);font-size:12.5px;margin:0 0 16px;line-height:1.6}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid label,.modal label.l{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fgrid input,.fgrid select,.modal input[type=text],.modal select{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;padding:0 10px;background:#fff}
+pre.sql{background:#172033;color:#e6edf5;border-radius:6px;padding:12px;font-size:11.5px;line-height:1.6;white-space:pre-wrap;margin:6px 0 0}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
+.filter-bar input[type=checkbox]{width:auto}
+
+.b-CRITICAL{background:#fbdcdc;color:#8f1b12}
+.b-ACTIVE,.b-COMPLETED,.b-APPROVED,.b-REMEDIATED,.b-CLOSED{background:#e6f4ec;color:#27794f}
+.b-DRAFT,.b-PROSPECT,.b-CANCELLED,.b-ACCEPTED_{background:#eef1f5;color:#607086}
+.b-SENT,.b-IN_REVIEW,.b-ONBOARDING,.b-IN_PROGRESS,.b-OPEN{background:#e8effa;color:#2457a6}
+.b-OFFBOARDING,.b-OVERDUE,.b-DUE_SOON{background:#fff4e0;color:#b7791f}
+.b-TERMINATED,.b-NEVER{background:#fde8e8;color:#b42318}
+.b-OVERDUE{background:#fde8e8;color:#b42318}.b-OK{background:#e6f4ec;color:#27794f}
+.b-ACCEPTED{background:#f1e9fb;color:#6a3fb0}
+.cards.six{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1100px){.cards.six{grid-template-columns:repeat(2,1fr)}}
+.drawer-bg{position:fixed;inset:0;background:rgba(23,32,51,.45);display:none;justify-content:flex-end;z-index:40}
+.drawer{background:#fff;width:min(980px,100%);height:100%;overflow-y:auto;padding:24px 28px}
+.drawer h2{margin:0 0 4px;font-size:22px}
+.subtabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:16px 0;flex-wrap:wrap}
+.subtab{padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;border:0;background:none;border-bottom:2px solid transparent}
+.subtab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.kv div label{display:block;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.kv div span{font-size:13px}
+.kv textarea{width:100%}
+.fgrid.three{grid-template-columns:1fr 1fr 1fr}
+.fgrid textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;font-size:12.5px}
+.fgrid .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;height:34px;text-transform:none;letter-spacing:0;font-weight:600;color:var(--ink)}
+.fgrid .chk input{width:auto;height:auto}
+.fgrid .full{grid-column:1/-1}
+.fgrid input[type=date],.fgrid input[type=number],.fgrid input[type=text],.fgrid select{width:100%}
+.bar{height:8px;background:#e8eef3;border-radius:6px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--teal)}
+.qblock{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fff}
+.qblock.crit{border-left:3px solid var(--red)}
+.qtext{font-size:13px;font-weight:600;line-height:1.5}.qmeta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.qans{display:flex;gap:6px;margin:10px 0 6px;flex-wrap:wrap;align-items:center}
+.qans .opt{height:30px;padding:0 14px;border-radius:6px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.qans .opt.on.YES{background:#e6f4ec;border-color:#27794f;color:#27794f}.qans .opt.on.NO{background:#fde8e8;border-color:#b42318;color:#b42318}.qans .opt.on.NA{background:#eef1f5;border-color:#607086;color:#607086}
+.qblock input[type=text],.qblock textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 9px;font:inherit;font-size:12.5px;margin-top:6px}
+.sechead{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);margin:18px 0 8px}
+.list-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn.sm{height:28px;padding:0 10px;font-size:11.5px}
+.chip{display:inline-block;font-size:11px;background:#f3f5f8;border-radius:4px;padding:2px 7px;margin:1px 3px 1px 0}
+.gap-HIGH{border-left:3px solid var(--red)}.gap-MEDIUM{border-left:3px solid var(--amber)}
+.gaplist{list-style:none;margin:0;padding:0}.gaplist li{padding:8px 12px;margin-bottom:6px;background:#fafcfd;border-radius:6px;font-size:12.5px}
+.gaplist li small{color:var(--muted);margin-left:6px}
+.cal-OVERDUE{color:var(--red);font-weight:700}
+.btn{white-space:nowrap}
+</style>
+</head>
+<body>
+<header class="mobilebar">
+  <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+</header>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="../index.html"><span class="mark">TC</span><span>TSI Compass</span></a>
+    <nav class="nav">
+      <a href="dashboard.html">Executive Dashboard</a>
+      <a href="platform.html">Platform &amp; Access</a>
+      <a href="governance.html">Governance &amp; Policy</a>
+      <a href="risks.html">Risk &amp; Vulnerability</a>
+      <a href="risks-register.html" class="subnav">Risk Register</a>
+      <a href="risks-vapt.html" class="subnav">VAPT &amp; Vulnerabilities</a>
+      <a href="risks-tprm.html" class="subnav active">Third-Party Risk</a>
+      <a href="controls.html">Compliance &amp; Controls</a>
+      <a href="evidence.html">Audit &amp; Evidence</a>
+      <a href="operations.html">IT Operations</a>
+      <a href="data-governance.html">Data Governance</a>
+      <a href="incidents.html">Incidents &amp; Awareness</a>
+      <a href="reports.html">Reports &amp; Exports</a>
+    </nav>
+    <div class="side-foot">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="user-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;flex-shrink:0">DA</div>
+        <div style="min-width:0;flex:1">
+          <div id="user-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Demo Administrator</div>
+          <div id="user-role" style="font-size:11px;color:var(--muted)">Admin</div>
+        </div>
+      </div>
+      <a href="../index.html" onclick="localStorage.clear();return true;" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;color:#b42318;font-size:12px;font-weight:700;border:1px solid #fde8e8;background:#fef2f2;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="breadcrumb"><a href="risks.html">Risk &amp; Vulnerability</a> / Third-Party Risk</div>
+    <div class="page-header">
+      <div><div class="eyebrow">Risk &amp; Vulnerability</div><h1>Third-Party Risk</h1><p class="subtitle">Classify vendors by inherent risk, assess them, track findings and contracts, and keep reviews on schedule. Gaps against DPDP Sec 8(2) are flagged automatically.</p></div>
+      <div class="acts">
+        <button class="btn primary" onclick="addVendor()">+ Add vendor</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-overview" onclick="showTab('overview')">Overview</button>
+      <button class="tab" id="tab-vendors" onclick="showTab('vendors')">Vendors</button>
+      <button class="tab" id="tab-assessments" onclick="showTab('assessments')">Assessments</button>
+      <button class="tab" id="tab-findings" onclick="showTab('findings')">Findings</button>
+      <button class="tab" id="tab-questionnaires" onclick="showTab('questionnaires')">Questionnaires</button>
+    </div>
+
+    <div id="pane-overview"></div>
+    <div id="pane-vendors" style="display:none"></div>
+    <div id="pane-assessments" style="display:none"></div>
+    <div id="pane-findings" style="display:none"></div>
+    <div id="pane-questionnaires" style="display:none"></div>
+  </main>
+</div>
+
+<div class="drawer-bg" id="drawer-bg"><div class="drawer" id="drawer"></div></div>
+<div class="modal-bg" id="m-assess"><div class="modal" id="assess-box" style="max-width:860px"></div></div>
+<div class="modal-bg" id="m-form" style="z-index:60"><div class="modal" id="form-box"></div></div>
+<div class="toast" id="toast"></div>
+<script src="rbac.js"></script>
+<script src="notifications.js"></script>
+<script src="risks-tprm.js"></script>
+</body>
+</html>

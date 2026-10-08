@@ -29,6 +29,40 @@
 	</filter-mapping>
 
 	<!--
+      Server-side gate for the static console and self-service pages. Previously
+      these files were served unconditionally to any HTTP client, relying solely on
+      client-side JS to redirect unauthenticated users after the page had already
+      been delivered. This filter requires the session cookie set at login (see
+      User.login). It is independent of the Bearer-token auth enforced on every
+      /api/* call above. The login page and setup wizard stay public.
+    -->
+	<filter>
+		<filter-name>CONSOLE_AUTH_FILTER</filter-name>
+		<filter-class>org.tsicoop.compass.framework.ConsoleAuthFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>CONSOLE_AUTH_FILTER</filter-name>
+		<url-pattern>/console/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>CONSOLE_AUTH_FILTER</filter-name>
+		<url-pattern>/selfservice/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>CONSOLE_AUTH_FILTER</filter-name>
+		<url-pattern>/vendorportal/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+
+	<!--
       Partner/reseller white-labeling: rewrites the brand name in served HTML
       when BRAND_NAME is configured (see BrandConfig / BrandingFilter). The
       *.html mapping covers every static page — console, self-service portal,
@@ -46,4 +80,19 @@
 		<dispatcher>REQUEST</dispatcher>
 		<dispatcher>FORWARD</dispatcher>
 	</filter-mapping>
+
+	<!--
+      Jetty's bundled webdefault.xml (merged into every webapp ahead of this file)
+      sets dirAllowed=true on the "default" servlet, so any directory with no matching
+      welcome file (e.g. /setup/) is auto-listed. Redeclaring "default" here overrides
+      just that init-param; welcome-file resolution is unaffected.
+    -->
+	<servlet>
+		<servlet-name>default</servlet-name>
+		<servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
+		<init-param>
+			<param-name>dirAllowed</param-name>
+			<param-value>false</param-value>
+		</init-param>
+	</servlet>
 </web-app>

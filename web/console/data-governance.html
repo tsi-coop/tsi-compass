@@ -58,6 +58,8 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
       <a href="data-governance-register.html" class="subnav">Data Register</a>
       <a href="data-governance-flows.html" class="subnav">Data Flows</a>
       <a href="data-governance-ropa.html" class="subnav">RoPA Export</a>
+      <a href="data-governance-dpia.html" class="subnav">DPIA</a>
+      <a href="data-governance-discovery.html" class="subnav">Discovery</a>
       <a href="incidents.html">Incidents &amp; Awareness</a>
       <a href="reports.html">Reports &amp; Exports</a>
     </nav>
@@ -140,6 +142,26 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}.subtitle{color
         </div>
         <a href="data-governance-ropa.html" class="hub-manage">Open RoPA Export &#8250;</a>
       </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#fff4e0">&#9888;</div>
+        <h3>DPIA</h3>
+        <p>Data Protection Impact Assessments, auto-derived from the register and data flows, with risk, mitigations, and an approval workflow.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-dpia-high">-</strong><span>High risk</span></div>
+          <div class="hub-stat"><strong id="hs-dpia-total">-</strong><span>Assessed</span></div>
+        </div>
+        <a href="data-governance-dpia.html" class="hub-manage">Manage DPIAs &#8250;</a>
+      </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#e8effa">&#128269;</div>
+        <h3>Discovery</h3>
+        <p>Scan a database schema export for columns that look like personal data and propose Data Register entries for review.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-disc-new">-</strong><span>To review</span></div>
+          <div class="hub-stat"><strong id="hs-disc-sources">-</strong><span>Sources</span></div>
+        </div>
+        <a href="data-governance-discovery.html" class="hub-manage">Open Discovery &#8250;</a>
+      </div>
     </div>
   </main>
 </div>
@@ -181,6 +203,14 @@ function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
     set('m-flows', d.total_flows||0);
     set('hs-flows-total', d.total_flows||0);
     set('hs-flows-unapproved', d.unapproved_count||0);
+  });
+  api('/api/v1/dpia','get_dpia_metrics',function(d){
+    set('hs-dpia-high', d.high_count||0);
+    set('hs-dpia-total', d.dpia_count||0);
+  });
+  api('/api/v1/discovery','get_discovery_metrics',function(d){
+    set('hs-disc-new', d.new_findings||0);
+    set('hs-disc-sources', d.source_count||0);
   });
   api('/api/v1/controls','list_frameworks',function(d){
     set('hs-ropa-frameworks', (d.frameworks||[]).length);

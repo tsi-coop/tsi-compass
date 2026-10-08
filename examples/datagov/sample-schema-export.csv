@@ -1,0 +1,25 @@
+table_schema,table_name,column_name,data_type
+public,customers,id,uuid
+public,customers,aadhaar_no,character varying
+public,customers,PAN,character varying
+public,customers,mobileNumber,character varying
+public,customers,email_address,text
+public,customers,date_of_birth,date
+public,customers,first_name,text
+public,customers,has_aadhaar,boolean
+public,customers,status,text
+public,customers,created_at,timestamp with time zone
+public,customers,product_name,text
+public,customers,ip_address,inet
+public,customers,home_address,text
+public,customers,company,text
+public,customers,expand_total,integer
+public,customers,panel_id,integer
+public,patients,diagnosis_code,text
+public,patients,"blood_group",text
+public,patients,id,uuid
+public,orders,id,uuid
+public,orders,total,numeric
+public,orders,"upi_id",text
+public,orders,bank_account_number,text
+public,orders,ifsc_code,text

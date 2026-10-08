@@ -67,6 +67,7 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
       <a href="risks.html" class="active">Risk &amp; Vulnerability</a>
       <a href="risks-register.html" class="subnav">Risk Register</a>
       <a href="risks-vapt.html" class="subnav">VAPT &amp; Vulnerabilities</a>
+      <a href="risks-tprm.html" class="subnav">Third-Party Risk</a>
       <a href="controls.html">Compliance &amp; Controls</a>
       <a href="evidence.html">Audit &amp; Evidence</a>
       <a href="operations.html">IT Operations</a>
@@ -143,6 +144,17 @@ h1{font-size:26px;line-height:1.2;margin:0 0 4px;font-weight:900}
         </div>
         <a href="risks-vapt.html" class="hub-manage">View VAPT Log &#8250;</a>
       </div>
+      <div class="hub-card">
+        <div class="hub-icon" style="background:#e8effa">&#129309;</div>
+        <h3>Third-Party Risk</h3>
+        <p>Tier vendors by inherent risk, run security assessments, track findings and contracts, and keep reviews on schedule. Gaps against DPDP Sec 8(2) are flagged automatically.</p>
+        <div class="hub-stats">
+          <div class="hub-stat"><strong id="hs-tp-vendors">-</strong><span>Active vendors</span></div>
+          <div class="hub-stat"><strong id="hs-tp-overdue">-</strong><span>Reviews overdue</span></div>
+          <div class="hub-stat"><strong id="hs-tp-findings">-</strong><span>Open findings</span></div>
+        </div>
+        <a href="risks-tprm.html" class="hub-manage">Manage Third-Party Risk &#8250;</a>
+      </div>
     </div>
   </main>
 </div>
@@ -175,6 +187,11 @@ function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
   if(nm)nm.textContent=n;if(ro)ro.textContent=r;
   if(av){var i=n.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();av.textContent=i||'U';}
 
+  fetch('/api/v1/tprm',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},body:JSON.stringify({_func:'get_tprm_metrics'})})
+    .then(function(r){return r.json();}).then(function(d){
+      if(!d||!d.success)return;
+      set('hs-tp-vendors',d.vendors_total||0);set('hs-tp-overdue',d.reviews_overdue||0);set('hs-tp-findings',d.open_findings||0);
+    }).catch(function(){});
   api('get_risk_metrics',{},function(err,d){
     if(err)return;
     set('m-open-risks', d.open_risks||0);
