@@ -2,7 +2,7 @@
 -- MODULE: DPIA (Data Protection Impact Assessment) under Data Governance
 -- Depends on: 01_init.sql (users), 02_data_register.sql (data_assets), 18_data_governance.sql
 -- Uses the existing 'data' role_permissions module; no new module row is required.
--- See docs/dpia-plan.md.
+-- See docs/architecture/system-design.md section 5.2.
 -- ==========================================
 
 -- Two risk signals that are not derivable from existing columns (volume_estimate is free text).

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 // Data Discovery. v1 matches column names from an uploaded information_schema export against
 // discovery_rules and proposes Data Register entries. Nothing is written to data_assets until a
 // finding is accepted. No connection is made to the source system and no values are read.
-// See docs/data-discovery-plan.md.
+// See docs/guides/data-governance-guide.md and docs/architecture/system-design.md section 5.2.
 public class DataDiscovery implements Action {
 
     private static final int MAX_COLUMNS = 50000;

@@ -102,6 +102,28 @@ All secrets have safe local defaults, except `TSI_BOOTSTRAP_TOKEN`, which has no
 | `ALLOWED_ORIGINS` | `http://localhost:8085` | CORS allowed origin |
 | `TSI_VENDOR_PORTAL_ENABLED` | `false` | Turns on the vendor portal (`/vendorportal/`). When off, vendor logins are refused and the portal pages return 404. If you turn it on, only `/vendorportal/`, `/index.html` and `/api/` need to be reachable from outside; the console can stay on your internal network |
 
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [System Design](docs/architecture/system-design.md) | Architecture, request flow, roles and permissions, module map, Data Governance, Third-Party Risk and Vendor Portal design, security model, configuration, known limits |
+
+### Guides
+
+| If you are... | Read | It covers |
+|---|---|---|
+| A developer building from source | [Local Development Guide](docs/guides/local-development-guide.md) | Prerequisites, Docker and WAR builds, database scripts, adding a module |
+| Taking it to production | [Production Deployment Guide](docs/guides/production-deployment-guide.md) | Secrets, TLS, network, hardening, backups, upgrades |
+| An Admin | [Platform and Access Guide](docs/guides/platform-and-access-guide.md) | Users, roles and permissions, API keys, business settings, import, audit trail |
+| In GRC | [Governance and Policy](docs/guides/governance-and-policy-guide.md), [Risk and Vulnerability](docs/guides/risk-and-vulnerability-guide.md), [Compliance and Controls](docs/guides/compliance-and-controls-guide.md), [Audit and Evidence](docs/guides/audit-and-evidence-guide.md) | The day-to-day GRC modules |
+| Managing vendors | [Third-Party Risk Guide](docs/guides/third-party-risk-guide.md), [Vendor Portal Guide](docs/guides/vendor-portal-guide.md) | Tiering, assessments, findings, contracts, and how to test the vendor portal end to end |
+| Working on DPDP | [Data Governance Guide](docs/guides/data-governance-guide.md) | Principals, Register, Flows, RoPA, DPIA, Discovery; demo data in [`examples/datagov`](examples/datagov/) |
+| In IT or security operations | [IT Operations Guide](docs/guides/it-operations-guide.md), [Incidents and Awareness Guide](docs/guides/incidents-and-awareness-guide.md) | Changes, assets, helpdesk, SBOM and CBOM, incidents, training |
+| Reporting | [Reports and Dashboard Guide](docs/guides/reports-and-dashboard-guide.md) | Dashboard, CSV exports, monthly report |
+| An employee or manager | [Self-Service Portal Guide](docs/guides/self-service-portal-guide.md) | Tickets, change requests, approvals, team management |
+
+Every module's API functions are listed at `/tour/api.html` in a running instance.
+
 ---
 
 ## Backups
@@ -126,8 +148,12 @@ tsi-compass/
 │   ├── 20_data_discovery.sql     # Data Discovery: sources, imports, findings and seeded column-name detection rules
 │   ├── 21_tprm.sql               # Third-Party Risk: vendor risk columns, questionnaires, assessments, findings, contracts, documents
 │   └── 22_vendor_portal.sql      # Vendor portal: VENDOR role, request state on assessments, vendor evidence
+├── docs/
+│   ├── architecture/             # system-design.md, the one consolidated design document
+│   └── guides/                   # Task-oriented guides, one per module
 ├── examples/
-│   └── datagov/                  # Data Governance demo data (Varam DPDP RoPA scenario) - see its README
+│   ├── datagov/                  # Data Governance demo data (Varam DPDP RoPA scenario, discovery CSVs) - see its README
+│   └── policy/                   # Sample IT policy PDF
 ├── scripts/
 │   ├── backup.sh                 # Daily DB backup to a shared/NAS directory (see scripts/README.md)
 │   └── restore.sh                # Restore + verify a backup (see scripts/README.md)
@@ -189,6 +215,7 @@ If a user forgets their password:
   - Optional **vendor portal** (off by default): vendors answer the questionnaire online and see nothing else.
   - Deleting a vendor now archives it instead of erasing its history.
 - **Data Governance: DPIA and Data Discovery** - DPIAs auto-derived from the register and flows with an approval workflow; Data Discovery matches column names in an uploaded schema export against India-focused rules and proposes Data Register entries for review.
+- **Documentation reorganised** - the planning documents are replaced by one [System Design](docs/architecture/system-design.md), and a [guide](docs/guides/) for each module. The Varam demo gains discovery CSVs and a script to finish the scenario after Discovery.
 - **Sign-in throttling** - repeated failed sign-ins for the same account from the same address are now rate-limited (429) for every role.
 - **Access control** - roles with READ on a module can no longer call write functions, and the console pages of a module a role has no access to are no longer served.
 

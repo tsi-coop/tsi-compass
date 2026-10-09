@@ -14,7 +14,7 @@ import java.sql.*;
 
 // 2d. Data Flow Mapping - records how data moves between systems/parties, including the
 // ad-hoc channels (WhatsApp, personal email, USB) nobody formally manages. See
-// docs/data-register-phase2-plan.md.
+// docs/architecture/system-design.md section 5.2.
 public class DataFlows implements Action {
 
     @Override

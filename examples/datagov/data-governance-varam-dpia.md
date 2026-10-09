@@ -1,6 +1,6 @@
 # DPIA walkthrough: the Varam example
 
-Continues `data-governance-varam-example.md`. Shows how the DPIA page (`data-governance-dpia.html`, DPDP Sec 10(2)(c)(i) / Rule 13(1)) derives a risk rating for each of the 7 Varam processing activities, and how to take one through review. Scoring rules are in `docs/dpia-plan.md` section 2.
+Continues `data-governance-varam-example.md`. Shows how the DPIA page (`data-governance-dpia.html`, DPDP Sec 10(2)(c)(i) / Rule 13(1)) derives a risk rating for each of the 7 Varam processing activities, and how to take one through review. Scoring rules are in `docs/architecture/system-design.md` (section 5.2).
 
 ## Load it
 

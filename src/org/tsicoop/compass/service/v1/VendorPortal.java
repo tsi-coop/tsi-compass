@@ -36,7 +36,7 @@ import java.util.UUID;
  *
  * Responses use a dedicated shape: question text, guidance and the vendor's own answers only. Weights,
  * critical flags, references, scores, findings, tiers and assessor notes are never included.
- * See docs/tprm-vendor-portal-spec.md.
+ * See docs/guides/vendor-portal-guide.md and docs/architecture/system-design.md.
  */
 public class VendorPortal implements Action {
 

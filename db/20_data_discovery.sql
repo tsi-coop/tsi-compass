@@ -2,7 +2,7 @@
 -- MODULE: DATA DISCOVERY under Data Governance
 -- Depends on: 01_init.sql (users), 02_data_register.sql (data_assets), 18_data_governance.sql
 -- Uses the existing 'data' role_permissions module; no new module row is required.
--- See docs/data-discovery-plan.md.
+-- See docs/guides/data-governance-guide.md and docs/architecture/system-design.md section 5.2.
 --
 -- v1 is an offline schema import: the user uploads the output of an information_schema query
 -- and columns are matched against discovery_rules by name. No connection to the source system

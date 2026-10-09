@@ -17,7 +17,7 @@ A ready-to-load demo scenario for the Data Governance module (Data Principals, D
 
 ## Run it
 
-Prerequisites: `db/18_data_governance.sql` already applied (see its header, or `docs/data-register-phase2-plan.md` section 0), and the default seed data from `db/01_init.sql` (frameworks, requirements) and `db/18_data_governance.sql` (Customer/Employee data principals) present and unmodified.
+Prerequisites: `db/18_data_governance.sql` already applied (see its header, or `docs/architecture/system-design.md` section 5.2), and the default seed data from `db/01_init.sql` (frameworks, requirements) and `db/18_data_governance.sql` (Customer/Employee data principals) present and unmodified.
 
 ```bash
 docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass \

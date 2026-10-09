@@ -3,7 +3,7 @@
 -- Depends on: 01_init.sql (users, role_permissions), 03/07 (role constraint), 21_tprm.sql
 -- Vendor contacts sign in as role VENDOR at /vendorportal/ to answer the security questionnaires
 -- GRC sends them. The portal is off unless TSI_VENDOR_PORTAL_ENABLED=true.
--- See docs/tprm-vendor-portal-spec.md.
+-- See docs/guides/vendor-portal-guide.md and docs/architecture/system-design.md.
 -- ==========================================
 
 -- 1. New role. A VENDOR user belongs to exactly one vendor; the application requires vendor_id for the role

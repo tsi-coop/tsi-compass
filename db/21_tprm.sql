@@ -3,7 +3,7 @@
 -- Depends on: 01_init.sql (users, vendors, risks), 02_data_register.sql, 18_data_governance.sql
 -- Sits under Risk & Vulnerability and reuses the existing 'risks' role_permissions module
 -- (ADMIN / GRC_OFFICER only, IT_STAFF none); no new module row is required.
--- See docs/tprm-plan.md.
+-- See docs/guides/third-party-risk-guide.md and docs/architecture/system-design.md.
 -- ==========================================
 
 -- ---------- 1. Extend the shared vendor register (all columns nullable or defaulted) ----------

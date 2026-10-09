@@ -2,7 +2,7 @@
 -- Demo data: DPIA risk signals for the Varam example
 --
 -- Run AFTER db/19_dpia.sql and seed-varam-data.sql. Sets the two risk signals
--- that cannot be derived from other columns (see docs/dpia-plan.md section 2),
+-- that cannot be derived from other columns (see docs/architecture/system-design.md section 5.2),
 -- so the DPIA page shows a spread of risk levels. Idempotent; touches only
 -- the 'Varam %' data assets. Then click "Auto-generate from RoPA" on the
 -- DPIA page (data-governance-dpia.html).

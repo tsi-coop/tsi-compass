@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 // DPIA (Data Protection Impact Assessment). One per processing activity (a data_assets row),
-// with the risk derived from the Data Register / Data Flows. See docs/dpia-plan.md.
+// with the risk derived from the Data Register / Data Flows. See docs/architecture/system-design.md section 5.2.
 public class Dpia implements Action {
 
     private static final String SELECT_ASSETS =

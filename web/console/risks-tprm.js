@@ -1,5 +1,5 @@
 'use strict';
-// Third-Party Risk console (risks-tprm.html). All data comes from /api/v1/tprm; see docs/tprm-plan.md.
+// Third-Party Risk console (risks-tprm.html). All data comes from /api/v1/tprm; see docs/guides/third-party-risk-guide.md and docs/architecture/system-design.md.
 var TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = '../index.html';
 var IS_ADMIN = (localStorage.getItem('role') === 'ADMIN');
@@ -353,7 +353,16 @@ function tabAssessments() {
 }
 function startAssessment() {
   var v = S.vendor;
-  call('list_questionnaires').then(function (d) {
+  // One open assessment per vendor: take the user back to it instead of failing on the server.
+  call('list_assessments', { vendor_id: v.id }).then(function (a) {
+    var open = (a.assessments || []).filter(function (x) { return x.status === 'DRAFT' || x.status === 'SENT' || x.status === 'IN_REVIEW'; })[0];
+    if (open) {
+      if (confirm(v.name + ' already has an assessment in progress (' + nice(open.status) + ', started ' + day(open.created_at) + ').\n\nOpen it now? Complete or cancel it before starting another.')) openAssessment(open.id);
+      return null;
+    }
+    return call('list_questionnaires');
+  }).then(function (d) {
+    if (!d) return;
     var qs = (d.questionnaires || []).filter(function (q) { return q.is_active; });
     if (!qs.length) { alert('No active questionnaire. An administrator can activate one on the Questionnaires tab.'); return; }
     var def = v.inherent_risk === 'LOW' ? 'a lighter-touch review' : 'a full review';

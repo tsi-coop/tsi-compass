@@ -31,7 +31,7 @@ import java.util.UUID;
 
 // Third-Party Risk Management. Extends the shared vendor register (vendors table) with a risk tier,
 // questionnaire-based assessments, findings, contracts, documents, computed gaps and a review cadence.
-// Sits under Risk & Vulnerability and uses the 'risks' permission module. See docs/tprm-plan.md.
+// Sits under Risk & Vulnerability and uses the 'risks' permission module. See docs/guides/third-party-risk-guide.md and docs/architecture/system-design.md.
 public class Tprm implements Action {
 
     // ---------- small framework bits ----------
