@@ -1,0 +1,35 @@
+table_schema,table_name,column_name,data_type
+hr,employee_payroll,payroll_id,uuid
+hr,employee_payroll,employee_id,character varying
+hr,employee_payroll,full_name,character varying
+hr,employee_payroll,pan_number,character varying
+hr,employee_payroll,aadhaar_number,character varying
+hr,employee_payroll,bank_account_details,text
+hr,employee_payroll,salary_details,jsonb
+hr,employee_payroll,uan_number,character varying
+hr,employee_payroll,pay_month,date
+hr,employee_payroll,processed_on,timestamp with time zone
+hr,employee_health_insurance,enrolment_id,uuid
+hr,employee_health_insurance,employee_id,character varying
+hr,employee_health_insurance,full_name,character varying
+hr,employee_health_insurance,date_of_birth,date
+hr,employee_health_insurance,dependent_details,jsonb
+hr,employee_health_insurance,health_declaration,text
+hr,employee_health_insurance,medical_history,text
+hr,employee_health_insurance,blood_group,character varying
+hr,employee_health_insurance,contact_information,text
+hr,employee_health_insurance,policy_ref,character varying
+hr,employee_performance,review_id,uuid
+hr,employee_performance,employee_id,character varying
+hr,employee_performance,first_name,character varying
+hr,employee_performance,last_name,character varying
+hr,employee_performance,work_email,character varying
+hr,employee_performance,performance_appraisals,jsonb
+hr,employee_performance,training_records,jsonb
+hr,employee_performance,attendance_logs,jsonb
+hr,employee_performance,review_cycle,character varying
+hr,employee_performance,reviewed_on,date
+hr,holiday_calendar,holiday_id,integer
+hr,holiday_calendar,holiday_name,character varying
+hr,holiday_calendar,holiday_date,date
+hr,holiday_calendar,is_optional,boolean

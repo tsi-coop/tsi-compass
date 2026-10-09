@@ -1,0 +1,51 @@
+table_schema,table_name,column_name,data_type
+lending,borrower_kyc,kyc_id,uuid
+lending,borrower_kyc,borrower_id,uuid
+lending,borrower_kyc,full_name,text
+lending,borrower_kyc,pan_card,character varying
+lending,borrower_kyc,masked_aadhaar,character varying
+lending,borrower_kyc,voter_id,character varying
+lending,borrower_kyc,photo,bytea
+lending,borrower_kyc,kyc_verified,boolean
+lending,borrower_kyc,verified_on,timestamp with time zone
+lending,borrower_kyc,cersai_ref,character varying
+lending,credit_assessment,assessment_id,uuid
+lending,credit_assessment,borrower_id,uuid
+lending,credit_assessment,date_of_birth,date
+lending,credit_assessment,income_details,jsonb
+lending,credit_assessment,bank_statements,bytea
+lending,credit_assessment,bank_account_no,character varying
+lending,credit_assessment,existing_loan_info,jsonb
+lending,credit_assessment,employment_status,character varying
+lending,credit_assessment,credit_score,integer
+lending,credit_assessment,cibil_ref,character varying
+lending,credit_assessment,assessed_on,timestamp with time zone
+lending,loan_servicing,loan_id,uuid
+lending,loan_servicing,borrower_id,uuid
+lending,loan_servicing,bank_account_no,character varying
+lending,loan_servicing,ifsc_code,character varying
+lending,loan_servicing,contact_number,character varying
+lending,loan_servicing,current_location,text
+lending,loan_servicing,principal_amount,numeric
+lending,loan_servicing,emi_amount,numeric
+lending,loan_servicing,loan_status,character varying
+lending,loan_servicing,disbursed_on,date
+lending,marketing_offers,offer_id,uuid
+lending,marketing_offers,borrower_id,uuid
+lending,marketing_offers,first_name,character varying
+lending,marketing_offers,mobile_number,character varying
+lending,marketing_offers,email_address,character varying
+lending,marketing_offers,preferred_language,character varying
+lending,marketing_offers,consent_given,boolean
+lending,marketing_offers,campaign_code,character varying
+lending,marketing_offers,sent_on,timestamp with time zone
+lending,loan_products,product_id,integer
+lending,loan_products,product_name,character varying
+lending,loan_products,interest_rate,numeric
+lending,loan_products,tenure_months,integer
+lending,loan_products,is_active,boolean
+lending,system_audit_log,log_id,bigint
+lending,system_audit_log,event_type,character varying
+lending,system_audit_log,ip_address,inet
+lending,system_audit_log,user_agent,text
+lending,system_audit_log,created_at,timestamp with time zone
