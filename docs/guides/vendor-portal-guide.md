@@ -23,16 +23,47 @@ PDF, DOCX, XLSX, PNG and JPG only; the file's contents must match its extension;
 A vendor user belongs to one vendor and can reach only that vendor's requests. A `VENDOR` token can call only the vendor-portal API. Disabling a portal user, or archiving the vendor, cuts access on the next request. Failed sign-ins are rate-limited. Everything is audited.
 
 ## Testing it end to end
-1. Enable the portal and restart:
-   ```bash
-   echo "TSI_VENDOR_PORTAL_ENABLED=true" >> .env
-   docker compose up -d
-   ```
-   A database created before the portal existed also needs the migration once:
-   ```bash
-   docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass -v ON_ERROR_STOP=1 < db/22_vendor_portal.sql
-   ```
-2. **Prepare (console, Admin or GRC Officer).** Risk and Vulnerability, Third-Party Risk: add a vendor, add a portal user (copy the password), start an assessment, **Send to vendor portal**.
-3. **Sign in as the vendor in a private window.** Tokens are stored per browser, so an incognito window keeps your console session. Open `http://localhost:8085/`, sign in with the portal user, answer questions, attach evidence, sign out and back in to confirm progress is kept, then **Submit**.
-4. **Review (console).** Refresh the assessment: the portal badge shows *Submitted*. Tick **Return to vendor** on one question with a note, return it, and confirm only that question reopens in the vendor window. Answer and resubmit, then **Complete assessment**.
-5. **Try these.** A second vendor must not see the first vendor's request. A vendor opening `/console/dashboard.html` is sent back to the portal. Withdraw while the vendor holds it. Disable the portal user and watch the session stop. Switch the portal off and confirm `/vendorportal/` returns 404.
+
+**Short answer: yes, you need a separate login.** The portal only accepts `VENDOR` users. Your Admin or GRC Officer account cannot sign in to it (portal pages are refused to other roles), and a vendor account cannot sign in to the console. So a test uses two accounts at the same time:
+
+| Login | Who | Where | Created by |
+|---|---|---|---|
+| Your normal Admin or GRC Officer account | You, as the assessor | `http://localhost:8085/console/` | Already exists |
+| A **portal user** for a test vendor | You, pretending to be the vendor | `http://localhost:8085/vendorportal/` (you are sent there after signing in) | You, in step 2 below |
+
+You make the portal user yourself from the console; it takes about a minute and needs no email (use any address, for example `test.vendor@example.com`).
+
+Keep the two logins in **separate browser windows**. Sign-in tokens are stored per browser, so use a private/incognito window (or a different browser) for the vendor, otherwise signing in as the vendor replaces your console session.
+
+### Step 1. Turn the portal on
+```bash
+echo "TSI_VENDOR_PORTAL_ENABLED=true" >> .env
+docker compose up -d
+```
+A database created before the portal existed also needs its migration once (a fresh install already has it):
+```bash
+docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass -v ON_ERROR_STOP=1 < db/22_vendor_portal.sql
+```
+
+### Step 2. In the console (normal window): create a test vendor, a portal user and a request
+1. Sign in as Admin or GRC Officer. Go to **Risk and Vulnerability**, then **Third-Party Risk**, then the **Vendors** tab. Add a vendor (any name, for example "Test Vendor"), or open an existing one.
+2. In the vendor's drawer open **Portal users**, click **+ Add portal user**, enter a name and an email, and click **Create account**.
+3. A dialog shows the sign-in email and a **temporary password, once**. Copy both.
+4. Open the vendor's **Assessments** tab, click **Start assessment**, pick the questionnaire and start.
+5. In the assessment, click **Send to vendor portal** and choose a due date.
+
+### Step 3. In the private window: act as the vendor
+1. Open `http://localhost:8085/`. Sign in with the **portal user's email and temporary password** (not your admin login). You land in the vendor portal.
+2. **My assessments** shows the request. Open it, answer the questions, attach evidence (optional), sign out and back in to confirm progress is kept, then **Submit**.
+
+### Step 4. Back in the console window: review
+1. Reopen the assessment. The portal badge shows *Submitted*.
+2. Tick **Return to vendor** on one question with a note and click **Return ticked questions to vendor**. In the vendor window, refresh: only that question reopens. Answer and resubmit.
+3. Click **Complete assessment**.
+
+### Things to try
+- Add a second vendor with its own portal user: it must not see the first vendor's request.
+- Signed in as the vendor, open `http://localhost:8085/console/dashboard.html`: you are sent back to the portal.
+- **Withdraw** a request while the vendor holds it.
+- Disable the portal user (Portal users tab); the vendor session stops on its next action.
+- Set `TSI_VENDOR_PORTAL_ENABLED=false`, restart, and `/vendorportal/` returns 404.
