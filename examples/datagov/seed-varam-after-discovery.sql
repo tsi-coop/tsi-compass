@@ -11,6 +11,9 @@
 -- It is the discovery-first alternative to seed-varam-data.sql: do not run both.
 -- It only touches the 7 entries named below and the flows it creates; it
 -- deletes nothing else. Idempotent: flows are replaced, other rows upserted.
+-- It also inserts any of the five recipient vendors (CIBIL, AWS, Twilio, Greytip,
+-- HDFCLife) missing from vendors and links VENDOR recipients to them; existing
+-- vendors are left as-is.
 --
 -- Prerequisites: db/18_data_governance.sql, db/19_dpia.sql, db/20_data_discovery.sql
 -- applied; both CSVs imported and all tables accepted (the script stops with an
@@ -111,9 +114,15 @@ WHERE p.name = 'Employee'
   AND d.name IN ('Varam Employee Payroll, Taxation & Compliance','Varam Employee Health Insurance & Benefits',
                  'Varam Employee Performance & Skill Development');
 
+-- ===================== Vendors (for recipient linking) =====================
+-- vendors.name is UNIQUE: existing vendors are left untouched, missing ones are created.
+INSERT INTO vendors (name) VALUES
+  ('CIBIL'), ('AWS'), ('Twilio'), ('Greytip'), ('HDFCLife')
+ON CONFLICT (name) DO NOTHING;
+
 -- ===================== Recipients (Shared With) =====================
-INSERT INTO data_asset_recipients (data_asset_id, recipient_type, recipient_name, purpose_of_sharing)
-SELECT d.id, r.recipient_type, r.recipient_name, r.purpose_of_sharing
+INSERT INTO data_asset_recipients (data_asset_id, recipient_type, linked_vendor_id, recipient_name, purpose_of_sharing)
+SELECT d.id, r.recipient_type, v.id, r.recipient_name, r.purpose_of_sharing
 FROM varam_assets d JOIN (VALUES
   ('Varam Borrower KYC & Identity Verification',   'REGULATOR', 'CERSAI',   'Central registry verification'),
   ('Varam Borrower Credit Assessment & Scoring',   'VENDOR',    'CIBIL',    'Credit bureau enquiry'),
@@ -123,7 +132,9 @@ FROM varam_assets d JOIN (VALUES
   ('Varam Employee Payroll, Taxation & Compliance','REGULATOR', 'EPFO',     'Provident fund administration'),
   ('Varam Employee Health Insurance & Benefits',   'VENDOR',    'HDFCLife', 'Group health insurance provider'),
   ('Varam Employee Performance & Skill Development','VENDOR',   'Greytip',  'HRMS platform for performance and training records')
-) AS r(asset_name, recipient_type, recipient_name, purpose_of_sharing) ON r.asset_name = d.name;
+) AS r(asset_name, recipient_type, recipient_name, purpose_of_sharing) ON r.asset_name = d.name
+-- REGULATOR rows (CERSAI, EPFO) match no vendor and stay unlinked.
+LEFT JOIN vendors v ON r.recipient_type = 'VENDOR' AND v.name = r.recipient_name;
 
 -- ===================== Compliance mapping (Gap Assessment) =====================
 INSERT INTO data_asset_requirement_mappings (data_asset_id, requirement_id)

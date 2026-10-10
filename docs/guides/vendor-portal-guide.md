@@ -8,7 +8,7 @@ The vendor portal lets people at your vendors answer the security questionnaire 
 
 ## How it works
 1. **Provision.** In Third-Party Risk, open the vendor, **Portal users**, **+ Add portal user** (name and email). A temporary password is shown once.
-2. **Send.** On an assessment click **Send to vendor portal** and set a due date. It needs at least one active portal user.
+2. **Send.** Click **Send to vendor** on the assessment's row in the Assessments list, or **Send to vendor portal** in the banner at the top of the open assessment, and set a due date. It needs at least one active portal user.
 3. **Respond.** The vendor signs in, opens **My assessments**, answers each question (Yes, No, N/A, comment), attaches evidence, and saves progress at any time.
 4. **Submit.** Every scored question must be answered; the vendor ticks a declaration. The form locks.
 5. **Review.** The assessor sees vendor-provided answers and evidence, may correct an answer (the vendor's original is kept), or **returns** chosen questions with a note. Only returned questions reopen for the vendor.

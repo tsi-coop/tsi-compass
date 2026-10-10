@@ -56,6 +56,8 @@ An optional Vendor Portal at `/vendorportal/` (off unless `TSI_VENDOR_PORTAL_ENA
 | **Installation Walkthrough** | [https://youtu.be/WRR5JjrhSmY](https://youtu.be/WRR5JjrhSmY) |
 | **Functional Overview** | [https://youtu.be/bVPx1KHzx0w](https://youtu.be/bVPx1KHzx0w) |
 | **Ticketing System Demo - Supervisor Approval** | [https://youtu.be/SBxnE55q3Z8](https://youtu.be/SBxnE55q3Z8) |
+| **Data Governance Module** | [https://youtu.be/o_s8M9JCoq8](https://youtu.be/o_s8M9JCoq8) |
+| **Third Party Risk Management Module** | [https://youtu.be/ZT7UIo7GBqg](https://youtu.be/ZT7UIo7GBqg) |
 ---
 
 ## Quick start

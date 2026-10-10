@@ -342,7 +342,8 @@ function assessmentTable(list, showVendor) {
       return '<tr>' + (showVendor ? '<td><strong>' + esc(a.vendor_name) + '</strong>' + (a.vendor_archived ? ' <span class="badge b-TERMINATED">Archived</span>' : '') + '</td>' : '') +
         '<td>' + day(a.created_at) + '</td><td>' + esc(nice(a.assessment_type)) + '</td><td>' + esc(a.questionnaire_name) + '</td><td>' + badge(a.status) + '</td><td>' + portalBadge(a.portal_status) + '</td>' +
         '<td>' + a.answered + ' / ' + a.total_questions + '</td><td>' + (a.score_pct == null ? '-' : a.score_pct + '%') + '</td><td>' + badge(a.residual_risk) + '</td><td>' + esc(a.conclusion ? nice(a.conclusion) : '-') + '</td>' +
-        '<td><button class="btn sm primary" onclick="openAssessment(\'' + esc(a.id) + '\')">' + (a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'View' : 'Continue') + '</button></td></tr>';
+        '<td style="white-space:nowrap">' + (a.status === 'DRAFT' && a.portal_status === 'NOT_SENT' && !a.vendor_archived ? '<button class="btn sm primary" onclick="sendVendorUi(\'' + esc(a.id) + '\',\'' + esc(a.vendor_name) + '\',\'' + esc(a.due_date || '') + '\')">Send to vendor</button> ' : '') +
+        '<button class="btn sm' + (a.status === 'DRAFT' && a.portal_status === 'NOT_SENT' && !a.vendor_archived ? '' : ' primary') + '" onclick="openAssessment(\'' + esc(a.id) + '\')">' + (a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'View' : 'Continue') + '</button></td></tr>';
     }).join('') + '</tbody></table>';
 }
 function tabAssessments() {
@@ -407,6 +408,7 @@ function renderAssessment() {
   var open = live && !withVendor; // the assessor can edit only while the vendor does not hold the questionnaire
   var scored = pr.scored_questions, done = scored - pr.unanswered;
   var html = '<div style="display:flex;justify-content:space-between;gap:10px"><div><h3 style="margin-bottom:2px">' + esc(a.vendor_name) + '</h3><div class="sub" style="margin:0">' + esc(a.questionnaire_name) + ' &middot; ' + esc(nice(a.assessment_type)) + ' &middot; assessor ' + esc(a.assessor_name || '-') + '</div></div><div>' + badge(a.status) + ' ' + (ps !== 'NOT_SENT' ? portalBadge(ps) : '') + '</div></div>' +
+    (open && ps === 'NOT_SENT' ? '<div class="banner" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;background:#eef3fb;border-color:#bccbe6;color:#1f3a6b"><span><strong>Not yet sent to the vendor.</strong> Send it to the portal so ' + esc(a.vendor_name) + ' can answer online, or fill it in yourself below.</span><button class="btn primary" style="white-space:nowrap" onclick="sendVendorUi()">Send to vendor portal</button></div>' : '') +
     '<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px"><span id="as-prog-txt">' + done + ' of ' + scored + ' scored questions answered</span><span>Live score: <strong id="as-score">' + (done ? pr.score_pct + '%' : '-') + '</strong></span></div><div class="bar"><i id="as-bar" style="width:' + (scored ? Math.round(100 * done / scored) : 0) + '%"></i></div></div>';
   if (withVendor) html += '<div class="banner" style="background:#fff8e6;border-color:#f3dca0;color:#7a5a12"><strong>With the vendor' + (a.portal_due_date ? ' (due ' + esc(a.portal_due_date.substring(0, 10)) + ')' : '') + '.</strong> Sent ' + day(a.sent_at) + '. Answers are read-only here until the vendor submits. You can withdraw it from the vendor to edit it yourself.</div>';
   if (ps === 'SUBMITTED' && a.status !== 'COMPLETED') html += '<div class="banner" style="background:#eef6f2;border-color:#bfe0cc;color:#1f5a3c"><strong>Submitted by ' + esc(a.submitted_by_name || 'the vendor') + ' on ' + day(a.submitted_at) + '.</strong> Review the vendor\'s answers. You can correct an answer (the vendor\'s original is kept) or tick questions and return them to the vendor for clarification.</div>';
@@ -459,12 +461,19 @@ function vendorFileRow(f) {
   return '<div style="padding:2px 0">&#128206; <strong>' + esc(f.file_name) + '</strong> <span style="color:var(--muted)">' + esc(nice(f.doc_type)) + (f.valid_until ? ', valid until ' + day(f.valid_until) : '') + (kb ? ', ' + kb : '') + ', by ' + esc(f.uploaded_by_name || '-') + '</span> ' +
     '<button class="btn sm" onclick="downloadDoc(\'' + esc(f.id) + '\')">Download</button></div>';
 }
-function sendVendorUi() {
+// id/name/due optional: called from the assessments list without opening the assessment first.
+function sendVendorUi(id, vendorName, dueDate) {
+  var aid = id || S.assess.id, vname = vendorName || S.assess.vendor_name, due = id ? dueDate : S.assess.due_date;
   openForm({
     title: 'Send to vendor portal', submit: 'Send',
-    intro: 'The questionnaire becomes visible to the portal users of <strong>' + esc(S.assess.vendor_name) + '</strong>. You will not be able to edit the answers until they submit or you withdraw it.',
-    fields: [{ key: 'due_date', label: 'Respond by', type: 'date', value: S.assess.due_date ? S.assess.due_date.substring(0, 10) : '' }],
-    onSubmit: function (v) { return call('send_to_vendor', { id: S.assess.id, due_date: v.due_date }).then(function () { toast('Sent to the vendor'); openAssessment(S.assess.id); }); }
+    intro: 'The questionnaire becomes visible to the portal users of <strong>' + esc(vname) + '</strong>. You will not be able to edit the answers until they submit or you withdraw it.',
+    fields: [{ key: 'due_date', label: 'Respond by', type: 'date', value: due ? due.substring(0, 10) : '' }],
+    onSubmit: function (v) {
+      return call('send_to_vendor', { id: aid, due_date: v.due_date }).then(function () {
+        toast('Sent to the vendor');
+        if (S.assess && S.assess.id === aid) openAssessment(aid); else refreshAll();
+      });
+    }
   });
 }
 function withdrawUi() {

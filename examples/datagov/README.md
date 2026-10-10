@@ -26,7 +26,7 @@ docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass \
 
 Adjust the container/user/db names if your deployment overrides the defaults (see the main `README.md`'s Environment Variables table).
 
-**This deletes every existing row in `data_flows` and `data_assets`** (and, by cascade, their access/recipients/principals/requirement-mapping rows) before loading the example data. It does not touch any other module.
+**This deletes every existing row in `data_flows` and `data_assets`** (and, by cascade, their access/recipients/principals/requirement-mapping rows) before loading the example data. It does not delete from any other module, but it does create the five recipient vendors (CIBIL, AWS, Twilio, Greytip, HDFCLife) if they are not already in Vendors, and links the VENDOR recipients to them (REGULATOR recipients such as CERSAI and EPFO stay unlinked).
 
 After it runs, open `data-governance-ropa.html` and filter by Framework (DPDP) or by Data Principal (Customer vs. Employee) to see the two activities export cleanly as separate RoPA rows.
 
@@ -41,7 +41,7 @@ Prerequisites as above, plus `db/19_dpia.sql` and `db/20_data_discovery.sql` app
    docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass \
      -v ON_ERROR_STOP=1 < examples/datagov/seed-varam-after-discovery.sql
    ```
-   Unlike `seed-varam-data.sql`, this deletes nothing outside the 7 entries. It stops with a clear error if one of them has not been accepted yet.
+   Unlike `seed-varam-data.sql`, this deletes nothing outside the 7 entries. Like it, it creates any missing recipient vendors and links VENDOR recipients to them. It stops with a clear error if one of them has not been accepted yet.
 4. **Data Flows.** 8 flows now hang off the discovered entries (CERSAI, CIBIL, AWS, Twilio cross-border to the US, Greytip, EPFO, HDFCLife).
 5. **RoPA Export.** Filter by DPDP, or by Customer vs. Employee.
 6. **DPIA.** Click **Auto-generate from RoPA**; expect 4 High / 1 Medium / 2 Low as in `data-governance-varam-dpia.md`.
