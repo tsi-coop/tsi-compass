@@ -208,19 +208,6 @@ If a user forgets their password:
 
 ## Changelog
 
-### v0.4.4 (Unreleased)
-
-- **Third-Party Risk Management** - a new page under Risk & Vulnerability to manage vendor risk:
-  - Rates each vendor Low to Critical, based on what they do and what data they receive.
-  - Assesses vendors with a ready-made questionnaire and scores the result.
-  - Tracks findings, contracts and certificates, and flags gaps such as personal data shared with no DPA.
-  - Optional **vendor portal** (off by default): vendors answer the questionnaire online and see nothing else.
-  - Deleting a vendor now archives it instead of erasing its history.
-- **Data Governance: DPIA and Data Discovery** - DPIAs auto-derived from the register and flows with an approval workflow; Data Discovery matches column names in an uploaded schema export against India-focused rules and proposes Data Register entries for review.
-- **Documentation reorganised** - the planning documents are replaced by one [System Design](docs/architecture/system-design.md), and a [guide](docs/guides/) for each module. The Varam demo gains discovery CSVs and a script to finish the scenario after Discovery.
-- **Sign-in throttling** - repeated failed sign-ins for the same account from the same address are now rate-limited (429) for every role.
-- **Access control** - roles with READ on a module can no longer call write functions, and the console pages of a module a role has no access to are no longer served.
-
 ### v0.4.3
 
 - **Data Governance module** - a new top-level console section replacing the old standalone Data Register page, built around four pieces:
@@ -229,7 +216,17 @@ If a user forgets their password:
   - **Gap assessment** - every data asset is checked live against four conditions (reviewed, processing basis recorded, retention recorded, mapped to a compliance requirement), surfaced as a Gaps stat card, a "Has gaps" filter, and a pass/fail checklist on each asset.
   - **Data Flow Mapping** - a new page recording how data actually moves between systems and parties, including free-text endpoints for channels nobody formally manages (a personal WhatsApp, a personal email account), with an Unapproved-channel badge and cross-border transfer tracking.
   - **RoPA Export** - a Record of Processing Activities export, in standard DPDP/GDPR Art. 30 shape, filterable by framework or by data principal - the filtered view is meant as the working input for drafting a consent policy for that principal.
+- **Data Governance: DPIA and Data Discovery** - DPIAs auto-derived from the register and flows with an approval workflow; Data Discovery matches column names in an uploaded schema export against India-focused rules and proposes Data Register entries for review.
 - **Software Inventory & Crypto Inventory moved under IT Operations** - the former Supply Chain module (SBOM/CBOM) is now reachable from IT Operations, relabeled Software Inventory and Crypto Inventory; the standalone Supply Chain menu is retired.
+- **Third-Party Risk Management** - a new page under Risk & Vulnerability to manage vendor risk:
+  - Rates each vendor Low to Critical, based on what they do and what data they receive.
+  - Assesses vendors with a ready-made questionnaire and scores the result.
+  - Tracks findings, contracts and certificates, and flags gaps such as personal data shared with no DPA.
+  - Optional **vendor portal** (off by default): vendors answer the questionnaire online and see nothing else.
+  - Deleting a vendor now archives it instead of erasing its history.
+- **Documentation reorganised** - the planning documents are replaced by one [System Design](docs/architecture/system-design.md), and a [guide](docs/guides/) for each module. The Varam demo gains discovery CSVs and a script to finish the scenario after Discovery.
+- **Sign-in throttling** - repeated failed sign-ins for the same account from the same address are now rate-limited (429) for every role.
+- **Access control** - roles with READ on a module can no longer call write functions, and the console pages of a module a role has no access to are no longer served.
 
 ### v0.4.2
 
