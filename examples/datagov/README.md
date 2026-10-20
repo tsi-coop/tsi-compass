@@ -13,6 +13,7 @@ A ready-to-load demo scenario for the Data Governance module (Data Principals, D
 | `varam-hrms-schema.csv` | Discovery demo, employee side: Varam's HRMS database (`employee_payroll`, `employee_health_insurance`, `employee_performance`, plus benign `holiday_calendar`). Import under any source name (for example **Varam HRMS**). Expect 11 findings across 3 tables. |
 | `seed-varam-after-discovery.sql` | Finishes the Varam scenario after the two imports above are accepted: classifies the 7 discovered entries and adds principals, recipients, compliance mappings, the 8 data flows and the DPIA risk signals. The discovery-first alternative to `seed-varam-data.sql` (do not run both). |
 | `seed-varam-dpia.sql` | Sets the profiling / large-scale flags the DPIA scoring needs for that scenario. Run after `db/19_dpia.sql` and `seed-varam-data.sql`. |
+| `reset-varam-data.sql` | Removes the Varam demo data (assets, flows, DPIAs, discovery sources and findings) so you can load either path again. Leaves other rows and the seeded vendors alone. Run: `docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass -v ON_ERROR_STOP=1 < examples/datagov/reset-varam-data.sql` |
 | `seed-varam-data.sql` | Loads that scenario into a running instance: 7 data assets, their principal tags, recipients, DPDP/ISO 27001 compliance mappings, and 8 data flows. |
 
 ## Run it
@@ -29,6 +30,17 @@ Adjust the container/user/db names if your deployment overrides the defaults (se
 **This deletes every existing row in `data_flows` and `data_assets`** (and, by cascade, their access/recipients/principals/requirement-mapping rows) before loading the example data. It does not delete from any other module, but it does create the five recipient vendors (CIBIL, AWS, Twilio, Greytip, HDFCLife) if they are not already in Vendors, and links the VENDOR recipients to them (REGULATOR recipients such as CERSAI and EPFO stay unlinked).
 
 After it runs, open `data-governance-ropa.html` and filter by Framework (DPDP) or by Data Principal (Customer vs. Employee) to see the two activities export cleanly as separate RoPA rows.
+
+## Reset and rerun
+
+To clear the demo data and start over (either path):
+
+```bash
+docker exec -i tsi_compass_db psql -U tsi_admin -d tsi_compass \
+  -v ON_ERROR_STOP=1 < examples/datagov/reset-varam-data.sql
+```
+
+This removes only Varam rows: assets named `Varam ...` or ending in the seven discovered `schema.table` names, flows touching them, DPIAs, and discovery sources named `Varam...` (with their runs and findings). The five recipient vendors stay, since Vendors may use them.
 
 ## Demo: from discovery to RoPA and DPIA
 

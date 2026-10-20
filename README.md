@@ -208,6 +208,10 @@ If a user forgets their password:
 
 ## Changelog
 
+### Unreleased
+
+- **Varam demo reset script** - `examples/datagov/reset-varam-data.sql` removes the Varam demo data (assets, flows, DPIAs, discovery sources and findings) so either demo path can be loaded again. Other Data Register rows and the seeded vendors are left alone.
+
 ### v0.4.3
 
 - **Data Governance module** - a new top-level console section replacing the old standalone Data Register page, built around four pieces:
