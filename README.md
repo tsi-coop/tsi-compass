@@ -211,6 +211,7 @@ If a user forgets their password:
 ### Unreleased
 
 - **Varam demo reset script** - `examples/datagov/reset-varam-data.sql` removes the Varam demo data (assets, flows, DPIAs, discovery sources and findings) so either demo path can be loaded again. Other Data Register rows and the seeded vendors are left alone.
+- **TPRM: send-to-portal prompt** - an open assessment that has not been sent to the vendor now shows a "Not yet sent to the vendor" banner with a **Send to vendor portal** button, so the vendor can answer online, or you can fill it in yourself below.
 
 ### v0.4.3
 
