@@ -208,10 +208,12 @@ If a user forgets their password:
 
 ## Changelog
 
-### Unreleased
+### v0.4.4
 
+- **Security: mitigated CVE-2026-114938 ("Java4Shell")** - a heap out-of-bounds write in OpenJDK's AVX-512-accelerated Base64 decoder intrinsic. The Docker base image (`jetty:11-jdk17`) resolves to Temurin 17.0.17, within the publicly reported affected range (17.0.6-17.0.21). `Dockerfile` now sets `JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"`, forcing the plain-Java Base64 fallback regardless of host CPU. This is a runtime mitigation pending an upstream JDK patch, not a code change in this application; see [docs/security-fixes/1.md](docs/security-fixes/1.md). Binary (non-Docker) installs should add `JAVA_TOOL_OPTIONS=-XX:-UseBASE64Intrinsics` to their environment/`.env` and restart.
 - **Varam demo reset script** - `examples/datagov/reset-varam-data.sql` removes the Varam demo data (assets, flows, DPIAs, discovery sources and findings) so either demo path can be loaded again. Other Data Register rows and the seeded vendors are left alone.
 - **TPRM: send-to-portal prompt** - an open assessment that has not been sent to the vendor now shows a "Not yet sent to the vendor" banner with a **Send to vendor portal** button, so the vendor can answer online, or you can fill it in yourself below.
+- **Login page** - removed the stale `v0.32` version label.
 
 ### v0.4.3
 

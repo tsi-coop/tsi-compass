@@ -6,7 +6,7 @@
 
     <groupId>org.tsicoop.compass</groupId>
     <artifactId>tsi-compass</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.4.4</version>
     <packaging>war</packaging>
 
     <name>TSI Compass</name>
